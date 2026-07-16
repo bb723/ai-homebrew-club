@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The AI Homebrew Club</title>
+<style>
+  :root {
+    --bg: #050a14;
+    --bg-panel: #0a1428;
+    --bg-panel-2: #0d1b33;
+    --blue-bright: #38bdf8;
+    --blue-electric: #2563eb;
+    --blue-glow: #60a5fa;
+    --cyan: #22d3ee;
+    --text: #c7d7f0;
+    --text-dim: #7a93b8;
+    --border: #1e3a5f;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background-color: var(--bg);
+    background-image:
+      linear-gradient(rgba(37, 99, 235, 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(37, 99, 235, 0.06) 1px, transparent 1px);
+    background-size: 40px 40px;
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, sans-serif;
+    line-height: 1.7;
+  }
+
+  code, .mono, h1, h2, h3, .tag, nav {
+    font-family: "Cascadia Code", "Consolas", "JetBrains Mono", monospace;
+  }
+
+  .wrap { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+  /* ===== Header ===== */
+  header {
+    padding: 90px 0 60px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    background: radial-gradient(ellipse 70% 90% at 50% 0%, rgba(37, 99, 235, 0.22), transparent);
+  }
+
+  .tag {
+    display: inline-block;
+    color: var(--cyan);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px 16px;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    background: rgba(34, 211, 238, 0.05);
+  }
+
+  h1 {
+    font-size: clamp(2rem, 6vw, 3.4rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #e8f1ff;
+    text-shadow: 0 0 30px rgba(96, 165, 250, 0.45);
+  }
+
+  h1 .accent { color: var(--blue-bright); }
+
+  .subtitle {
+    margin-top: 16px;
+    color: var(--text-dim);
+    font-size: 1.05rem;
+    max-width: 620px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .cursor {
+    display: inline-block;
+    width: 0.55em; height: 1.1em;
+    background: var(--blue-bright);
+    vertical-align: text-bottom;
+    animation: blink 1.1s steps(1) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* ===== Nav ===== */
+  nav {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(5, 10, 20, 0.85);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 0;
+    text-align: center;
+    font-size: 0.85rem;
+  }
+  nav a {
+    color: var(--text-dim);
+    text-decoration: none;
+    margin: 0 16px;
+    transition: color 0.2s, text-shadow 0.2s;
+  }
+  nav a:hover {
+    color: var(--blue-bright);
+    text-shadow: 0 0 12px rgba(56, 189, 248, 0.8);
+  }
+
+  /* ===== Sections ===== */
+  section { padding: 70px 0 20px; }
+
+  h2 {
+    font-size: 1.5rem;
+    color: var(--blue-bright);
+    margin-bottom: 8px;
+  }
+  h2::before { content: "// "; color: var(--blue-electric); }
+
+  .section-sub {
+    color: var(--text-dim);
+    margin-bottom: 32px;
+    font-size: 0.95rem;
+  }
+
+  p { margin-bottom: 18px; }
+  strong { color: #e8f1ff; }
+  em { color: var(--cyan); font-style: normal; }
+
+  /* ===== Panels & cards ===== */
+  .panel {
+    background: linear-gradient(160deg, var(--bg-panel), var(--bg-panel-2));
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+  }
+
+  .quote {
+    border-left: 3px solid var(--blue-bright);
+    padding: 18px 24px;
+    margin: 28px 0;
+    background: rgba(37, 99, 235, 0.08);
+    border-radius: 0 8px 8px 0;
+    color: #dce9fb;
+  }
+  .quote .who { display: block; margin-top: 8px; color: var(--text-dim); font-size: 0.85rem; }
+
+  .tenet-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+
+  .tenet {
+    background: linear-gradient(160deg, var(--bg-panel), var(--bg-panel-2));
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 26px 30px;
+    position: relative;
+    transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
+  }
+  .tenet:hover {
+    border-color: var(--blue-glow);
+    box-shadow: 0 0 24px rgba(37, 99, 235, 0.25);
+    transform: translateY(-2px);
+  }
+  .tenet .num {
+    font-family: "Consolas", monospace;
+    color: var(--blue-electric);
+    font-size: 0.8rem;
+    letter-spacing: 0.15em;
+  }
+  .tenet h3 {
+    color: #e8f1ff;
+    font-size: 1.1rem;
+    margin: 6px 0 10px;
+  }
+  .tenet p { margin-bottom: 0; color: var(--text); font-size: 0.95rem; }
+
+  /* ===== Timeline facts ===== */
+  .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin: 32px 0; }
+  .fact {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    background: rgba(10, 20, 40, 0.6);
+    text-align: center;
+  }
+  .fact .big {
+    display: block;
+    font-family: "Consolas", monospace;
+    font-size: 1.4rem;
+    color: var(--cyan);
+    text-shadow: 0 0 16px rgba(34, 211, 238, 0.5);
+    margin-bottom: 6px;
+  }
+  .fact .small { font-size: 0.85rem; color: var(--text-dim); }
+
+  /* ===== Table ===== */
+  .table-scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.92rem; margin: 24px 0; }
+  th {
+    text-align: left;
+    font-family: "Consolas", monospace;
+    color: var(--blue-bright);
+    font-weight: 600;
+    padding: 12px 16px;
+    border-bottom: 2px solid var(--blue-electric);
+    white-space: nowrap;
+  }
+  td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tr:hover td { background: rgba(37, 99, 235, 0.07); }
+
+  /* ===== Video ===== */
+  .video-frame {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    background: #000;
+    box-shadow: 0 0 30px rgba(37, 99, 235, 0.2);
+    margin: 24px 0;
+  }
+  .video-frame video { display: block; width: 100%; height: auto; }
+
+  .cmd {
+    display: block;
+    font-family: "Cascadia Code", "Consolas", monospace;
+    background: #030710;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 16px 0;
+    color: var(--cyan);
+    font-size: 0.9rem;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .cmd::before { content: "PS> "; color: var(--text-dim); }
+  code { color: var(--cyan); font-size: 0.9em; }
+
+  /* ===== Footer ===== */
+  footer {
+    margin-top: 80px;
+    border-top: 1px solid var(--border);
+    padding: 40px 0 60px;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    font-family: "Consolas", monospace;
+  }
+  footer .glow { color: var(--blue-bright); text-shadow: 0 0 14px rgba(56, 189, 248, 0.7); }
+
+  a { color: var(--blue-bright); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <span class="tag">est. 2026 &middot; biweekly &middot; everyone welcome</span>
+    <h1>THE <span class="accent">AI HOMEBREW</span> CLUB<span class="cursor"></span></h1>
+    <p class="subtitle">A modern revival of the Homebrew Computer Club (1975&ndash;1986) &mdash;
+    the garage meetup that gave the world the personal computer. It was never really about the
+    machines. It was about people learning, together, to hold power over a new technology.
+    You don't need to be an engineer here. You need to be curious.</p>
+  </div>
+</header>
+
+<nav>
+  <a href="#origins">origins</a>
+  <a href="#tenets">tenets</a>
+  <a href="#format">format</a>
+  <a href="#program">the program</a>
+  <a href="#translation">then &amp; now</a>
+  <a href="#getting-started">getting started</a>
+</nav>
+
+<div class="wrap">
+
+  <section id="origins">
+    <h2>origins</h2>
+    <p class="section-sub">Menlo Park garage &rarr; SLAC auditorium &rarr; the personal computer industry</p>
+
+    <div class="panel">
+      <p>The <strong>Homebrew Computer Club</strong> held its first meeting in <strong>March 1975</strong>
+      in Gordon French's garage in Menlo Park, California &mdash; sparked by the MITS
+      <strong>Altair 8800</strong> appearing on the cover of <em>Popular Electronics</em>.
+      Co-founded by French and <strong>Fred Moore</strong>, it quickly outgrew the garage and settled
+      into the auditorium at <strong>SLAC</strong> (Stanford Linear Accelerator Center), meeting every two weeks.</p>
+
+      <p><strong>Steve Wozniak</strong> attended the very first meeting and called it one of the most
+      important nights of his life. The <strong>Apple I</strong> existed largely because he wanted
+      something to show off there &mdash; and when he did, he handed out photocopies of his schematics
+      <em>for free</em>.</p>
+    </div>
+
+    <div class="facts">
+      <div class="fact"><span class="big">MAR 1975</span><span class="small">first meeting, French's garage</span></div>
+      <div class="fact"><span class="big">EVERY 2 WKS</span><span class="small">meeting cadence at SLAC</span></div>
+      <div class="fact"><span class="big">20+</span><span class="small">companies trace roots to the club</span></div>
+      <div class="fact"><span class="big">$0</span><span class="small">cost of Woz's Apple I schematics</span></div>
+    </div>
+  </section>
+
+  <section id="tenets">
+    <h2>the tenets</h2>
+    <p class="section-sub">Mostly unwritten &mdash; but fiercely held</p>
+
+    <div class="tenet-grid">
+      <div class="tenet">
+        <span class="num">TENET_01</span>
+        <h3>"Give to help others."</h3>
+        <p>The closest thing to an official motto, pushed by co-founder Fred Moore. You shared what
+        you knew, freely &mdash; schematics, code listings, chip sources, workarounds. Knowledge flowed
+        outward; it was never hoarded for advantage.</p>
+      </div>
+
+      <div class="tenet">
+        <span class="num">TENET_02</span>
+        <h3>Radical openness of information</h3>
+        <p>Members passed around paper tapes of software and photocopied designs. This ethos is
+        literally why Bill Gates wrote his 1976 "Open Letter to Hobbyists" complaining that Homebrew
+        members were copying Altair BASIC without paying. The club treated software like folklore,
+        not property.</p>
+      </div>
+
+      <div class="tenet">
+        <span class="num">TENET_03</span>
+        <h3>Show and tell over lecture</h3>
+        <p>Moderator Lee Felsenstein ran two signature segments: the <strong>"mapping" period</strong>,
+        where anyone could stand up and announce what they were working on, needed, or had to give
+        away; and the <strong>"random access" period</strong>, where people physically clustered around
+        whoever mentioned something interesting. Demos beat presentations. Working hardware beat vaporware.</p>
+      </div>
+
+      <div class="tenet">
+        <span class="num">TENET_04</span>
+        <h3>No gatekeeping, no hierarchy</h3>
+        <p>No membership requirements, no dues that mattered, no credentials checked at the door.
+        Hardcore engineers sat next to teenagers and curious dabblers. Felsenstein ran meetings with
+        a pointer stick and deliberate irreverence &mdash; "moderating by insult" &mdash; specifically
+        to keep any one person or vendor from dominating.</p>
+      </div>
+
+      <div class="tenet">
+        <span class="num">TENET_05</span>
+        <h3>Hands-on empowerment as ideology</h3>
+        <p>Not just a hobby club &mdash; it carried a countercultural conviction (inherited from the
+        People's Computer Company and Ted Nelson's <em>Computer Lib</em>) that ordinary people should
+        own and control computing power, which at the time belonged to corporations and institutions.
+        <strong>"Computers for the people"</strong> was the point.</p>
+      </div>
+
+      <div class="tenet">
+        <span class="num">TENET_06</span>
+        <h3>Commerce grew out of community &mdash; not the reverse</h3>
+        <p>More than 20 companies trace their roots to the club, Apple most famously. But you came to
+        share, and business happened as a side effect. Selling was tolerated; pitching was gauche.</p>
+      </div>
+
+      <div class="tenet">
+        <span class="num">TENET_07</span>
+        <h3>A newsletter as connective tissue</h3>
+        <p>The club newsletter spread ideas well beyond the room and is credited with helping seed the
+        entire personal computer industry's culture.</p>
+      </div>
+    </div>
+
+    <div class="quote">
+      "It was the most important night of my life... I was so shy, I couldn't have raised my hand,
+      but I went home and started designing what became the Apple I."
+      <span class="who">&mdash; Steve Wozniak, on the first Homebrew meeting</span>
+    </div>
+  </section>
+
+  <section id="format">
+    <h2>how a meeting runs</h2>
+    <p class="section-sub">Borrowed from Lee Felsenstein, who kept a room of 400 strangers feeling like a garage</p>
+
+    <div class="table-scroll">
+      <table>
+        <tr><th>Segment</th><th>What happened</th></tr>
+        <tr>
+          <td class="mono">MAPPING</td>
+          <td>Open mic, rapid-fire. Anyone stands up: what you're building, what you need, what you're
+          giving away. No slides, no pitches, ~1 minute each.</td>
+        </tr>
+        <tr>
+          <td class="mono">RANDOM ACCESS</td>
+          <td>Unstructured clustering. You physically walk over to whoever said something interesting.
+          Deals, collaborations, and companies formed here.</td>
+        </tr>
+        <tr>
+          <td class="mono">DEMOS</td>
+          <td>Working hardware on folding tables. If it ran, people gathered. If it didn't, you came
+          back in two weeks.</td>
+        </tr>
+      </table>
+    </div>
+  </section>
+
+  <section id="program">
+    <h2>the program</h2>
+    <p class="section-sub">Two tracks, one room &mdash; the technical and the human, deliberately mixed</p>
+
+    <div class="panel">
+      <p>Homebrew looked like a hardware club, but its real curriculum was human: confidence,
+      generosity, and judgment about a technology that was about to change everyone's life.
+      Ours is the same. Half of what we do is hands-on with AI. The other half is about
+      <strong>us</strong> &mdash; how we work, decide, and stay ourselves while machines get smarter.
+      Every meeting deliberately mixes both, because a room of only builders or only talkers
+      misses the point.</p>
+    </div>
+
+    <div class="tenet-grid">
+      <div class="tenet">
+        <span class="num">TRACK_A &middot; WORKING WITH AGENTS</span>
+        <h3>The technical side &mdash; no degree required</h3>
+        <p>Managing AI agents is the new literacy, and it looks less like programming than like
+        <strong>managing people</strong>: giving clear instructions, delegating the right-sized task,
+        reviewing the work instead of trusting it blindly, and knowing when to step in. We practice
+        this live &mdash; members bring real agents doing real work (research, bookkeeping, writing,
+        home projects) and show how they direct them, where they fail, and what they've learned to
+        never let them do unsupervised. If you can brief a contractor, you can run an agent.</p>
+      </div>
+
+      <div class="tenet">
+        <span class="num">TRACK_B &middot; STAYING HUMAN</span>
+        <h3>The human side &mdash; judgment, honesty, and each other</h3>
+        <p>The questions that matter here aren't technical: What am I still responsible for when an
+        agent did the work? What should I refuse to automate? What happened to my job, my craft, my
+        kid's homework this month? We hold open, no-judgment conversation on this every session &mdash;
+        wins <em>and</em> failures. The rule is the same as 1975: nobody gets talked down to, and the
+        person with no technical background often asks the most important question in the room.</p>
+      </div>
+
+      <div class="tenet">
+        <span class="num">THE_BRIDGE</span>
+        <h3>Every demo answers a human question</h3>
+        <p>Our format forces the bridge: every technical demo ends with <strong>"what did this change
+        for you?"</strong> &mdash; time back, money saved, a worry created, a skill atrophying.
+        And every human discussion ends with <strong>"what would you actually try?"</strong> so it
+        turns into next meeting's demo. Tech without the human story is showing off; the human story
+        without practice is just worrying out loud. The club exists to keep the loop closed.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="translation">
+    <h2>then &amp; now</h2>
+    <p class="section-sub">Porting the 1975 tenets to the age of AI</p>
+
+    <div class="table-scroll">
+      <table>
+        <tr><th>1975</th><th>2026</th></tr>
+        <tr><td>Photocopied schematics</td><td>Open prompts, weights, eval harnesses, agent scaffolding</td></tr>
+        <tr><td>Paper tapes of BASIC</td><td>Shared repos, fine-tunes, datasets</td></tr>
+        <tr><td>Altair on a folding table</td><td>Live demos of real, running agents &mdash; slideware is gauche</td></tr>
+        <tr><td>Mapping period</td><td>Rapid stand-ups: building / need / giving away</td></tr>
+        <tr><td>Random access period</td><td>Unstructured clustering after the stand-ups</td></tr>
+        <tr><td>Club newsletter</td><td>Public write-ups that travel beyond the room</td></tr>
+        <tr><td>Learning to solder</td><td>Learning to manage an agent &mdash; brief it, review it, know when not to trust it</td></tr>
+        <tr><td>"Computers for the people"</td><td>AI judgment for everyone &mdash; not just the people building it</td></tr>
+        <tr><td>No credentials at the door</td><td>No credentials at the door</td></tr>
+      </table>
+    </div>
+
+    <div class="panel">
+      <p><strong>The tension we inherit:</strong> the same one Gates' letter exposed &mdash; open sharing
+      versus commercial interest. Homebrew's answer was to stay unapologetically on the sharing side
+      and let companies form around the edges. So will we.</p>
+      <p style="margin-bottom:0"><em>Regular cadence. Real demos. Free knowledge. Zero gatekeeping.</em></p>
+    </div>
+  </section>
+
+  <section id="getting-started">
+    <h2>getting started</h2>
+    <p class="section-sub">Zero to your first demo &mdash; no experience required</p>
+
+    <div class="panel">
+      <p>In 1975 the price of admission was a soldering iron. In 2026 it's a free code editor.
+      You don't need to be a programmer &mdash; <strong>Visual Studio Code</strong> is just the
+      workbench where modern AI agents live and work. Install it once, and you're ready for
+      everything we do at the club.</p>
+    </div>
+
+    <div class="tenet-grid">
+      <div class="tenet">
+        <span class="num">STEP_01</span>
+        <h3>Install Visual Studio Code</h3>
+        <p>Free, from Microsoft, runs on Windows, Mac, and Linux. Download it at
+        <a href="https://code.visualstudio.com">code.visualstudio.com</a>, or just follow along
+        with the walkthrough below &mdash; it takes about two minutes.</p>
+        <div class="video-frame">
+          <video controls preload="metadata">
+            <source src="assets/vs-code-installation.mp4" type="video/mp4">
+            Your browser can't play this video &mdash; download it
+            <a href="assets/vs-code-installation.mp4">here</a> instead.
+          </video>
+        </div>
+      </div>
+
+      <div class="tenet">
+        <span class="num">STEP_02</span>
+        <h3>Install Claude Code</h3>
+        <p>Now add the agent itself. Open the terminal inside VS Code with
+        <strong>Ctrl+`</strong> (the backtick key, under Esc), make sure it's PowerShell
+        (the prompt starts with <code>PS</code>), and run:</p>
+        <span class="cmd">irm https://claude.ai/install.ps1 | iex</span>
+        <p>When it finishes, <strong>close VS Code completely and reopen it</strong> so the
+        terminal picks up the new PATH. Then type <code>claude</code> in the terminal to start it.</p>
+        <p><em>Gotcha:</em> if you ever see <code>The token '&amp;&amp;' is not a valid statement
+        separator</code>, don't panic &mdash; that error means you're in PowerShell, which is
+        exactly where you want to be. Watch the walkthrough:</p>
+        <div class="video-frame">
+          <video controls preload="metadata">
+            <source src="assets/installing-claude-code.mp4" type="video/mp4">
+            Your browser can't play this video &mdash; download it
+            <a href="assets/installing-claude-code.mp4">here</a> instead.
+          </video>
+        </div>
+        <p style="margin-bottom:0">Stuck? Bring your laptop to a meeting. Someone in the room has
+        done it and will sit with you until it works. That's the whole point of the club.</p>
+      </div>
+
+      <div class="tenet">
+        <span class="num">STEP_03</span>
+        <h3>Come to a meeting</h3>
+        <p>You don't need a working setup to show up &mdash; curiosity is the only requirement.
+        Stand up during the mapping period and say what you want to learn. By the next meeting,
+        you'll have something to demo.</p>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <div class="wrap">
+    <p><span class="glow">&gt;</span> give to help others <span class="glow">_</span></p>
+    <p style="margin-top:8px">The AI Homebrew Club &middot; founded by Brett &amp; Fay &middot; inspired by Menlo Park, March 1975</p>
+  </div>
+</footer>
+
+</body>
+</html>
