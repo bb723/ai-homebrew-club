@@ -13,7 +13,7 @@ Founded by Brett & Fay.
 - **How a meeting runs** — Lee Felsenstein's "mapping" and "random access" segments
 - **The program** — two deliberately mixed tracks: *Working with Agents* (managing AI like managing people: briefing, delegating, reviewing) and *Staying Human* (judgment, responsibility, what AI is doing to our work and lives), bridged by a house rule — every demo answers "what did this change for you?" and every discussion ends with "what would you actually try?"
 - **Then & now** — how each 1975 tenet ports to 2026
-- **Getting started** — three steps from zero to your first demo, with video walkthroughs for installing Visual Studio Code (`assets/vs-code-installation.mp4`) and Claude Code (`assets/installing-claude-code.mp4`)
+- **Getting started** — four steps from zero to your first demo, with video walkthroughs for installing Visual Studio Code (`assets/vs-code-installation.mp4`), installing Claude Code (`assets/installing-claude-code.mp4`), and working with Claude (`assets/working-with-claude.mp4`)
 
 ## Publishing to GitHub Pages
 
