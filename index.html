@@ -510,9 +510,13 @@
         <span class="cmd">irm https://claude.ai/install.ps1 | iex</span>
         <p>When it finishes, <strong>close VS Code completely and reopen it</strong> so the
         terminal picks up the new PATH. Then type <code>claude</code> in the terminal to start it.</p>
-        <p><em>Gotcha:</em> if you ever see <code>The token '&amp;&amp;' is not a valid statement
-        separator</code>, don't panic &mdash; that error means you're in PowerShell, which is
-        exactly where you want to be. Watch the walkthrough:</p>
+        <p><em>A couple of gotchas:</em></p>
+        <p>If you see <code>The token '&amp;&amp;' is not a valid statement separator</code>,
+        don't panic &mdash; that error means you're in PowerShell, which is exactly where you
+        want to be.</p>
+        <p>If you see <code>'irm' is not recognized</code>, you're in CMD instead. Switch to
+        PowerShell using the dropdown next to the <strong>+</strong> in the terminal panel.
+        Watch the walkthrough:</p>
         <div class="video-frame">
           <video controls preload="metadata">
             <source src="assets/installing-claude-code.mp4" type="video/mp4">
