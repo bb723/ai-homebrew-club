@@ -2,8 +2,6 @@
 
 A modern revival of the **Homebrew Computer Club** (1975–1986) — the Menlo Park garage meetup where Steve Wozniak demoed the Apple I and handed out its schematics for free — rebuilt for the age of AI.
 
-Founded by Brett & Fay.
-
 ## The site
 
 `index.html` is a GitHub Pages site with no build step and no dependencies (plus an `assets/` folder holding the walkthrough videos) covering:
