@@ -277,6 +277,14 @@
     background:repeating-linear-gradient(45deg, var(--tangerine) 0 14px, var(--card) 14px 28px);
   }
 
+  /* ===== brand-variant art and copy ===== */
+  .logo{display:inline-block; line-height:0}
+  .b-sprinkle,.b-byte,.b-camp,.b-fair{display:none}
+  [data-brand="sprinkle"] .b-sprinkle{display:inline}
+  [data-brand="byte"] .b-byte{display:inline}
+  [data-brand="camp"] .b-camp{display:inline}
+  [data-brand="fair"] .b-fair{display:inline}
+
   /* ===== brand picker ===== */
   .brandpick{
     position:fixed; left:16px; bottom:64px; z-index:130; display:flex; gap:8px;
@@ -578,16 +586,7 @@
 <div class="gate" id="gate">
   <div class="sprinkles" aria-hidden="true" data-count="40"></div>
   <div class="gate-card" id="gateCard">
-    <svg width="90" height="90" viewBox="0 0 120 120" fill="none" aria-hidden="true">
-      <path d="M32 54 H88 V86 a13 13 0 0 1 -13 13 H45 a13 13 0 0 1 -13 -13 Z" stroke="var(--ink)" stroke-width="5" stroke-linejoin="round"/>
-      <path d="M88 62 h8 a10 10 0 0 1 10 10 v1 a10 10 0 0 1 -10 10 h-8" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>
-      <path d="M34 54 A26 26 0 0 1 86 54" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>
-      <circle cx="60" cy="22" r="5" fill="var(--tangerine)"/><path d="M60 27 v3" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/>
-      <path d="M48 40 l6 -4" stroke="var(--teal)" stroke-width="4" stroke-linecap="round"/>
-      <path d="M63 44 l7 1" stroke="var(--berry)" stroke-width="4" stroke-linecap="round"/>
-      <path d="M72 36 l4 -5" stroke="var(--lemon)" stroke-width="4" stroke-linecap="round"/>
-      <path d="M42 48 l5 2" stroke="var(--sky)" stroke-width="4" stroke-linecap="round"/>
-    </svg>
+    <span class="logo" data-size="90" aria-hidden="true"></span>
     <h2>Friends only, for now</h2>
     <p>This is a working preview of the club deck. Tell us who you are and the secret word.</p>
     <input id="gName" type="text" placeholder="Your name" autocomplete="off" aria-label="Your name">
@@ -609,16 +608,7 @@
         <p class="lede quiet" style="margin-top:10px; max-width:44ch">A short deck about fear, lies, and folding chairs.</p>
       </div>
       <div class="fig">
-        <svg width="210" height="210" viewBox="0 0 120 120" fill="none" role="img" aria-label="A mug with a scoop of ice cream and sprinkles">
-          <path d="M32 54 H88 V86 a13 13 0 0 1 -13 13 H45 a13 13 0 0 1 -13 -13 Z" stroke="var(--ink)" stroke-width="5" stroke-linejoin="round"/>
-          <path d="M88 62 h8 a10 10 0 0 1 10 10 v1 a10 10 0 0 1 -10 10 h-8" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>
-          <path d="M34 54 A26 26 0 0 1 86 54" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>
-          <circle cx="60" cy="22" r="5" fill="var(--tangerine)"/><path d="M60 27 v3" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/>
-          <path d="M48 40 l6 -4" stroke="var(--teal)" stroke-width="4" stroke-linecap="round"/>
-          <path d="M63 44 l7 1" stroke="var(--berry)" stroke-width="4" stroke-linecap="round"/>
-          <path d="M72 36 l4 -5" stroke="var(--lemon)" stroke-width="4" stroke-linecap="round"/>
-          <path d="M42 48 l5 2" stroke="var(--sky)" stroke-width="4" stroke-linecap="round"/>
-        </svg>
+        <span class="logo" data-size="210"></span>
       </div>
     </div>
   </div>
@@ -724,16 +714,7 @@
         <p class="lede quiet" style="margin-top:10px">Fear shrinks in good company.<br><a href="https://bb723.github.io/ai-homebrew-club/">bb723.github.io/ai-homebrew-club</a></p>
       </div>
       <div class="fig">
-        <svg width="150" height="150" viewBox="0 0 120 120" fill="none" aria-hidden="true">
-          <path d="M32 54 H88 V86 a13 13 0 0 1 -13 13 H45 a13 13 0 0 1 -13 -13 Z" stroke="var(--ink)" stroke-width="5" stroke-linejoin="round"/>
-          <path d="M88 62 h8 a10 10 0 0 1 10 10 v1 a10 10 0 0 1 -10 10 h-8" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>
-          <path d="M34 54 A26 26 0 0 1 86 54" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>
-          <circle cx="60" cy="22" r="5" fill="var(--tangerine)"/><path d="M60 27 v3" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/>
-          <path d="M48 40 l6 -4" stroke="var(--teal)" stroke-width="4" stroke-linecap="round"/>
-          <path d="M63 44 l7 1" stroke="var(--berry)" stroke-width="4" stroke-linecap="round"/>
-          <path d="M72 36 l4 -5" stroke="var(--lemon)" stroke-width="4" stroke-linecap="round"/>
-          <path d="M42 48 l5 2" stroke="var(--sky)" stroke-width="4" stroke-linecap="round"/>
-        </svg>
+        <span class="logo" data-size="150"></span>
       </div>
     </div>
   </div>
@@ -1202,6 +1183,95 @@
     }
   });
 
+  /* ---------- brand art ---------- */
+  var MUG_BASE =
+    '<path d="M32 52 H88 V86 a13 13 0 0 1 -13 13 H45 a13 13 0 0 1 -13 -13 Z" stroke="var(--ink)" stroke-width="5" stroke-linejoin="round"/>' +
+    '<path d="M88 60 h8 a10 10 0 0 1 10 10 v1 a10 10 0 0 1 -10 10 h-8" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>';
+  var LOGOS = {
+    sprinkle: '<svg viewBox="0 0 120 120" fill="none" role="img" aria-label="A mug with a scoop of ice cream">' + MUG_BASE +
+      '<path d="M34 52 A26 26 0 0 1 86 52" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>' +
+      '<circle cx="60" cy="20" r="5" fill="var(--tangerine)"/><path d="M60 25 v3" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/>' +
+      '<path d="M48 38 l6 -4" stroke="var(--teal)" stroke-width="4" stroke-linecap="round"/>' +
+      '<path d="M63 42 l7 1" stroke="var(--berry)" stroke-width="4" stroke-linecap="round"/>' +
+      '<path d="M72 34 l4 -5" stroke="var(--lemon)" stroke-width="4" stroke-linecap="round"/>' +
+      '<path d="M42 46 l5 2" stroke="var(--sky)" stroke-width="4" stroke-linecap="round"/></svg>',
+    byte: '<svg viewBox="0 0 120 120" fill="none" role="img" aria-label="A mug with circuit pins for steam">' + MUG_BASE +
+      '<path d="M46 44 v-8" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>' +
+      '<path d="M60 44 v-14" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>' +
+      '<path d="M74 44 v-8" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>' +
+      '<rect x="41" y="26" width="10" height="10" fill="var(--teal)"/>' +
+      '<rect x="55" y="20" width="10" height="10" fill="var(--lemon)"/>' +
+      '<rect x="69" y="26" width="10" height="10" fill="var(--sky)"/>' +
+      '<rect x="102" y="62" width="8" height="8" fill="var(--tangerine)"/></svg>',
+    camp: '<svg viewBox="0 0 120 120" fill="none" role="img" aria-label="An enamel camp mug with steam">' + MUG_BASE +
+      '<path d="M29 52 H91" stroke="var(--ink)" stroke-width="8" stroke-linecap="round"/>' +
+      '<path d="M48 42 c-4 -5 4 -8 0 -14" stroke="var(--teal)" stroke-width="4" stroke-linecap="round"/>' +
+      '<path d="M61 44 c-4 -6 4 -10 0 -18" stroke="var(--tangerine)" stroke-width="4" stroke-linecap="round"/>' +
+      '<path d="M74 42 c-4 -5 4 -8 0 -14" stroke="var(--lemon)" stroke-width="4" stroke-linecap="round"/>' +
+      '<circle cx="46" cy="66" r="2.5" fill="var(--ink)"/><circle cx="60" cy="78" r="2.5" fill="var(--ink)"/>' +
+      '<circle cx="72" cy="64" r="2.5" fill="var(--ink)"/><circle cx="52" cy="88" r="2.5" fill="var(--ink)"/></svg>',
+    fair: '<svg viewBox="0 0 120 120" fill="none" role="img" aria-label="A mug with a fair pennant and a prize rosette">' + MUG_BASE +
+      '<path d="M64 44 V14" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/>' +
+      '<path d="M64 14 L94 20 L64 27 Z" fill="var(--tangerine)"/>' +
+      '<path d="M44 76 l-5 14" stroke="var(--sky)" stroke-width="5" stroke-linecap="round"/>' +
+      '<path d="M52 76 l5 14" stroke="var(--sky)" stroke-width="5" stroke-linecap="round"/>' +
+      '<circle cx="48" cy="70" r="10" fill="var(--sky)"/><circle cx="48" cy="70" r="4" fill="var(--card)"/></svg>'
+  };
+  function floppy(y, color){
+    return '<rect x="18" y="' + y + '" width="44" height="34" rx="3" fill="' + color + '" stroke="var(--ink)" stroke-width="4"/>' +
+      '<rect x="30" y="' + y + '" width="20" height="12" fill="var(--card)" stroke="var(--ink)" stroke-width="3"/>' +
+      '<rect x="26" y="' + (y + 20) + '" width="28" height="10" fill="var(--card)" stroke="var(--ink)" stroke-width="3"/>';
+  }
+  function badge(cy, color){
+    return '<circle cx="40" cy="' + cy + '" r="17" fill="' + color + '"/>' +
+      '<circle cx="40" cy="' + cy + '" r="12" fill="none" stroke="var(--card)" stroke-width="2.5" stroke-dasharray="4 4"/>';
+  }
+  function rosette(cy, color, tails){
+    var t = tails
+      ? '<path d="M32 ' + (cy + 8) + ' l-6 18" stroke="' + color + '" stroke-width="5" stroke-linecap="round"/>' +
+        '<path d="M48 ' + (cy + 8) + ' l6 18" stroke="' + color + '" stroke-width="5" stroke-linecap="round"/>'
+      : '';
+    return t + '<circle cx="40" cy="' + cy + '" r="15" fill="' + color + '"/>' +
+      '<circle cx="40" cy="' + cy + '" r="6" fill="var(--card)"/>';
+  }
+  function lvlsvg(inner){ return '<svg viewBox="0 0 80 120" fill="none" aria-hidden="true">' + inner + '</svg>'; }
+  var LEVELS = {
+    sprinkle: {
+      1: lvlsvg('<path d="M24 62 L40 112 L56 62 Z" stroke="var(--ink)" stroke-width="4" stroke-linejoin="round"/><circle cx="40" cy="46" r="19" fill="var(--teal)"/>'),
+      2: lvlsvg('<path d="M24 72 L40 114 L56 72 Z" stroke="var(--ink)" stroke-width="4" stroke-linejoin="round"/><circle cx="40" cy="58" r="17" fill="var(--tangerine)"/><circle cx="40" cy="28" r="15" fill="var(--lemon)"/>'),
+      3: lvlsvg('<path d="M26 80 L40 116 L54 80 Z" stroke="var(--ink)" stroke-width="4" stroke-linejoin="round"/><circle cx="40" cy="68" r="15" fill="var(--berry)"/><circle cx="40" cy="42" r="14" fill="var(--teal)"/><circle cx="40" cy="17" r="13" fill="var(--tangerine)"/>')
+    },
+    byte: {
+      1: lvlsvg(floppy(70, 'var(--teal)')),
+      2: lvlsvg(floppy(72, 'var(--tangerine)') + floppy(34, 'var(--lemon)')),
+      3: lvlsvg(floppy(78, 'var(--berry)') + floppy(44, 'var(--teal)') + floppy(10, 'var(--tangerine)'))
+    },
+    camp: {
+      1: lvlsvg(badge(60, 'var(--teal)')),
+      2: lvlsvg(badge(72, 'var(--tangerine)') + badge(36, 'var(--lemon)')),
+      3: lvlsvg(badge(84, 'var(--berry)') + badge(52, 'var(--teal)') + badge(20, 'var(--tangerine)'))
+    },
+    fair: {
+      1: lvlsvg(rosette(55, 'var(--teal)', true)),
+      2: lvlsvg(rosette(75, 'var(--tangerine)', true) + rosette(38, 'var(--lemon)', false)),
+      3: lvlsvg(rosette(88, 'var(--berry)', true) + rosette(55, 'var(--teal)', false) + rosette(22, 'var(--tangerine)', false))
+    }
+  };
+  function renderBrandArt(brandId){
+    document.querySelectorAll('.logo').forEach(function(el){
+      var size = el.getAttribute('data-size') || '150';
+      el.innerHTML = LOGOS[brandId] || LOGOS.sprinkle;
+      var svg = el.firstChild;
+      if (svg){ svg.setAttribute('width', size); svg.setAttribute('height', size); }
+    });
+    document.querySelectorAll('.lvlicon').forEach(function(el){
+      var lvl = el.getAttribute('data-level') || '1';
+      el.innerHTML = (LEVELS[brandId] || LEVELS.sprinkle)[lvl] || '';
+      var svg = el.firstChild;
+      if (svg){ svg.setAttribute('width', '64'); svg.setAttribute('height', '88'); }
+    });
+  }
+
   /* ---------- brand picker ---------- */
   var BRANDS = [
     {id: 'sprinkle', name: 'Sprinkle Shop', c1: '#0FA79B', c2: '#F4633A'},
@@ -1214,6 +1284,7 @@
     var b = BRANDS.filter(function(x){ return x.id === id; })[0] || BRANDS[0];
     document.documentElement.setAttribute('data-brand', b.id);
     localStorage.setItem(LS_BRAND, b.id);
+    renderBrandArt(b.id);
     document.querySelectorAll('.brandpick button').forEach(function(btn){
       btn.classList.toggle('on', btn.getAttribute('data-brand-id') === b.id);
       btn.setAttribute('aria-checked', btn.getAttribute('data-brand-id') === b.id ? 'true' : 'false');
