@@ -69,7 +69,7 @@
   /* ===== brand: Bean Supper (grange hall, gingham, recipe cards, the coffee urn) ===== */
   :root[data-brand="bean"]{
     --font-display:'Ultra','Nunito',serif;
-    --ink:#3B3227; --ink-soft:#7E7260; --paper:#F8F1E3; --card:#FFFCF4;
+    --ink:#3B3227; --ink-soft:#675B49; --paper:#F8F1E3; --card:#FFFCF4;
     --teal:#557C4B; --teal-deep:#3E5F37;
     --tangerine:#C04B33; --tangerine-deep:#99361F;
     --lemon:#E7B84E; --lemon-deep:#8F6A11;
@@ -82,7 +82,7 @@
   }
   @media (prefers-color-scheme: dark){
     :root[data-brand="bean"]{
-      --ink:#F4EAD8; --ink-soft:#B4A48D; --paper:#2A2118; --card:#362B20;
+      --ink:#F4EAD8; --ink-soft:#C6B79F; --paper:#2A2118; --card:#362B20;
       --teal:#8CB47E; --teal-deep:#AEC99A;
       --tangerine:#E8836B; --tangerine-deep:#F2A48F;
       --lemon:#EFC96F; --lemon-deep:#F6DA97;
@@ -95,7 +95,7 @@
     }
   }
   :root[data-brand="bean"][data-theme="dark"]{
-    --ink:#F4EAD8; --ink-soft:#B4A48D; --paper:#2A2118; --card:#362B20;
+    --ink:#F4EAD8; --ink-soft:#C6B79F; --paper:#2A2118; --card:#362B20;
     --teal:#8CB47E; --teal-deep:#AEC99A;
     --tangerine:#E8836B; --tangerine-deep:#F2A48F;
     --lemon:#EFC96F; --lemon-deep:#F6DA97;
@@ -107,7 +107,7 @@
     --edge:rgba(244,234,216,.16);
   }
   :root[data-brand="bean"][data-theme="light"]{
-    --ink:#3B3227; --ink-soft:#7E7260; --paper:#F8F1E3; --card:#FFFCF4;
+    --ink:#3B3227; --ink-soft:#675B49; --paper:#F8F1E3; --card:#FFFCF4;
     --teal:#557C4B; --teal-deep:#3E5F37;
     --tangerine:#C04B33; --tangerine-deep:#99361F;
     --lemon:#E7B84E; --lemon-deep:#8F6A11;
@@ -132,6 +132,11 @@
     box-shadow:none; border-radius:4px; letter-spacing:.14em;
   }
   [data-brand="bean"] .spr{width:13px; height:9px; border-radius:50%}
+  /* bean readability: the slab stays at display sizes; UI and card titles go back to the round body face */
+  [data-brand="bean"] .card h3,[data-brand="bean"] .btn,[data-brand="bean"] .gate button,
+  [data-brand="bean"] .notesbtn,[data-brand="bean"] .deckbtn,[data-brand="bean"] .pin,
+  [data-brand="bean"] .popover .who,[data-brand="bean"] .ghead,
+  [data-brand="bean"] .deckpane a .t{font-family:var(--font-body); font-weight:800}
 
   /* ===== brand: Camp Homebrew (kraft paper, wooden-sign slab, merit-badge stitching) ===== */
   :root[data-brand="camp"]{
@@ -628,10 +633,10 @@
   }
   [data-brand="bean"] .card{border:1px solid var(--edge)}
   [data-brand="bean"] .steal{
-    font-family:'Caveat',cursive; font-size:1.2rem; line-height:25px;
+    font-family:'Caveat',cursive; font-weight:600; font-size:1.35rem; line-height:28px;
     border:1px solid var(--edge); border-radius:4px;
     background-color:var(--card);
-    background-image:repeating-linear-gradient(transparent 0 24px, var(--edge) 24px 25px);
+    background-image:repeating-linear-gradient(transparent 0 27px, var(--edge) 27px 28px);
   }
   [data-brand="bean"] .steal b{font-family:var(--font-body)}
   [data-brand="bean"] .agenda{border:1px solid var(--edge)}
@@ -1311,7 +1316,7 @@
     {id: 'invest', title: 'Investor pitch', desc: 'The hardest room in America.', group: 'The pitches'},
     {id: 'join', title: 'Attendee pitch', desc: 'Come to a meeting.', group: 'The pitches'},
     {id: 'why', title: 'Why we meet', desc: 'Fear, lies, and folding chairs.', group: 'The pitches'},
-    {id: 'internal', title: 'The founders&rsquo; room', desc: 'Decisions, deadlines, scratchpad.', group: 'Internal'}
+    {id: 'charter', title: 'The Charter', desc: 'The whole plan. Every pitch is cut from this.', group: 'Internal'}
   ];
   function deckHref(id){
     var local = location.protocol === 'file:' || location.hostname === 'bb723.github.io';
