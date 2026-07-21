@@ -575,9 +575,88 @@
     .sixgrid{grid-template-columns:1fr}
     .cards.c2{grid-template-columns:1fr}
   }
+  /* ===== per-brand structural looks ===== */
+
+  /* Sprinkle Shop: sticker museum */
+  [data-brand="sprinkle"] .slide{
+    background-image:
+      radial-gradient(circle at 10% 90%, color-mix(in srgb, var(--tangerine) 8%, transparent) 0 170px, transparent 171px),
+      radial-gradient(circle at 92% 8%, color-mix(in srgb, var(--teal) 8%, transparent) 0 150px, transparent 151px);
+  }
+  [data-brand="sprinkle"] .card{transition:transform .2s}
+  [data-brand="sprinkle"] .cards .card:nth-child(odd),[data-brand="sprinkle"] .sixgrid .card:nth-child(odd){transform:rotate(-.7deg)}
+  [data-brand="sprinkle"] .cards .card:nth-child(even),[data-brand="sprinkle"] .sixgrid .card:nth-child(even){transform:rotate(.7deg)}
+  [data-brand="sprinkle"] .card:hover{transform:rotate(0deg)}
+
+  /* Byte Shop '75: one platinum lab, every sheet a terminal window */
+  [data-brand="byte"] .slide{
+    background:var(--paper);
+    background-image:linear-gradient(var(--edge) 1px, transparent 1px), linear-gradient(90deg, var(--edge) 1px, transparent 1px);
+    background-size:26px 26px;
+  }
+  [data-brand="byte"] .sheet{
+    --shpad:clamp(18px,2.8vw,32px);
+    background:var(--card); border:3px solid var(--ink);
+    box-shadow:12px 12px 0 var(--edge);
+    padding:var(--shpad);
+  }
+  [data-brand="byte"] .sheet::before{
+    content:"AIHC.EXE :: SHARE FREELY";
+    display:block; margin:calc(var(--shpad) * -1) calc(var(--shpad) * -1) 0;
+    padding:7px 16px; background:var(--ink); color:var(--paper);
+    font-family:var(--font-display); font-size:1.05rem; letter-spacing:.06em;
+  }
+  [data-brand="byte"] .card{background:var(--paper); border:2px solid var(--ink); border-top-width:10px; box-shadow:6px 6px 0 var(--edge)}
+  [data-brand="byte"] .card.a-teal{border-top-color:var(--teal)}
+  [data-brand="byte"] .card.a-tangerine{border-top-color:var(--tangerine)}
+  [data-brand="byte"] .card.a-lemon{border-top-color:var(--lemon)}
+  [data-brand="byte"] .card.a-sky{border-top-color:var(--sky)}
+  [data-brand="byte"] .card.a-berry{border-top-color:var(--berry)}
+  [data-brand="byte"] .agenda{background:var(--paper); border:2px solid var(--ink); box-shadow:none}
+  [data-brand="byte"] .rules li{background:var(--paper); border:2px solid var(--ink); box-shadow:none}
+  [data-brand="byte"] .stat{background:var(--paper); border:2px solid var(--ink); box-shadow:none}
+  [data-brand="byte"] .steal{background:var(--card)}
+  [data-brand="byte"] .gate-card{border:3px solid var(--ink); box-shadow:12px 12px 0 var(--edge)}
+  @media (prefers-reduced-motion: no-preference){
+    [data-brand="byte"] h2::after{content:"\258C"; margin-left:10px; animation:blink 1.1s steps(1) infinite}
+    @keyframes blink{50%{opacity:0}}
+  }
+
+  /* Camp Homebrew: field notebook, taped index cards */
+  [data-brand="camp"] .slide{
+    background-image:radial-gradient(color-mix(in srgb, var(--ink) 6%, transparent) 1px, transparent 1.5px);
+    background-size:16px 16px;
+  }
+  [data-brand="camp"] .card{position:relative; border:1px solid var(--edge); box-shadow:0 10px 20px rgba(0,0,0,.08)}
+  [data-brand="camp"] .cards .card:nth-child(odd),[data-brand="camp"] .sixgrid .card:nth-child(odd){transform:rotate(-.8deg)}
+  [data-brand="camp"] .cards .card:nth-child(even),[data-brand="camp"] .sixgrid .card:nth-child(even){transform:rotate(.8deg)}
+  [data-brand="camp"] .card::before{
+    content:""; position:absolute; top:-13px; left:50%; transform:translateX(-50%) rotate(-4deg);
+    width:96px; height:26px; background:color-mix(in srgb, var(--lemon) 55%, transparent);
+  }
+  [data-brand="camp"] .card.a-teal::before{background:color-mix(in srgb, var(--teal) 50%, transparent)}
+  [data-brand="camp"] .card.a-tangerine::before{background:color-mix(in srgb, var(--tangerine) 50%, transparent)}
+  [data-brand="camp"] .card.a-sky::before{background:color-mix(in srgb, var(--sky) 50%, transparent)}
+  [data-brand="camp"] .card.a-berry::before{background:color-mix(in srgb, var(--berry) 50%, transparent)}
+  [data-brand="camp"] .card.a-lemon::before{background:color-mix(in srgb, var(--lemon) 55%, transparent)}
+
+  /* County Fair: bunting overhead, ticket-stub cards */
+  .bunting{
+    position:absolute; top:0; left:0; right:0; height:26px; z-index:0;
+    display:flex; gap:16px; padding:0 8px; border-top:6px solid var(--ink);
+    overflow:hidden; pointer-events:none;
+  }
+  .bunting span{flex:none; width:26px; height:20px; clip-path:polygon(0 0, 100% 0, 50% 100%)}
+  [data-brand="fair"] .card{position:relative; padding-left:40px; border-radius:12px}
+  [data-brand="fair"] .card::before{
+    content:""; position:absolute; top:10px; bottom:10px; left:16px;
+    border-left:2px dashed var(--edge);
+  }
+  [data-brand="fair"] .chip{border:3px double var(--ink)}
+
   @media print{
     .slide{min-height:auto; break-after:page}
-    .rail,.hint,.notesbtn,.clickhint,.gate,.sidepane,.brandpick{display:none}
+    .rail,.hint,.notesbtn,.clickhint,.gate,.sidepane,.brandpick,.bunting{display:none}
     body.pane-open .deck{margin-right:0}
   }
 </style>
@@ -1317,6 +1396,23 @@
       var svg = el.firstChild;
       if (svg){ svg.setAttribute('width', '64'); svg.setAttribute('height', '88'); }
     });
+    document.querySelectorAll('.bunting').forEach(function(b){ b.remove(); });
+    if (brandId === 'fair'){
+      var hosts = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+      hosts.push($('gate'));
+      hosts.forEach(function(host){
+        if (!host) return;
+        var b = document.createElement('div');
+        b.className = 'bunting';
+        b.setAttribute('aria-hidden', 'true');
+        for (var i = 0; i < 40; i++){
+          var s = document.createElement('span');
+          s.style.background = 'var(' + COLORS[i % COLORS.length] + ')';
+          b.appendChild(s);
+        }
+        host.appendChild(b);
+      });
+    }
   }
 
   /* ---------- brand picker ---------- */
