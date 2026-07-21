@@ -79,6 +79,7 @@
     --w-lemon:#F6EBC9; --w-sky:#E2EAEE; --w-berry:#F0E2E8;
     --shadow:0 8px 20px rgba(59,50,39,.13);
     --edge:rgba(59,50,39,.18);
+    --squig:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='126' height='12'><path d='M3 8 q10 -9 20 0 t20 0 t20 0 t20 0 t20 0' fill='none' stroke='%23C04B33' stroke-width='3.5' stroke-linecap='round'/></svg>");
   }
   @media (prefers-color-scheme: dark){
     :root[data-brand="bean"]{
@@ -92,6 +93,7 @@
       --w-lemon:#342D1C; --w-sky:#26303A; --w-berry:#332631;
       --shadow:0 8px 20px rgba(0,0,0,.4);
       --edge:rgba(244,234,216,.16);
+      --squig:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='126' height='12'><path d='M3 8 q10 -9 20 0 t20 0 t20 0 t20 0 t20 0' fill='none' stroke='%23E8836B' stroke-width='3.5' stroke-linecap='round'/></svg>");
     }
   }
   :root[data-brand="bean"][data-theme="dark"]{
@@ -105,6 +107,7 @@
     --w-lemon:#342D1C; --w-sky:#26303A; --w-berry:#332631;
     --shadow:0 8px 20px rgba(0,0,0,.4);
     --edge:rgba(244,234,216,.16);
+    --squig:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='126' height='12'><path d='M3 8 q10 -9 20 0 t20 0 t20 0 t20 0 t20 0' fill='none' stroke='%23E8836B' stroke-width='3.5' stroke-linecap='round'/></svg>");
   }
   :root[data-brand="bean"][data-theme="light"]{
     --ink:#3B3227; --ink-soft:#675B49; --paper:#F8F1E3; --card:#FFFCF4;
@@ -117,7 +120,13 @@
     --w-lemon:#F6EBC9; --w-sky:#E2EAEE; --w-berry:#F0E2E8;
     --shadow:0 8px 20px rgba(59,50,39,.13);
     --edge:rgba(59,50,39,.18);
+    --squig:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='126' height='12'><path d='M3 8 q10 -9 20 0 t20 0 t20 0 t20 0 t20 0' fill='none' stroke='%23C04B33' stroke-width='3.5' stroke-linecap='round'/></svg>");
   }
+  [data-brand="bean"] h2::after{
+    content:""; display:block; width:126px; height:12px; margin-top:12px;
+    background:var(--squig) no-repeat left center;
+  }
+  [data-brand="bean"] .gate h2::after{margin-left:auto; margin-right:auto}
   [data-brand="bean"] h1,[data-brand="bean"] h2,[data-brand="bean"] h3,[data-brand="bean"] .display,
   [data-brand="bean"] .motto,[data-brand="bean"] .btn,
   [data-brand="bean"] .gate button,[data-brand="bean"] .notesbtn,[data-brand="bean"] .pin,
