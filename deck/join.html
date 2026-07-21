@@ -1136,9 +1136,10 @@
     {id: 'charter', title: 'The Charter', desc: 'The whole plan. Every pitch is cut from this.', group: 'Internal'},
     {id: 'kit101', title: 'The 101 kit', desc: 'Twelve live demos, step by step.', group: 'Internal'}
   ];
+  var SITE_HOSTS = ['bb723.github.io', 'aibrownbag.com', 'www.aibrownbag.com'];
   function deckHref(id){
-    var local = location.protocol === 'file:' || location.hostname === 'bb723.github.io';
-    return local ? (id + '.html') : ('https://bb723.github.io/ai-homebrew-club/deck/' + id + '.html');
+    var local = location.protocol === 'file:' || SITE_HOSTS.indexOf(location.hostname) !== -1;
+    return local ? (id + '.html') : ('https://aibrownbag.com/deck/' + id + '.html');
   }
   function buildDeckPane(){
     var pane = $('deckPane');
