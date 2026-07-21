@@ -502,6 +502,43 @@
     border-radius:999px; padding:9px 16px; font-size:.82rem; font-weight:800; box-shadow:var(--shadow);
   }
 
+  /* deck switcher */
+  .deckbtn{
+    position:fixed; left:16px; top:16px; z-index:50;
+    border:none; border-radius:999px; padding:10px 18px; cursor:pointer;
+    background:var(--ink); color:var(--paper); font-family:var(--font-display); font-weight:800; font-size:.95rem;
+    box-shadow:var(--shadow);
+  }
+  .deckbtn:hover{filter:brightness(1.15)}
+  .deckbtn:focus-visible{outline:3px solid var(--tangerine); outline-offset:2px}
+  .deckpane{
+    position:fixed; left:0; top:0; bottom:0; z-index:65; width:min(320px, 88vw);
+    background:var(--card); box-shadow:8px 0 30px rgba(0,0,0,.18);
+    display:flex; flex-direction:column; gap:8px; padding:18px 14px;
+    transform:translateX(-105%);
+  }
+  @media (prefers-reduced-motion: no-preference){ .deckpane{transition:transform .22s} }
+  body.deck-open .deckpane{transform:none}
+  .deckpane h3{font-size:1.3rem; padding:0 8px 8px; border-bottom:2px dashed var(--edge)}
+  .deckpane a{
+    display:flex; flex-direction:column; gap:2px; text-decoration:none; color:var(--ink);
+    background:var(--paper); border-radius:14px; padding:12px 14px; border:2px solid transparent;
+  }
+  .deckpane a:hover{border-color:var(--teal)}
+  .deckpane a:focus-visible{outline:3px solid var(--teal); outline-offset:2px}
+  .deckpane a.here{border-color:var(--tangerine)}
+  .deckpane a .t{font-family:var(--font-display); font-weight:800; font-size:1.05rem}
+  .deckpane a .d{color:var(--ink-soft); font-size:.85rem; font-weight:700}
+  .deckpane a .yh{
+    align-self:flex-start; margin-top:4px; font-size:.68rem; font-weight:800;
+    letter-spacing:.1em; text-transform:uppercase; color:var(--tangerine-deep);
+  }
+  .deckpane .close{
+    margin-top:auto; border:none; background:none; color:var(--ink-soft);
+    font-weight:800; cursor:pointer; padding:8px; font-size:.85rem;
+  }
+  .deckpane .close:hover{color:var(--ink)}
+
   /* side pane */
   .sidepane{
     position:fixed; top:0; right:0; bottom:0; width:var(--panew); z-index:60;
@@ -636,7 +673,7 @@
 
   @media print{
     .slide{min-height:auto; break-after:page}
-    .rail,.hint,.notesbtn,.clickhint,.gate,.sidepane,.brandpick,.bunting{display:none}
+    .rail,.hint,.notesbtn,.clickhint,.gate,.sidepane,.brandpick,.bunting,.deckbtn,.deckpane{display:none}
     body.pane-open .deck{margin-right:0}
   }
 </style>
@@ -831,6 +868,9 @@
 <nav class="rail" aria-label="Slides"></nav>
 <div class="hint">&uarr; &darr; to navigate</div>
 
+<button class="deckbtn" id="deckBtn" aria-label="Switch between pitches" hidden>&#9776; Pitches</button>
+<nav class="deckpane" id="deckPane" aria-label="Pitches"></nav>
+
 <button class="notesbtn" id="notesBtn" aria-label="Toggle notes pane" hidden>&#128172; Notes <span id="noteCount">0</span></button>
 <div class="clickhint" id="clickHint" hidden>Click anywhere on a slide to leave a note</div>
 <div class="brandpick" id="brandPick" role="radiogroup" aria-label="Deck style"></div>
@@ -898,14 +938,15 @@
   function lock(){
     document.body.classList.add('locked');
     document.body.classList.remove('pane-open');
+    document.body.classList.remove('deck-open');
     $('gate').style.display = 'grid';
-    $('notesBtn').hidden = true; $('clickHint').hidden = true;
+    $('notesBtn').hidden = true; $('clickHint').hidden = true; $('deckBtn').hidden = true;
     setTimeout(function(){ $('gName').focus(); }, 50);
   }
   function unlock(first){
     document.body.classList.remove('locked');
     $('gate').style.display = 'none';
-    $('notesBtn').hidden = false; $('clickHint').hidden = false;
+    $('notesBtn').hidden = false; $('clickHint').hidden = false; $('deckBtn').hidden = false;
     $('whoami').innerHTML = 'Signed in as ' + esc(viewer.name) + ' &middot; <button id="switchBtn" type="button">not you?</button>';
     $('noteCount').textContent = String(notes.length);
     var sb = $('switchBtn');
@@ -1133,6 +1174,7 @@
   document.addEventListener('keydown', function(ev){
     if (ev.key === 'Escape'){
       closePop();
+      document.body.classList.remove('deck-open');
       if (window.innerWidth < 1100) document.body.classList.remove('pane-open');
     }
   });
@@ -1309,6 +1351,45 @@
       ev.preventDefault();
       slides[Math.max(current() - 1, 0)].scrollIntoView();
     }
+  });
+
+  /* ---------- deck switcher ---------- */
+  var DECKS = [
+    {id: 'invest', title: 'Investor pitch', desc: 'The hardest room in America.', group: 'The pitches'},
+    {id: 'join', title: 'Attendee pitch', desc: 'Come to a meeting.', group: 'The pitches'},
+    {id: 'why', title: 'Why we meet', desc: 'Fear, lies, and folding chairs.', group: 'The pitches'},
+    {id: 'internal', title: 'The founders&rsquo; room', desc: 'Decisions, deadlines, scratchpad.', group: 'Internal'}
+  ];
+  function deckHref(id){
+    var local = location.protocol === 'file:' || location.hostname === 'bb723.github.io';
+    return local ? (id + '.html') : ('https://bb723.github.io/ai-homebrew-club/deck/' + id + '.html');
+  }
+  function buildDeckPane(){
+    var pane = $('deckPane');
+    var lastGroup = '';
+    DECKS.forEach(function(d){
+      if (d.group !== lastGroup){
+        var h = document.createElement('h3');
+        h.textContent = d.group;
+        pane.appendChild(h);
+        lastGroup = d.group;
+      }
+      var a = document.createElement('a');
+      a.href = deckHref(d.id);
+      if (location.protocol !== 'file:' && location.hostname !== 'bb723.github.io') a.target = '_blank';
+      if (d.id === DECK_ID) a.className = 'here';
+      a.innerHTML = '<span class="t">' + d.title + '</span><span class="d">' + d.desc + '</span>' +
+        (d.id === DECK_ID ? '<span class="yh">You are here</span>' : '');
+      pane.appendChild(a);
+    });
+    var c = document.createElement('button');
+    c.className = 'close'; c.type = 'button'; c.textContent = 'Close';
+    c.addEventListener('click', function(){ document.body.classList.remove('deck-open'); });
+    pane.appendChild(c);
+  }
+  buildDeckPane();
+  $('deckBtn').addEventListener('click', function(){
+    document.body.classList.toggle('deck-open');
   });
 
   /* ---------- brand art ---------- */
