@@ -490,7 +490,7 @@
     <span class="chip"><span class="dot" style="background:var(--sky)"></span>The machines</span>
     <h2>Everything external, one list.</h2>
     <ul class="rules">
-      <li><b>Production site:</b> <a href="https://aibrownbag.com">aibrownbag.com</a> on GitHub Pages. The old bb723.github.io links redirect here.</li>
+      <li><b>Production site:</b> <a href="https://aihomebrewclub.com">aihomebrewclub.com</a> on GitHub Pages. aibrownbag.com and the old bb723.github.io links redirect here.</li>
       <li><b>Code:</b> <a href="https://github.com/bb723/ai-homebrew-club">github.com/bb723/ai-homebrew-club</a>. Pages settings hold the custom domain and HTTPS switch.</li>
       <li><b>Comments server:</b> Heroku app <a href="https://dashboard.heroku.com/apps/aihc-notes">aihc-notes</a> with its Postgres. About $12 a month. Notes sync every 25 seconds.</li>
       <li><b>Domain:</b> aibrownbag.com at Namecheap, renews July 2027. DNS points at GitHub Pages.</li>
@@ -1023,7 +1023,7 @@
   var SITE_HOSTS = ['bb723.github.io', 'aibrownbag.com', 'www.aibrownbag.com'];
   function deckHref(id){
     var local = location.protocol === 'file:' || SITE_HOSTS.indexOf(location.hostname) !== -1;
-    return local ? (id + '.html') : ('https://aibrownbag.com/deck/' + id + '.html');
+    return local ? (id + '.html') : ('https://aihomebrewclub.com/deck/' + id + '.html');
   }
   function buildDeckPane(){
     var pane = $('deckPane');
