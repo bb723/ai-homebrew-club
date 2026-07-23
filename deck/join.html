@@ -331,7 +331,7 @@
     position:fixed; left:0; top:0; bottom:0; z-index:65; width:min(320px, 88vw);
     background:var(--card); box-shadow:8px 0 30px rgba(0,0,0,.18);
     display:flex; flex-direction:column; gap:8px; padding:18px 14px;
-    transform:translateX(-105%);
+    transform:translateX(-105%); overflow-y:auto;
   }
   @media (prefers-reduced-motion: no-preference){ .deckpane{transition:transform .22s} }
   body.deck-open .deckpane{transform:none}
@@ -389,17 +389,14 @@
   .sidepane footer{padding:10px 12px; display:flex; gap:8px; flex-wrap:wrap; border-top:2px dashed var(--edge)}
   .sidepane footer .btn{font-size:.8rem; padding:6px 13px}
 
-  /* ---------- model tab ---------- */
-  .sidepane .list[hidden], .modelpane[hidden]{display:none}
-  .panetabs{display:flex; gap:14px; align-items:baseline}
-  .ptab{border:none; background:none; font-family:var(--font-display); font-weight:800; font-size:1.3rem; color:var(--ink-soft); cursor:pointer; padding:0; opacity:.55}
-  .ptab.on{color:var(--ink); opacity:1; text-decoration:underline; text-underline-offset:6px; text-decoration-thickness:3px; text-decoration-color:var(--tangerine)}
-  .modelpane{overflow-y:auto; padding:12px 14px; flex:1; display:flex; flex-direction:column; gap:12px}
+  /* ---------- model (in the hamburger menu) ---------- */
+  .modelpane[hidden]{display:none}
+  .modelpane{display:flex; flex-direction:column; gap:12px; padding:0 2px 6px}
   .mnote{font-size:.76rem; color:var(--ink-soft); font-weight:700; line-height:1.45}
   .mpresets{display:flex; gap:6px}
-  .mpresets button{flex:1; border:1px solid var(--edge); background:var(--card); border-radius:10px; padding:6px 4px; font-family:var(--font-body); font-weight:800; font-size:.78rem; color:var(--ink); cursor:pointer}
+  .mpresets button{flex:1; border:1px solid var(--edge); background:var(--paper); border-radius:10px; padding:6px 4px; font-family:var(--font-body); font-weight:800; font-size:.78rem; color:var(--ink); cursor:pointer}
   .mpresets button.on{border-color:var(--tangerine); color:var(--tangerine)}
-  .mgroup{background:var(--card); border:1px solid var(--edge); border-radius:14px; padding:10px 12px; display:flex; flex-direction:column; gap:9px}
+  .mgroup{background:var(--paper); border:1px solid var(--edge); border-radius:14px; padding:10px 12px; display:flex; flex-direction:column; gap:9px}
   .mgroup h4{font-size:.72rem; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em}
   .mrow{display:flex; flex-direction:column; gap:2px}
   .mrow .lab{display:flex; justify-content:space-between; gap:8px; font-size:.8rem; font-weight:800}
@@ -410,7 +407,7 @@
   .mtog{display:flex; align-items:center; gap:8px; font-size:.8rem; font-weight:800; cursor:pointer}
   .mtog input{accent-color:var(--tangerine); width:15px; height:15px; margin:0}
   .mtiles{display:flex; gap:8px}
-  .mtile{flex:1; background:var(--card); border:1px solid var(--edge); border-radius:12px; padding:8px 10px; display:flex; flex-direction:column; gap:1px}
+  .mtile{flex:1; background:var(--paper); border:1px solid var(--edge); border-radius:12px; padding:8px 10px; display:flex; flex-direction:column; gap:1px}
   .mtile .n{font-family:var(--font-display); font-weight:800; font-size:1.12rem; color:var(--tangerine)}
   .mtile .l{font-size:.66rem; color:var(--ink-soft); font-weight:700; line-height:1.3}
   table.mtab{width:100%; border-collapse:collapse; font-size:.78rem; font-variant-numeric:tabular-nums}
@@ -679,7 +676,7 @@
 <nav class="rail" aria-label="Slides"></nav>
 <div class="hint">&uarr; &darr; to navigate</div>
 
-<button class="deckbtn" id="deckBtn" aria-label="Switch between pitches" hidden>&#9776; Pitches</button>
+<button class="deckbtn" id="deckBtn" aria-label="Menu" hidden>&#9776;</button>
 <nav class="deckpane" id="deckPane" aria-label="Pitches"></nav>
 
 <button class="notesbtn" id="notesBtn" aria-label="Toggle notes pane" hidden>&#128172; Notes <span id="noteCount">0</span></button>
@@ -687,15 +684,19 @@
 
 <aside class="sidepane" id="pane" aria-label="Notes">
   <header>
-    <div class="panetabs">
-      <button class="ptab on" id="tabNotes" type="button">Notes</button>
-      <button class="ptab" id="tabModel" type="button">Model</button>
-    </div>
+    <h3>Notes</h3>
     <span class="sync" id="syncStatus">this device only</span>
     <span class="who" id="whoami"></span>
   </header>
   <div class="list" id="noteList"></div>
-  <div class="modelpane" id="modelPane" hidden>
+  <footer id="paneFooter">
+    <button class="btn" id="copyBtn">Copy notes</button>
+    <button class="btn" id="dlBtn">Download</button>
+    <button class="btn ghost" id="importBtn">Paste in notes</button>
+  </footer>
+</aside>
+
+<div class="modelpane" id="modelPane" hidden>
     <p class="mnote">The studio model, live. Planning numbers, not promises; market bands come from the research, the rest is us. Dials save on this device only.</p>
     <div class="mpresets" id="mPresets">
       <button type="button" data-p="cons">Careful</button>
@@ -732,13 +733,7 @@
     <div class="mtiles" id="mTiles"></div>
     <table class="mtab" id="mTable"></table>
     <button class="mreset" id="mReset" type="button">Reset to base</button>
-  </div>
-  <footer id="paneFooter">
-    <button class="btn" id="copyBtn">Copy notes</button>
-    <button class="btn" id="dlBtn">Download</button>
-    <button class="btn ghost" id="importBtn">Paste in notes</button>
-  </footer>
-</aside>
+</div>
 
 <div class="toast" id="toast" role="status"></div>
 
@@ -1234,6 +1229,11 @@
         (d.id === DECK_ID ? '<span class="yh">You are here</span>' : '');
       pane.appendChild(a);
     });
+    var mh = document.createElement('h3');
+    mh.textContent = 'The model';
+    pane.appendChild(mh);
+    var mp = $('modelPane');
+    if (mp){ mp.hidden = false; pane.appendChild(mp); }
     var c = document.createElement('button');
     c.className = 'close'; c.type = 'button'; c.textContent = 'Close';
     c.addEventListener('click', function(){ document.body.classList.remove('deck-open'); });
@@ -1394,16 +1394,6 @@
     $('mReset').addEventListener('click', function(){
       m = JSON.parse(JSON.stringify(BASE)); markPreset('base'); persistM(); render();
     });
-    function setTab(t){
-      var model = t === 'model';
-      $('tabNotes').classList.toggle('on', !model);
-      $('tabModel').classList.toggle('on', model);
-      $('noteList').hidden = model;
-      $('paneFooter').style.display = model ? 'none' : '';
-      $('modelPane').hidden = !model;
-    }
-    $('tabNotes').addEventListener('click', function(){ setTab('notes'); });
-    $('tabModel').addEventListener('click', function(){ setTab('model'); });
     render(); detectPreset();
   })();
 
