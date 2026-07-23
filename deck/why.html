@@ -388,6 +388,38 @@
   .note .del:hover{color:var(--tangerine-deep)}
   .sidepane footer{padding:10px 12px; display:flex; gap:8px; flex-wrap:wrap; border-top:2px dashed var(--edge)}
   .sidepane footer .btn{font-size:.8rem; padding:6px 13px}
+
+  /* ---------- model tab ---------- */
+  .sidepane .list[hidden], .modelpane[hidden]{display:none}
+  .panetabs{display:flex; gap:14px; align-items:baseline}
+  .ptab{border:none; background:none; font-family:var(--font-display); font-weight:800; font-size:1.3rem; color:var(--ink-soft); cursor:pointer; padding:0; opacity:.55}
+  .ptab.on{color:var(--ink); opacity:1; text-decoration:underline; text-underline-offset:6px; text-decoration-thickness:3px; text-decoration-color:var(--tangerine)}
+  .modelpane{overflow-y:auto; padding:12px 14px; flex:1; display:flex; flex-direction:column; gap:12px}
+  .mnote{font-size:.76rem; color:var(--ink-soft); font-weight:700; line-height:1.45}
+  .mpresets{display:flex; gap:6px}
+  .mpresets button{flex:1; border:1px solid var(--edge); background:var(--card); border-radius:10px; padding:6px 4px; font-family:var(--font-body); font-weight:800; font-size:.78rem; color:var(--ink); cursor:pointer}
+  .mpresets button.on{border-color:var(--tangerine); color:var(--tangerine)}
+  .mgroup{background:var(--card); border:1px solid var(--edge); border-radius:14px; padding:10px 12px; display:flex; flex-direction:column; gap:9px}
+  .mgroup h4{font-size:.72rem; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em}
+  .mrow{display:flex; flex-direction:column; gap:2px}
+  .mrow .lab{display:flex; justify-content:space-between; gap:8px; font-size:.8rem; font-weight:800}
+  .mrow .lab b{color:var(--teal-deep); font-variant-numeric:tabular-nums; white-space:nowrap}
+  .mrow input[type=range]{width:100%; accent-color:var(--tangerine); margin:0}
+  .mthree{display:flex; gap:8px}
+  .mthree .mrow{flex:1}
+  .mtog{display:flex; align-items:center; gap:8px; font-size:.8rem; font-weight:800; cursor:pointer}
+  .mtog input{accent-color:var(--tangerine); width:15px; height:15px; margin:0}
+  .mtiles{display:flex; gap:8px}
+  .mtile{flex:1; background:var(--card); border:1px solid var(--edge); border-radius:12px; padding:8px 10px; display:flex; flex-direction:column; gap:1px}
+  .mtile .n{font-family:var(--font-display); font-weight:800; font-size:1.12rem; color:var(--tangerine)}
+  .mtile .l{font-size:.66rem; color:var(--ink-soft); font-weight:700; line-height:1.3}
+  table.mtab{width:100%; border-collapse:collapse; font-size:.78rem; font-variant-numeric:tabular-nums}
+  table.mtab th, table.mtab td{padding:4px 5px; text-align:right; border-bottom:1px solid var(--edge); font-weight:700; color:var(--ink-soft)}
+  table.mtab th:first-child, table.mtab td:first-child{text-align:left}
+  table.mtab thead th{font-weight:800}
+  table.mtab tr.tot td{font-weight:800; color:var(--ink)}
+  table.mtab tr.arr td{color:var(--teal-deep); font-weight:800}
+  .mreset{border:none; background:none; color:var(--teal-deep); font-weight:800; font-size:.78rem; cursor:pointer; align-self:flex-start; padding:0}
   .empty{color:var(--ink-soft); text-align:center; padding:24px 12px; font-size:.92rem}
   textarea.importbox{
     width:100%; min-height:70px; border:2px solid var(--edge); border-radius:12px; padding:8px 10px;
@@ -602,11 +634,52 @@
 
 <aside class="sidepane" id="pane" aria-label="Notes">
   <header>
-    <h3>Notes</h3>
+    <div class="panetabs">
+      <button class="ptab on" id="tabNotes" type="button">Notes</button>
+      <button class="ptab" id="tabModel" type="button">Model</button>
+    </div>
     <span class="sync" id="syncStatus">this device only</span>
     <span class="who" id="whoami"></span>
   </header>
   <div class="list" id="noteList"></div>
+  <div class="modelpane" id="modelPane" hidden>
+    <p class="mnote">The studio model, live. Planning numbers, not promises; market bands come from the research, the rest is us. Dials save on this device only.</p>
+    <div class="mpresets" id="mPresets">
+      <button type="button" data-p="cons">Careful</button>
+      <button type="button" data-p="base" class="on">Base</button>
+      <button type="button" data-p="stretch">Stretch</button>
+    </div>
+    <div class="mgroup">
+      <h4>Pricing</h4>
+      <div class="mrow"><span class="lab">Install fee <b id="vFee"></b></span><input type="range" id="dFee" min="5000" max="25000" step="500"></div>
+      <div class="mrow"><span class="lab">Subscription <b id="vSub"></b></span><input type="range" id="dSub" min="500" max="2000" step="50"></div>
+    </div>
+    <div class="mgroup">
+      <h4>Adoption</h4>
+      <div class="mrow"><span class="lab">Install &rarr; subscription <b id="vConv"></b></span><input type="range" id="dConv" min="50" max="100" step="5"></div>
+      <div class="mrow"><span class="lab">Subscription churn <b id="vChurn"></b></span><input type="range" id="dChurn" min="0" max="30" step="1"></div>
+    </div>
+    <div class="mgroup">
+      <h4>The crew</h4>
+      <div class="mrow"><span class="lab">FDE loaded cost <b id="vFdeCost"></b></span><input type="range" id="dFdeCost" min="100000" max="200000" step="5000"></div>
+      <div class="mrow"><span class="lab">Installs per FDE <b id="vPerMo"></b></span><input type="range" id="dPerMo" min="0.5" max="2" step="0.05"></div>
+      <div class="mrow"><span class="lab">Founder installs <b id="vFounders"></b></span><input type="range" id="dFounders" min="0" max="15" step="1"></div>
+      <div class="mthree">
+        <div class="mrow"><span class="lab">&rsquo;27 FDEs <b id="vF27"></b></span><input type="range" id="dF27" min="0" max="6" step="0.5"></div>
+        <div class="mrow"><span class="lab">&rsquo;28 <b id="vF28"></b></span><input type="range" id="dF28" min="0" max="6" step="0.5"></div>
+        <div class="mrow"><span class="lab">&rsquo;29 <b id="vF29"></b></span><input type="range" id="dF29" min="0" max="6" step="0.5"></div>
+      </div>
+    </div>
+    <div class="mgroup">
+      <h4>Toggles</h4>
+      <label class="mtog"><input type="checkbox" id="tAccel"> Capital: hire ahead of payback</label>
+      <label class="mtog"><input type="checkbox" id="tLic"> Playbook licensing outside the region, &rsquo;29</label>
+      <label class="mtog"><input type="checkbox" id="tOps"> Ops hire in &rsquo;29</label>
+    </div>
+    <div class="mtiles" id="mTiles"></div>
+    <table class="mtab" id="mTable"></table>
+    <button class="mreset" id="mReset" type="button">Reset to base</button>
+  </div>
   <footer id="paneFooter">
     <button class="btn" id="copyBtn">Copy notes</button>
     <button class="btn" id="dlBtn">Download</button>
@@ -1165,6 +1238,121 @@
     var svg = el.firstChild;
     if (svg){ svg.setAttribute('width', '64'); svg.setAttribute('height', '88'); }
   });
+
+  /* ---------- financial model tab ---------- */
+  (function(){
+    var LS_MODEL = 'aihc_model_v1';
+    var BASE = {fee:12000, sub:1000, conv:85, churn:12, fdeCost:150000, perMo:1.2, f27:0, f28:1.5, f29:3.5, founders:10, accel:false, lic:false, ops:true};
+    var PRESETS = {
+      base: BASE,
+      cons: {fee:10000, sub:800, conv:70, churn:20, fdeCost:150000, perMo:0.8, f27:0, f28:1, f29:2, founders:6, accel:false, lic:false, ops:true},
+      stretch: {fee:15000, sub:1400, conv:90, churn:8, fdeCost:150000, perMo:1.75, f27:0, f28:2, f29:4, founders:10, accel:false, lic:true, ops:true}
+    };
+    var ids = {fee:'dFee', sub:'dSub', conv:'dConv', churn:'dChurn', fdeCost:'dFdeCost', perMo:'dPerMo', f27:'dF27', f28:'dF28', f29:'dF29', founders:'dFounders'};
+    var togs = {accel:'tAccel', lic:'tLic', ops:'tOps'};
+    var m;
+    try { m = JSON.parse(localStorage.getItem(LS_MODEL) || 'null'); } catch(e){ m = null; }
+    if (!m || typeof m.fee !== 'number') m = JSON.parse(JSON.stringify(BASE));
+
+    function fmtMoney(v){
+      var neg = v < 0 ? '&minus;' : ''; v = Math.abs(v);
+      if (v >= 995000) return neg + '$' + (v/1000000).toFixed(2).replace(/\.?0+$/,'') + 'M';
+      return neg + '$' + Math.round(v/1000) + 'K';
+    }
+    function calc(){
+      var founder = [m.founders, Math.round(m.founders*0.8), Math.round(m.founders*0.6)];
+      var fde = m.accel ? [m.f27 + 0.5, m.f28 + 1, m.f29 + 1] : [m.f27, m.f28, m.f29];
+      var other = [10000, 30000, 40000 + (m.lic ? 150000 : 0)];
+      var opex = [44000, 43000, 50000 + (m.ops ? 70000 : 0)];
+      var book = 0, out = [];
+      for (var i = 0; i < 3; i++){
+        var installs = founder[i] + fde[i]*12*m.perMo;
+        var instRev = installs*m.fee;
+        var newSubs = installs*(m.conv/100);
+        var bookEnd = Math.max(0, book + newSubs - book*(m.churn/100));
+        var subRev = ((book + bookEnd)/2)*m.sub*12;
+        var rev = instRev + subRev + other[i];
+        var cost = fde[i]*m.fdeCost + opex[i];
+        out.push({fde:fde[i], installs:installs, instRev:instRev, subRev:subRev, other:other[i], rev:rev, cost:cost, margin:rev-cost, subs:bookEnd, arr:bookEnd*m.sub*12});
+        book = bookEnd;
+      }
+      return out;
+    }
+    function markPreset(p){
+      Array.prototype.forEach.call(document.querySelectorAll('#mPresets button'), function(b){
+        b.classList.toggle('on', b.getAttribute('data-p') === p);
+      });
+    }
+    function detectPreset(){
+      var cur = JSON.stringify(m), hit = null;
+      Object.keys(PRESETS).forEach(function(p){ if (JSON.stringify(PRESETS[p]) === cur) hit = p; });
+      markPreset(hit);
+    }
+    function render(){
+      Object.keys(ids).forEach(function(k){ var el = $(ids[k]); if (el) el.value = m[k]; });
+      Object.keys(togs).forEach(function(k){ var el = $(togs[k]); if (el) el.checked = !!m[k]; });
+      $('vFee').innerHTML = fmtMoney(m.fee);
+      $('vSub').textContent = '$' + m.sub + '/mo';
+      $('vConv').textContent = m.conv + '%';
+      $('vChurn').textContent = m.churn + '%/yr';
+      $('vFdeCost').innerHTML = fmtMoney(m.fdeCost) + '/yr';
+      $('vPerMo').textContent = m.perMo.toFixed(2).replace(/0$/,'') + '/mo';
+      $('vFounders').textContent = m.founders + " in '27";
+      $('vF27').textContent = m.f27; $('vF28').textContent = m.f28; $('vF29').textContent = m.f29;
+      var r = calc();
+      var payback = Math.ceil(m.fdeCost / m.fee);
+      $('mTiles').innerHTML =
+        '<div class="mtile"><span class="n">' + payback + '</span><span class="l">installs pay back one FDE year</span></div>' +
+        '<div class="mtile"><span class="n">' + fmtMoney(r[2].arr) + '</span><span class="l">ARR exiting &rsquo;29</span></div>' +
+        '<div class="mtile"><span class="n">' + fmtMoney(r[2].margin) + '</span><span class="l">&rsquo;29 margin, pre&#8209;founder pay</span></div>';
+      function row(lab, f, cls){
+        return '<tr' + (cls ? ' class="' + cls + '"' : '') + '><td>' + lab + '</td>' +
+          r.map(function(y){ return '<td>' + f(y) + '</td>'; }).join('') + '</tr>';
+      }
+      $('mTable').innerHTML =
+        '<thead><tr><th></th><th>&rsquo;27</th><th>&rsquo;28</th><th>&rsquo;29</th></tr></thead><tbody>' +
+        row('FDEs (avg)', function(y){ return y.fde; }) +
+        row('Installs', function(y){ return Math.round(y.installs); }) +
+        row('Install rev', function(y){ return fmtMoney(y.instRev); }) +
+        row('Subscriptions', function(y){ return fmtMoney(y.subRev); }) +
+        row('Other', function(y){ return fmtMoney(y.other); }) +
+        row('Revenue', function(y){ return fmtMoney(y.rev); }, 'tot') +
+        row('Costs', function(y){ return fmtMoney(y.cost); }) +
+        row('Margin', function(y){ return fmtMoney(y.margin); }, 'tot') +
+        row('Subscribers (exit)', function(y){ return Math.round(y.subs); }) +
+        row('ARR (exit)', function(y){ return fmtMoney(y.arr); }, 'arr') +
+        '</tbody>';
+    }
+    function persistM(){ try { localStorage.setItem(LS_MODEL, JSON.stringify(m)); } catch(e){} }
+    Object.keys(ids).forEach(function(k){
+      var el = $(ids[k]); if (!el) return;
+      el.addEventListener('input', function(){ m[k] = parseFloat(el.value); markPreset(null); persistM(); render(); });
+    });
+    Object.keys(togs).forEach(function(k){
+      var el = $(togs[k]); if (!el) return;
+      el.addEventListener('change', function(){ m[k] = el.checked; markPreset(null); persistM(); render(); });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('#mPresets button'), function(b){
+      b.addEventListener('click', function(){
+        m = JSON.parse(JSON.stringify(PRESETS[b.getAttribute('data-p')]));
+        markPreset(b.getAttribute('data-p')); persistM(); render();
+      });
+    });
+    $('mReset').addEventListener('click', function(){
+      m = JSON.parse(JSON.stringify(BASE)); markPreset('base'); persistM(); render();
+    });
+    function setTab(t){
+      var model = t === 'model';
+      $('tabNotes').classList.toggle('on', !model);
+      $('tabModel').classList.toggle('on', model);
+      $('noteList').hidden = model;
+      $('paneFooter').style.display = model ? 'none' : '';
+      $('modelPane').hidden = !model;
+    }
+    $('tabNotes').addEventListener('click', function(){ setTab('notes'); });
+    $('tabModel').addEventListener('click', function(){ setTab('model'); });
+    render(); detectPreset();
+  })();
 
   /* ---------- boot ---------- */
   sortNotes();
