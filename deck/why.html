@@ -1223,10 +1223,11 @@
       var opex = [44000, 43000, 50000 + (m.ops ? 70000 : 0)];
       var book = 0, out = [];
       for (var i = 0; i < 3; i++){
-        var installs = founder[i] + fde[i]*12*m.perMo;
+        var installs = Math.round(founder[i] + fde[i]*12*m.perMo);
         var instRev = installs*m.fee;
-        var newSubs = installs*(m.conv/100);
-        var bookEnd = Math.max(0, book + newSubs - book*(m.churn/100));
+        var newSubs = Math.round(installs*(m.conv/100));
+        var churned = Math.round(book*(m.churn/100));
+        var bookEnd = Math.max(0, book + newSubs - churned);
         var subRev = ((book + bookEnd)/2)*m.sub*12;
         var rev = instRev + subRev + other[i];
         var cost = fde[i]*m.fdeCost + opex[i];
