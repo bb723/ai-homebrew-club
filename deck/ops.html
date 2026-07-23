@@ -578,45 +578,6 @@
   </footer>
 </aside>
 
-<div class="modelpane" id="modelPane" hidden>
-    <p class="mnote">The studio model, live. Planning numbers, not promises; market bands come from the research, the rest is us. Dials save on this device only.</p>
-    <div class="mpresets" id="mPresets">
-      <button type="button" data-p="cons">Careful</button>
-      <button type="button" data-p="base" class="on">Base</button>
-      <button type="button" data-p="stretch">Stretch</button>
-    </div>
-    <div class="mgroup">
-      <h4>Pricing</h4>
-      <div class="mrow"><span class="lab">Install fee <b id="vFee"></b></span><input type="range" id="dFee" min="5000" max="25000" step="500"></div>
-      <div class="mrow"><span class="lab">Subscription <b id="vSub"></b></span><input type="range" id="dSub" min="500" max="2000" step="50"></div>
-    </div>
-    <div class="mgroup">
-      <h4>Adoption</h4>
-      <div class="mrow"><span class="lab">Install &rarr; subscription <b id="vConv"></b></span><input type="range" id="dConv" min="50" max="100" step="5"></div>
-      <div class="mrow"><span class="lab">Subscription churn <b id="vChurn"></b></span><input type="range" id="dChurn" min="0" max="30" step="1"></div>
-    </div>
-    <div class="mgroup">
-      <h4>The crew</h4>
-      <div class="mrow"><span class="lab">FDE loaded cost <b id="vFdeCost"></b></span><input type="range" id="dFdeCost" min="100000" max="200000" step="5000"></div>
-      <div class="mrow"><span class="lab">Installs per FDE <b id="vPerMo"></b></span><input type="range" id="dPerMo" min="0.5" max="2" step="0.05"></div>
-      <div class="mrow"><span class="lab">Founder installs <b id="vFounders"></b></span><input type="range" id="dFounders" min="0" max="15" step="1"></div>
-      <div class="mthree">
-        <div class="mrow"><span class="lab">&rsquo;27 FDEs <b id="vF27"></b></span><input type="range" id="dF27" min="0" max="6" step="0.5"></div>
-        <div class="mrow"><span class="lab">&rsquo;28 <b id="vF28"></b></span><input type="range" id="dF28" min="0" max="6" step="0.5"></div>
-        <div class="mrow"><span class="lab">&rsquo;29 <b id="vF29"></b></span><input type="range" id="dF29" min="0" max="6" step="0.5"></div>
-      </div>
-    </div>
-    <div class="mgroup">
-      <h4>Toggles</h4>
-      <label class="mtog"><input type="checkbox" id="tAccel"> Capital: hire ahead of payback</label>
-      <label class="mtog"><input type="checkbox" id="tLic"> Playbook licensing outside the region, &rsquo;29</label>
-      <label class="mtog"><input type="checkbox" id="tOps"> Ops hire in &rsquo;29</label>
-    </div>
-    <div class="mtiles" id="mTiles"></div>
-    <table class="mtab" id="mTable"></table>
-    <button class="mreset" id="mReset" type="button">Reset to base</button>
-</div>
-
 <div class="toast" id="toast" role="status"></div>
 
 <script>
@@ -875,7 +836,7 @@
   slides.forEach(function(slide){
     slide.addEventListener('click', function(ev){
       if (!viewer) return;
-      if (ev.target.closest('a, button, input, textarea, .pin, .popover, .sidepane')) return;
+      if (ev.target.closest('a, button, input, textarea, label, .pin, .popover, .sidepane')) return;
       if (pop){ closePop(); return; }
       var r = slide.getBoundingClientRect();
       var xPct = Math.max(0, Math.min(100, ((ev.clientX - r.left) / r.width) * 100));
@@ -1086,7 +1047,8 @@
     {id: 'charter', title: 'The Charter', desc: 'The whole plan. Every pitch is cut from this.', group: 'Internal'},
     {id: 'kit101', title: 'The 101 kit', desc: 'Twelve live demos, step by step.', group: 'Internal'},
     {id: 'funding', title: 'The funding plan', desc: 'Grants, links, deadlines, in unlock order.', group: 'Internal'},
-    {id: 'ops', title: 'The back office', desc: 'Every switch and dial, one page.', group: 'Internal'}
+    {id: 'ops', title: 'The back office', desc: 'Every switch and dial, one page.', group: 'Internal'},
+    {id: 'model', title: 'The model', desc: 'The studio P&amp;L, live. Turn the dials.', group: 'Internal'}
   ];
   var SITE_HOSTS = ['bb723.github.io', 'aibrownbag.com', 'www.aibrownbag.com'];
   function deckHref(id){
@@ -1111,11 +1073,6 @@
         (d.id === DECK_ID ? '<span class="yh">You are here</span>' : '');
       pane.appendChild(a);
     });
-    var mh = document.createElement('h3');
-    mh.textContent = 'The model';
-    pane.appendChild(mh);
-    var mp = $('modelPane');
-    if (mp){ mp.hidden = false; pane.appendChild(mp); }
     var c = document.createElement('button');
     c.className = 'close'; c.type = 'button'; c.textContent = 'Close';
     c.addEventListener('click', function(){ document.body.classList.remove('deck-open'); });
@@ -1174,8 +1131,9 @@
     if (svg){ svg.setAttribute('width', '64'); svg.setAttribute('height', '88'); }
   });
 
-  /* ---------- financial model tab ---------- */
+  /* ---------- financial model (only on the model page) ---------- */
   (function(){
+    if (!$('modelPane')) return;
     var LS_MODEL = 'aihc_model_v1';
     var BASE = {fee:12000, sub:1000, conv:85, churn:12, fdeCost:150000, perMo:1.2, f27:0, f28:1.5, f29:3.5, founders:10, accel:false, lic:false, ops:true};
     var PRESETS = {
