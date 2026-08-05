@@ -1172,7 +1172,9 @@
   var SITE_HOSTS = ['bb723.github.io', 'aibrownbag.com', 'www.aibrownbag.com'];
   function deckHref(id){
     var local = location.protocol === 'file:' || SITE_HOSTS.indexOf(location.hostname) !== -1;
-    return local ? (id + '.html') : ('https://aihomebrewclub.com/deck/' + id + '.html');
+    var atRoot = DECK_ID === 'feed'; /* the feed lives at the site root, not /deck/ */
+    if (id === 'feed') return local ? (atRoot ? 'feed.html' : '../feed.html') : 'https://aihomebrewclub.com/feed.html';
+    return local ? ((atRoot ? 'deck/' : '') + id + '.html') : ('https://aihomebrewclub.com/deck/' + id + '.html');
   }
   function buildDeckPane(){
     var pane = $('deckPane');
