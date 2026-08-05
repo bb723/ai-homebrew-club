@@ -133,7 +133,43 @@
       repeating-linear-gradient(90deg, color-mix(in srgb, var(--tangerine) 22%, transparent) 0 8px, transparent 8px 16px);
   }
   footer .big{font-family:var(--font-display); font-weight:800; font-size:clamp(1.6rem,3.4vw,2.4rem); color:var(--ink); margin-bottom:8px}
-  footer .members{margin-top:18px; font-size:.85rem}
+
+  /* members-only nav: injected by script only when this device has passed the gate */
+  .deckbtn{
+    position:fixed; left:16px; top:16px; z-index:50;
+    border:none; border-radius:999px; padding:10px 18px; cursor:pointer;
+    background:var(--ink); color:var(--paper); font-family:var(--font-display); font-weight:800; font-size:.95rem;
+    box-shadow:0 8px 20px rgba(0,0,0,.25);
+  }
+  .deckbtn:hover{filter:brightness(1.15)}
+  .deckbtn:focus-visible{outline:3px solid var(--tangerine); outline-offset:2px}
+  .deckpane{
+    position:fixed; left:0; top:0; bottom:0; z-index:65; width:min(320px, 88vw);
+    background:var(--card); box-shadow:8px 0 30px rgba(0,0,0,.18);
+    display:flex; flex-direction:column; gap:8px; padding:18px 14px;
+    transform:translateX(-105%); overflow-y:auto;
+  }
+  @media (prefers-reduced-motion: no-preference){ .deckpane{transition:transform .22s} }
+  body.deck-open .deckpane{transform:none}
+  .deckpane h3{font-family:var(--font-display); font-size:1.3rem; margin:0; padding:0 8px 8px; border-bottom:2px dashed var(--edge)}
+  .deckpane a{
+    display:flex; flex-direction:column; gap:2px; text-decoration:none; color:var(--ink);
+    background:var(--paper); border-radius:14px; padding:12px 14px; border:2px solid transparent; font-weight:400;
+  }
+  .deckpane a:hover{border-color:var(--teal)}
+  .deckpane a:focus-visible{outline:3px solid var(--teal); outline-offset:2px}
+  .deckpane a.here{border-color:var(--tangerine)}
+  .deckpane a .t{font-weight:800; font-size:1.05rem}
+  .deckpane a .d{color:var(--ink-soft); font-size:.85rem; font-weight:700}
+  .deckpane a .yh{
+    align-self:flex-start; margin-top:4px; font-size:.68rem; font-weight:800;
+    letter-spacing:.1em; text-transform:uppercase; color:var(--tangerine);
+  }
+  .deckpane .close{
+    margin-top:auto; border:none; background:none; color:var(--ink-soft);
+    font-weight:800; cursor:pointer; padding:8px; font-size:.85rem;
+  }
+  .deckpane .close:hover{color:var(--ink)}
 
   @media (max-width:860px){
     .hero .wrap{grid-template-columns:1fr}
@@ -283,7 +319,6 @@
     <p class="big">Come to the first AI Brown Bag. Bring a neighbor.</p>
     <p>Bricks Coworking &amp; Innovation Space &middot; Hathaway Creative Center &middot; 10 Water St, Waterville</p>
     <p style="margin-top:6px">The recipes are free. They always will be.</p>
-    <p class="members">Friends of the club: <a href="feed.html">the working decks</a> live behind the secret word.</p>
   </div>
 </footer>
 
@@ -319,6 +354,50 @@
     var svg = el.firstChild;
     if (svg){ svg.setAttribute('width', '60'); svg.setAttribute('height', '84'); }
   });
+
+  /* members-only nav: only for devices that have already passed the gate elsewhere.
+     the public page itself never mentions or links the gated area. */
+  var viewer = null;
+  try { viewer = JSON.parse(localStorage.getItem('aihc_viewer_v1') || 'null'); } catch(e){}
+  if (!viewer || !viewer.name) return;
+  var LINKS = [
+    {href: 'feed.html', t: 'The feed', d: 'What happened, and who said yes.', g: 'The club'},
+    {here: true, t: 'The invite', d: 'The public landing page.', g: 'The club'},
+    {href: 'deck/invest.html', t: 'Investor pitch', d: 'The hardest room in America.', g: 'The pitches'},
+    {href: 'deck/join.html', t: 'Attendee pitch', d: 'Come to the first AI Brown Bag.', g: 'The pitches'},
+    {href: 'deck/why.html', t: 'Why we meet', d: 'Fear, lies, and folding chairs.', g: 'The pitches'},
+    {href: 'deck/charter.html', t: 'The Charter', d: 'The whole plan. Every pitch is cut from this.', g: 'Internal'},
+    {href: 'deck/kit101.html', t: 'The 101 kit', d: 'Twelve live demos, step by step.', g: 'Internal'},
+    {href: 'deck/funding.html', t: 'The funding plan', d: 'Grants, links, deadlines, in unlock order.', g: 'Internal'},
+    {href: 'deck/model.html', t: 'The model', d: 'The studio P&amp;L, live.', g: 'Internal'}
+  ];
+  var btn = document.createElement('button');
+  btn.className = 'deckbtn'; btn.type = 'button'; btn.innerHTML = '&#9776;'; btn.setAttribute('aria-label', 'Menu');
+  var pane = document.createElement('nav');
+  pane.className = 'deckpane';
+  var lastGroup = '';
+  LINKS.forEach(function(d){
+    if (d.g !== lastGroup){
+      var h = document.createElement('h3'); h.textContent = d.g; pane.appendChild(h); lastGroup = d.g;
+    }
+    var a = document.createElement('a');
+    if (d.here){
+      a.href = '#'; a.className = 'here';
+      a.addEventListener('click', function(ev){ ev.preventDefault(); document.body.classList.remove('deck-open'); });
+    } else {
+      a.href = d.href;
+    }
+    a.innerHTML = '<span class="t">' + d.t + '</span><span class="d">' + d.d + '</span>' +
+      (d.here ? '<span class="yh">You are here</span>' : '');
+    pane.appendChild(a);
+  });
+  var c = document.createElement('button');
+  c.className = 'close'; c.type = 'button'; c.textContent = 'Close';
+  c.addEventListener('click', function(){ document.body.classList.remove('deck-open'); });
+  pane.appendChild(c);
+  document.body.appendChild(btn);
+  document.body.appendChild(pane);
+  btn.addEventListener('click', function(){ document.body.classList.toggle('deck-open'); });
 })();
 </script>
 </body>
