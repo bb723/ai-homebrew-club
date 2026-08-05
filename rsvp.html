@@ -139,11 +139,21 @@
   document.getElementById('logo').innerHTML = LOGO;
 
   var BASE = 'https://aihc-notes-690dcde965fd.herokuapp.com/notes'.replace(/\/notes\b.*$/, '');
-  /* one page, many events: /rsvp.html?event=<id> — each event gets its own QR */
+  /* one page, many events: /rsvp.html?event=<id> — each event gets its own QR.
+     with no ?event=, the page resolves to the NEXT UPCOMING meetup, so printed
+     generic QRs stay evergreen. */
   var params = new URLSearchParams(location.search);
-  var EVENT = params.get('event') || 'aug18-bricks';
-  var LS_MINE = 'aihc_rsvp_' + EVENT;
+  var EVENT = params.get('event') || '';
+  var LS_MINE = '';
   function $(id){ return document.getElementById(id); }
+  function fmtTime(t){
+    if (!/^\d{1,2}:\d{2}$/.test(t || '')) return '';
+    var parts = t.split(':');
+    var h = parseInt(parts[0], 10);
+    var ap = h >= 12 ? 'pm' : 'am';
+    h = h % 12 || 12;
+    return h + ':' + parts[1] + ' ' + ap;
+  }
 
   var evData = null;
   var full = false;
@@ -163,18 +173,19 @@
     }
     if (d.title) $('evTitle').textContent = d.title + ' · free, and it always will be';
     if (d.when){
-      $('evWhen').innerHTML = '<b>When:</b> ' + d.when + '. Time announced soon. One hour, coffee on.';
+      var t = fmtTime(d.start_time);
+      $('evWhen').innerHTML = '<b>When:</b> ' + d.when + (t ? ', ' + t : '. Time announced soon') + '. One hour, coffee on.';
       document.querySelectorAll('.evWhenInline').forEach(function(el){ el.textContent = d.when; });
     }
     if (d.location) $('evWhere').innerHTML = '<b>Where:</b> ' + d.location + '.';
   }
   function refresh(){
+    if (!EVENT) return;
     fetch(BASE + '/rsvp?event=' + encodeURIComponent(EVENT))
       .then(function(r){ return r.json(); })
       .then(function(d){ if (d && d.capacity) paintSeats(d); })
       .catch(function(){ $('seatPill').textContent = 'First come, first served'; });
   }
-  refresh();
 
   $('rsvpForm').addEventListener('submit', function(ev){
     ev.preventDefault();
@@ -255,14 +266,34 @@
     };
   }
   var cancelParam = params.get('cancel');
-  if (cancelParam){
-    showCancel(cancelParam);
-  } else if (mineId){
-    $('mineNote').hidden = false;
-    $('mineCancel').addEventListener('click', function(ev){
-      ev.preventDefault();
-      showCancel(mineId);
-    });
+  function begin(eventId){
+    EVENT = eventId;
+    LS_MINE = 'aihc_rsvp_' + EVENT;
+    refresh();
+    if (!cancelParam){
+      mineId = null;
+      try { mineId = localStorage.getItem(LS_MINE); } catch(e){}
+      if (mineId){
+        $('mineNote').hidden = false;
+        $('mineCancel').addEventListener('click', function(ev){
+          ev.preventDefault();
+          showCancel(mineId);
+        });
+      }
+    }
+  }
+  if (cancelParam) showCancel(cancelParam);
+  if (EVENT){
+    begin(EVENT);
+  } else {
+    fetch(BASE + '/events')
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        var up = ((d && d.events) || []).filter(function(e){ return e.status === 'upcoming'; })
+          .sort(function(a, b){ return a.sort_date < b.sort_date ? -1 : 1; });
+        begin(up.length ? up[0].id : 'aug18-bricks');
+      })
+      .catch(function(){ begin('aug18-bricks'); });
   }
 })();
 </script>
