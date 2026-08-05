@@ -1327,7 +1327,9 @@
   /* ---------- deck switcher ---------- */
   var DECKS = [
     {id: 'feed', title: 'The feed', desc: 'What happened, and who said yes.', group: 'The club'},
+    {id: 'waterville', title: 'Waterville', desc: 'Public meetup page: agendas, seats, QR.', group: 'The club'},
     {id: 'home', title: 'The invite', desc: 'The public landing page.', group: 'The club'},
+    {id: 'admin', title: 'Meetup controls', desc: 'Create meetups, edit agendas.', group: 'Internal'},
     {id: 'invest', title: 'Investor pitch', desc: 'The hardest room in America.', group: 'The pitches'},
     {id: 'join', title: 'Attendee pitch', desc: 'Come to the first AI Brown Bag.', group: 'The pitches'},
     {id: 'why', title: 'Why we meet', desc: 'Fear, lies, and folding chairs.', group: 'The pitches'},
@@ -1342,6 +1344,7 @@
     var atRoot = DECK_ID === 'feed'; /* the feed lives at the site root, not /deck/ */
     if (id === 'feed') return local ? (atRoot ? 'feed.html' : '../feed.html') : 'https://aihomebrewclub.com/feed.html';
     if (id === 'home') return local ? (atRoot ? 'index.html' : '../index.html') : 'https://aihomebrewclub.com/';
+    if (id === 'waterville') return local ? (atRoot ? 'waterville.html' : '../waterville.html') : 'https://aihomebrewclub.com/waterville.html';
     return local ? ((atRoot ? 'deck/' : '') + id + '.html') : ('https://aihomebrewclub.com/deck/' + id + '.html');
   }
   function buildDeckPane(){
