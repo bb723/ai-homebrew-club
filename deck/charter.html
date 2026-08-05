@@ -930,6 +930,9 @@
   $('gPass').addEventListener('keydown', function(ev){ if (ev.key === 'Enter') tryLogin(); });
   $('gName').addEventListener('keydown', function(ev){ if (ev.key === 'Enter') $('gPass').focus(); });
 
+  /* bridge for page-specific scripts (the feed composer): viewer is a getter so login is picked up live */
+  window.AIHC = { secret: SECRET, deck: DECK_ID, sync: SYNC_URL, toast: toast, viewer: function(){ return viewer; } };
+
   /* ---------- notes store ---------- */
   var notes = [];
   try { notes = JSON.parse(localStorage.getItem(LS_NOTES) || '[]'); } catch(e){ notes = []; }
