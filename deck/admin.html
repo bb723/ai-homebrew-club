@@ -602,6 +602,12 @@
       <div id="qrOut"></div>
     </div>
 
+    <div class="panel" id="attPanel" hidden>
+      <h2 id="attTitle">Attendees</h2>
+      <p class="quiet" id="attCounts" style="font-size:.88rem"></p>
+      <div id="attList"></div>
+    </div>
+
     <div class="panel" id="agPanel" hidden>
       <h2 id="agTitle">Agenda</h2>
       <div id="agList"></div>
@@ -693,6 +699,7 @@
           '<span class="spacer"></span>' +
           '<button class="abtn" data-act="edit" data-id="' + esc(e.id) + '" type="button">Edit</button>' +
           '<button class="abtn" data-act="agenda" data-id="' + esc(e.id) + '" type="button">Agenda</button>' +
+          '<button class="abtn" data-act="att" data-id="' + esc(e.id) + '" type="button">Attendees</button>' +
           '<button class="abtn warn" data-act="del" data-id="' + esc(e.id) + '" type="button">Delete</button>' +
         '</div>';
       }).join('') : '<span class="quiet">No meetups yet.</span>';
@@ -721,6 +728,9 @@
         $('agPanel').hidden = false;
         paintAgenda();
         window.scrollTo({top: $('agPanel').offsetTop - 90, behavior: 'smooth'});
+      }
+      if (b.getAttribute('data-act') === 'att'){
+        showAttendees(e);
       }
       if (b.getAttribute('data-act') === 'del'){
         if (!window.confirm('Delete "' + e.title + '" and its agenda? RSVPs stay in the book.')) return;
@@ -870,6 +880,40 @@
       $('aCancel').hidden = true;
     }
     $('aCancel').addEventListener('click', cancelItem);
+
+    /* attendee list: full detail, admin eyes only */
+    function showAttendees(e){
+      $('attPanel').hidden = false;
+      $('attTitle').textContent = 'Attendees · ' + e.when;
+      $('attCounts').textContent = 'Loading the book…';
+      $('attList').innerHTML = '';
+      fetch(BASE + '/rsvps?secret=' + encodeURIComponent(A.secret))
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          var rows = ((d && d.rsvps) || []).filter(function(r){ return r.event === e.id; });
+          var seats = rows.filter(function(r){ return r.status === 'seat'; });
+          var waits = rows.filter(function(r){ return r.status === 'waitlist'; });
+          var gone = rows.filter(function(r){ return r.status === 'cancelled'; });
+          $('attCounts').textContent = seats.length + ' of ' + e.capacity + ' seats taken · ' +
+            waits.length + ' on the waitlist · ' + gone.length + ' cancelled';
+          function block(list, label){
+            if (!list.length) return '';
+            return '<p class="quiet" style="font-weight:800; font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; margin:12px 0 2px">' + label + '</p>' +
+              list.map(function(r){
+                return '<div class="evrow"><b>' + esc(r.name) + '</b>' +
+                  '<span class="meta">' + esc(r.email || r.contact || '') +
+                  (r.phone ? ' · ' + esc(r.phone) : '') +
+                  (r.biz ? ' · ' + esc(r.biz) : '') + '</span>' +
+                  (r.note ? '<span class="meta" style="flex-basis:100%">task: ' + esc(r.note) + '</span>' : '') +
+                '</div>';
+              }).join('');
+          }
+          $('attList').innerHTML =
+            (block(seats, 'Seats') + block(waits, 'Waitlist') + block(gone, 'Cancelled')) ||
+            '<span class="quiet">Nobody on the books yet.</span>';
+        });
+      window.scrollTo({top: $('attPanel').offsetTop - 90, behavior: 'smooth'});
+    }
 
     /* recipe box manager */
     var recipes = [];

@@ -619,6 +619,14 @@
       </div>
     </div>
 
+    <div class="post noexport" id="tableCard" hidden>
+      <div class="phead">
+        <span class="avatar av-club">&#9749;</span>
+        <span class="pwho"><b>The table</b><span class="pmeta" id="tableMeta">who's coming</span></span>
+      </div>
+      <div class="pbody" id="tableBody"></div>
+    </div>
+
     <div id="feedPosts"><div class="feedstate">Pouring the coffee&hellip;</div></div>
   </div>
 </section>
@@ -764,6 +772,38 @@
           if (d && d.posts){ posts = d.posts; render(); }
         })
         .catch(function(){ /* keep whatever is on screen */ });
+      loadTable();
+    }
+
+    /* the table: who's coming to upcoming meetups (names only; contacts stay in the admin console) */
+    var BASE = POSTS_URL.replace(/\/posts$/, '');
+    function loadTable(){
+      Promise.all([
+        fetch(BASE + '/events').then(function(r){ return r.json(); }),
+        fetch(BASE + '/attendees?secret=' + encodeURIComponent(A.secret)).then(function(r){ return r.json(); })
+      ]).then(function(res){
+        var events = ((res[0] && res[0].events) || []).filter(function(e){ return e.status === 'upcoming'; })
+          .sort(function(a, b){ return a.sort_date < b.sort_date ? -1 : 1; });
+        var att = (res[1] && res[1].attendees) || [];
+        if (!events.length){ document.getElementById('tableCard').hidden = true; return; }
+        document.getElementById('tableCard').hidden = false;
+        document.getElementById('tableBody').innerHTML = events.map(function(e){
+          var mine = att.filter(function(a){ return a.event === e.id; });
+          var seats = mine.filter(function(a){ return a.status === 'seat'; });
+          var waits = mine.filter(function(a){ return a.status === 'waitlist'; });
+          function names(list){
+            return list.map(function(a){ return esc(a.name) + (a.biz ? ' (' + esc(a.biz) + ')' : ''); }).join(', ');
+          }
+          return '<p><b>' + esc(e.when) + '</b> · ' + esc(e.location) + '</p>' +
+            (seats.length
+              ? '<p>At the table (' + seats.length + ' of ' + e.capacity + '): ' + names(seats) + '</p>'
+              : '<p>No seats claimed yet. Be the first.</p>') +
+            (waits.length ? '<p class="quiet">Waiting for a seat: ' + names(waits) + '</p>' : '') +
+            (e.left > 0
+              ? '<p class="quiet">' + e.left + ' seat' + (e.left === 1 ? '' : 's') + ' open · <a href="rsvp.html?event=' + encodeURIComponent(e.id) + '">save one</a></p>'
+              : '<p class="quiet">Full · <a href="rsvp.html?event=' + encodeURIComponent(e.id) + '">join the waitlist</a></p>');
+        }).join('<hr style="border:none; border-top:2px dashed var(--edge); margin:10px 0">');
+      }).catch(function(){ /* leave the card as is */ });
     }
 
     /* composer */
