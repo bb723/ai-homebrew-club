@@ -497,149 +497,338 @@
 </div>
 
 <div class="deck" id="deck">
-<!-- 01 · COVER -->
-<section class="slide" id="s1" data-title="Cover">
+<style>
+  /* feed-only styles: this block ships only with feed.html, so bare overrides are safe */
+  html{scroll-snap-type:none}
+  .slide{min-height:0; display:block; padding:4px clamp(12px,3vw,20px); background:var(--w-cream)}
+  .slide.w-peach,.slide.w-mint,.slide.w-lemon,.slide.w-sky,.slide.w-berry{background:var(--w-cream)}
+  .slide:last-of-type{padding-bottom:60px}
+  .sheet{width:min(660px,100%); margin:0 auto; gap:0}
+  #s1 .sheet{padding-top:clamp(64px,9vh,100px)}
+
+  .post{
+    background:var(--card); border:1px solid var(--edge); border-radius:18px;
+    box-shadow:var(--shadow); padding:18px 20px 12px; margin:14px 0;
+  }
+  .phead{display:flex; align-items:center; gap:12px; margin-bottom:10px}
+  .avatar{
+    width:46px; height:46px; border-radius:50%; flex:none;
+    display:grid; place-items:center; font-weight:800; font-size:1.05rem;
+    font-family:var(--font-body); color:var(--paper);
+  }
+  .av-brett{background:var(--teal)}
+  .av-kim{background:var(--sky)}
+  .av-jon{background:var(--berry)}
+  .av-sab{background:var(--lemon); color:#3B3227}
+  .av-club{background:var(--tangerine)}
+  .pwho{min-width:0}
+  .pwho b{display:block; font-size:1.02rem; line-height:1.25}
+  .pmeta{font-size:.82rem; color:var(--ink-soft); font-weight:700}
+  .pill{
+    margin-left:auto; flex:none; background:var(--lemon); color:#3B3227;
+    border-radius:999px; padding:4px 12px; font-size:.7rem; font-weight:800;
+    letter-spacing:.08em; text-transform:uppercase;
+  }
+  .post h2{font-size:1.4rem; margin-bottom:8px}
+  .post h2::after{display:none}
+  .pbody p{margin:0 0 10px}
+  .pbody ul{margin:0 0 10px; padding-left:20px}
+  .pbody li{margin-bottom:4px}
+  .pfoot{
+    border-top:2px dashed var(--edge); margin-top:10px; padding-top:8px;
+    display:flex; gap:12px; flex-wrap:wrap; align-items:baseline;
+    font-size:.8rem; color:var(--ink-soft); font-weight:700;
+  }
+  .tag{color:var(--teal-deep); font-weight:800}
+  .pfoot .cue{margin-left:auto}
+
+  /* the thread, as a conversation */
+  .msg{
+    max-width:86%; padding:11px 14px; border-radius:16px; margin:10px 0;
+    border:1px solid var(--edge); font-size:.95rem;
+  }
+  .msg .m{font-size:.72rem; color:var(--ink-soft); margin-bottom:4px; font-weight:800; letter-spacing:.04em; text-transform:uppercase}
+  .msg p{margin:0 0 8px}
+  .msg p:last-child{margin-bottom:0}
+  .msg ul{margin:6px 0 8px; padding-left:18px}
+  .them{background:var(--w-sky); border-bottom-left-radius:5px}
+  .me{background:var(--w-mint); margin-left:auto; border-bottom-right-radius:5px}
+  .daybreak{
+    text-align:center; font-size:.74rem; color:var(--ink-soft); margin:14px 0 6px;
+    font-weight:800; letter-spacing:.1em; text-transform:uppercase;
+  }
+
+  /* profile header */
+  .profile{text-align:center; padding-top:6px}
+  .profile .avatar{width:92px; height:92px; margin:0 auto 10px; background:var(--card); border:2px solid var(--edge)}
+  .profile h1{font-size:clamp(1.9rem,4.5vw,2.7rem); line-height:1.1}
+  .profile .pmeta{margin-top:6px}
+  .pstats{display:flex; justify-content:center; gap:20px; margin:14px 0 4px; font-weight:800; font-size:.9rem}
+  .pstats span b{color:var(--tangerine)}
+  .exportbtn{
+    margin-top:12px; display:inline-flex; align-items:center; gap:8px;
+    background:var(--card); color:var(--ink); border:2px solid var(--ink);
+    border-radius:999px; padding:9px 20px; font-family:var(--font-body);
+    font-weight:800; font-size:.88rem; letter-spacing:.06em; text-transform:uppercase;
+    cursor:pointer; box-shadow:3px 3px 0 var(--ink);
+  }
+  .exportbtn:active{transform:translate(2px,2px); box-shadow:1px 1px 0 var(--ink)}
+</style>
+
+<!-- 01 · PROFILE HEADER -->
+<section class="slide" id="s1" data-title="The feed">
   <div class="sheet">
-    <div class="cover">
-      <div>
-        <h1>The<br>feed</h1>
-        <p class="motto" style="margin-top:16px">What happened, and who said yes.</p>
-        <p class="lede quiet" style="margin-top:10px; max-width:46ch">A running log of notable events for the club, newest at the top. Starred entries are the ones that moved the ball. Click anywhere on a slide to pin a note.</p>
+    <div class="post profile noexport">
+      <span class="avatar"><span class="logo" data-size="64"></span></span>
+      <h1>The feed</h1>
+      <p class="pmeta">The AI Homebrew Club &middot; what happened, and who said yes</p>
+      <div class="pstats">
+        <span><b>6</b> posts</span>
+        <span><b>2</b> notable</span>
+        <span>updated <b>Aug 5</b></span>
       </div>
-      <div class="fig">
-        <span class="logo" data-size="210"></span>
-      </div>
+      <p class="quiet" style="font-size:.88rem; margin-top:6px">Newest at the top. Click anywhere on a post to pin a note.</p>
+      <button class="exportbtn" id="exportFeed" type="button">&#8681; Export the feed</button>
     </div>
   </div>
 </section>
 
 <!-- 02 · AUG 4 · THE CHAMBER IS IN -->
-<section class="slide w-lemon" id="s2" data-title="Aug 4 · The chamber is in">
+<section class="slide" id="s2" data-title="Aug 4 · The chamber is in">
   <div class="sheet">
-    <span class="chip"><span class="dot"></span>&#9733; Notable &middot; August 4, 2026</span>
-    <h2>The chamber is in.</h2>
-    <p class="lede">Brett met with Kim Lindlof, President and CEO of the Mid&#8209;Maine Chamber of Commerce, and she was excited to have someone talk about <span class="hl">actual use cases</span> with AI instead of hype. It moved fast: a cold email at 7:59 that morning, her reply by 9:15, and by that afternoon the club was booked as a speaker for the chamber's <b>Business Breakfast Series</b>.</p>
-    <ul class="rules">
-      <li><b>Why it matters:</b> the chamber is the trusted front door to every member business in the Waterville area. Kim's first instinct was to route sessions to her own bookkeeper and marketing person, which is exactly the peer&#8209;to&#8209;peer spread the club is built on.</li>
-      <li><b>Already sent:</b> Brett's bio and headshot for the breakfast program. Kim's words: "You're way ahead of schedule."</li>
-      <li><b>Still open:</b> a title and subtitle for the breakfast talk, and the agenda (meet and greet, then a series of practical tasks worked live, with questions from the room).</li>
-    </ul>
-    <p class="kicker">First institution to say yes. <span class="hl">The full thread is on the next two slides.</span></p>
+    <div class="post">
+      <div class="phead">
+        <span class="avatar av-brett">B</span>
+        <span class="pwho"><b>Brett</b><span class="pmeta">met with Kim Lindlof &middot; Aug 4, 2026</span></span>
+        <span class="pill">&#9733; Notable</span>
+      </div>
+      <div class="pbody">
+        <h2>The chamber is in.</h2>
+        <p>Sat down with Kim Lindlof, President and CEO of the Mid&#8209;Maine Chamber of Commerce. She was excited to have someone talk about <b>actual use cases</b> with AI instead of hype, and it moved fast: a cold email at 7:59 that morning, her reply by 9:15, and by the afternoon the club was booked as a speaker for the chamber's <b>Business Breakfast Series</b>.</p>
+        <ul>
+          <li>Her first instinct was to route sessions to her own bookkeeper and marketing person. That is the peer&#8209;to&#8209;peer spread the club is built on.</li>
+          <li>Bio and headshot already sent. Kim's words: "You're way ahead of schedule."</li>
+          <li>Still open: a title and subtitle for the talk, plus the agenda (meet and greet, then practical tasks worked live, with questions from the room).</li>
+        </ul>
+        <p class="quiet">First institution to say yes. The full thread is in the next two posts.</p>
+      </div>
+      <div class="pfoot"><span class="tag">#chamber</span><span class="tag">#breakfast</span><span class="cue">&#128172; pin a note</span></div>
+    </div>
   </div>
 </section>
 
 <!-- 03 · THE THREAD, PART ONE -->
-<section class="slide w-mint" id="s3" data-title="The thread · AI Help Sessions">
+<section class="slide" id="s3" data-title="The thread · AI Help Sessions">
   <div class="sheet">
-    <span class="chip"><span class="dot" style="background:var(--teal)"></span>The thread &middot; part one &middot; "AI Help Sessions"</span>
-    <h2>The cold email that landed.</h2>
-    <div class="cards">
-      <div class="card a-teal">
-        <p class="statsrc">Brett &rarr; Kim Lindlof &middot; Tue Aug 4, 7:59 AM</p>
-        <p>Hey Kim,</p>
-        <p>Curious if any chamber members would be interested in an AI homebrew club? basically a recurring series that helps folks with really simple tasks using chatgpt or claude, answering questions like how to:</p>
-        <ul>
-          <li>Visualize a remodel of this house?</li>
-          <li>Turn a scratchpad into a professional invoice</li>
-          <li>organize receipts.</li>
-          <li>Help evaluate contracts</li>
-          <li>Write a listing, estimate etc</li>
-          <li>respond to facebook posts or reviews without stress and anxiety.</li>
-        </ul>
-        <p>Ideally we would do these sessions bi-weekly and then i'd start a more advanced session in the gaps.</p>
+    <div class="post">
+      <div class="phead">
+        <span class="avatar av-club">&#9749;</span>
+        <span class="pwho"><b>The thread, part one</b><span class="pmeta">"AI Help Sessions" &middot; Aug 4, 2026</span></span>
       </div>
-      <div class="card a-tangerine">
-        <p class="statsrc">Kim Lindlof &rarr; Brett &middot; Tue Aug 4, 9:15 AM</p>
-        <p>Brett,</p>
-        <p>Are you thinking virtually, in-person, or hybrid? What are you thinking about charging? Would you publish the session topics beforehand and have people opt in to the sessions they're interested in, or would it be a subscription? Would a company join, or individuals, or both? My thought is that my bookkeeper might be interested in "organize receipts," and my marketing person in social media responses.</p>
+      <div class="pbody">
+        <div class="msg me">
+          <div class="m">Brett &middot; 7:59 am</div>
+          <p>Hey Kim,</p>
+          <p>Curious if any chamber members would be interested in an AI homebrew club? basically a recurring series that helps folks with really simple tasks using chatgpt or claude, answering questions like how to:</p>
+          <ul>
+            <li>Visualize a remodel of this house?</li>
+            <li>Turn a scratchpad into a professional invoice</li>
+            <li>organize receipts.</li>
+            <li>Help evaluate contracts</li>
+            <li>Write a listing, estimate etc</li>
+            <li>respond to facebook posts or reviews without stress and anxiety.</li>
+          </ul>
+          <p>Ideally we would do these sessions bi-weekly and then i'd start a more advanced session in the gaps.</p>
+        </div>
+        <div class="msg them">
+          <div class="m">Kim Lindlof &middot; 9:15 am</div>
+          <p>Brett,</p>
+          <p>Are you thinking virtually, in-person, or hybrid? What are you thinking about charging? Would you publish the session topics beforehand and have people opt in to the sessions they're interested in, or would it be a subscription? Would a company join, or individuals, or both? My thought is that my bookkeeper might be interested in "organize receipts," and my marketing person in social media responses.</p>
+        </div>
+        <div class="msg me">
+          <div class="m">Brett &middot; 9:23 am</div>
+          <p>It would always be free. Think It needs to be in person, folks struggling with ChatGPT or claude will likely also struggle getting on a webex or teams meeting. Individuals would join. will need to craft content as we go? The website below is what i started putting out there:</p>
+          <p><a href="https://aihomebrewclub.com/">https://aihomebrewclub.com/</a></p>
+          <p>Thoughts?</p>
+        </div>
       </div>
-      <div class="card a-teal">
-        <p class="statsrc">Brett &rarr; Kim Lindlof &middot; Tue Aug 4, 9:23 AM</p>
-        <p>It would always be free. Think It needs to be in person, folks struggling with ChatGPT or claude will likely also struggle getting on a webex or teams meeting. Individuals would join. will need to craft content as we go? The website below is what i started putting out there:</p>
-        <p><a href="https://aihomebrewclub.com/">https://aihomebrewclub.com/</a></p>
-        <p>Thoughts?</p>
-      </div>
+      <div class="pfoot"><span class="tag">#chamber</span><span>reproduced from email, signatures and contact details trimmed</span></div>
     </div>
-    <p class="statsrc" style="margin-top:14px">Reproduced from email with signatures and contact details trimmed. Times are Maine time.</p>
   </div>
 </section>
 
 <!-- 04 · THE THREAD, PART TWO -->
-<section class="slide w-peach" id="s4" data-title="The thread · The booking">
+<section class="slide" id="s4" data-title="The thread · The booking">
   <div class="sheet">
-    <span class="chip"><span class="dot" style="background:var(--tangerine)"></span>The thread &middot; part two &middot; "AI Homebrew Bio"</span>
-    <h2>Booked for the Business Breakfast Series.</h2>
-    <div class="cards">
-      <div class="card a-teal">
-        <p class="statsrc">Brett &rarr; Kim Lindlof &middot; Tue Aug 4, 12:05 PM &middot; headshot attached</p>
-        <p>Hey Kim,</p>
-        <p>Agenda for your breakfast meeting would likely be a meet and greet and then pull a series of practical tasks ai can help you with. I'll build that agenda as it gets closer. Ideally we could have folks ask questions that we can work through a bit.</p>
-        <p>bio:</p>
-        <p class="quiet">Brett Brockway is a Maine-based entrepreneur and operator with businesses spanning multifamily real estate, property management, construction, and global outsourcing. He came to AI not as a technologist, but as a business owner looking for better ways to solve real operational problems. Through AI Homebrew, Brett takes a practical, curious approach to the technology, cutting through the jargon and helping people turn AI from an interesting idea into something genuinely useful in their businesses and everyday lives.</p>
+    <div class="post">
+      <div class="phead">
+        <span class="avatar av-club">&#9749;</span>
+        <span class="pwho"><b>The thread, part two</b><span class="pmeta">"AI Homebrew Bio" &middot; Aug 4, 2026</span></span>
       </div>
-      <div class="card a-tangerine">
-        <p class="statsrc">Kim Lindlof &rarr; Brett, cc Cindy Stevens &middot; Tue Aug 4, 1:11 PM &middot; speaker info sheet attached</p>
-        <p>Perfect. Thank you. Attached are the details that I spoke of. You're way ahead of schedule by getting this info to us.</p>
-        <p>We need a title and subtitle. Here's what AI spit out. Any of these appeal to you, or is there one that you can think of that better hits the mark?</p>
-        <ul>
-          <li><b>Everyday &amp; Approachable:</b> Demystifying AI for Your Business &middot; AI for the Rest of Us &middot; Making AI Work for You</li>
-          <li><b>Casual Morning Themes:</b> Coffee, Croissants, and AI &middot; The Morning AI Warmup &middot; Biscuits and Bytes</li>
-          <li><b>Time-Saving &amp; Hustle Focused:</b> Clone Yourself with AI &middot; Your New Digital Assistant &middot; Work Smarter, Not Harder</li>
-        </ul>
+      <div class="pbody">
+        <div class="daybreak">later that day</div>
+        <div class="msg me">
+          <div class="m">Brett &middot; 12:05 pm &middot; headshot attached</div>
+          <p>Hey Kim,</p>
+          <p>Agenda for your breakfast meeting would likely be a meet and greet and then pull a series of practical tasks ai can help you with. I'll build that agenda as it gets closer. Ideally we could have folks ask questions that we can work through a bit.</p>
+          <p>bio:</p>
+          <p class="quiet">Brett Brockway is a Maine-based entrepreneur and operator with businesses spanning multifamily real estate, property management, construction, and global outsourcing. He came to AI not as a technologist, but as a business owner looking for better ways to solve real operational problems. Through AI Homebrew, Brett takes a practical, curious approach to the technology, cutting through the jargon and helping people turn AI from an interesting idea into something genuinely useful in their businesses and everyday lives.</p>
+        </div>
+        <div class="msg them">
+          <div class="m">Kim Lindlof, cc Cindy Stevens &middot; 1:11 pm &middot; speaker info sheet attached</div>
+          <p>Perfect. Thank you. Attached are the details that I spoke of. You're way ahead of schedule by getting this info to us.</p>
+          <p>We need a title and subtitle. Here's what AI spit out. Any of these appeal to you, or is there one that you can think of that better hits the mark?</p>
+          <ul>
+            <li><b>Everyday &amp; Approachable:</b> Demystifying AI for Your Business &middot; AI for the Rest of Us &middot; Making AI Work for You</li>
+            <li><b>Casual Morning Themes:</b> Coffee, Croissants, and AI &middot; The Morning AI Warmup &middot; Biscuits and Bytes</li>
+            <li><b>Time-Saving &amp; Hustle Focused:</b> Clone Yourself with AI &middot; Your New Digital Assistant &middot; Work Smarter, Not Harder</li>
+          </ul>
+        </div>
+        <div class="msg me">
+          <div class="m">Brett &middot; 7:27 pm</div>
+          <p>"Wtf is Claude and ChatGPT and how do I use it?"</p>
+          <p>Less edgy: what's Claude and ChatGPT, why do I care?</p>
+        </div>
       </div>
-      <div class="card a-teal">
-        <p class="statsrc">Brett &rarr; Kim Lindlof, cc Cindy Stevens &middot; Tue Aug 4, 7:27 PM</p>
-        <p>"Wtf is Claude and ChatGPT and how do I use it?"</p>
-        <p>Less edgy: what's Claude and ChatGPT, why do I care?</p>
-      </div>
+      <div class="pfoot"><span class="tag">#chamber</span><span class="tag">#breakfast</span><span class="cue">open item: settle the title &middot; &#128172; pin a note</span></div>
     </div>
-    <p class="kicker">Open item: <span class="hl">settle the title and subtitle with Kim.</span> Pin a note if you have a better one.</p>
   </div>
 </section>
 
 <!-- 05 · A ROOM OF OUR OWN -->
-<section class="slide w-berry" id="s5" data-title="A room of our own">
+<section class="slide" id="s5" data-title="A room of our own">
   <div class="sheet">
-    <span class="chip"><span class="dot" style="background:var(--berry)"></span>&#9733; Notable &middot; early August 2026</span>
-    <h2>A room of our own.</h2>
-    <p class="lede">Jon Godbout said the club can use the office space at <b>the rectory</b> to host our first meeting. The rectory is part of Ticonic Commons, the former Sacred Heart Church campus in Waterville that Nova Nord purchased in December 2025 and is redeveloping.</p>
-    <ul class="rules">
-      <li><b>Why it matters:</b> a free, friendly room removes the last logistical excuse. A former rectory is about as far from a tech-bro venue as it gets, which is exactly the brand.</li>
-      <li><b>How it fits:</b> this joins Bricks Coworking as a venue option. Bricks stays the plan of record for the first 101 class; the rectory gives us a second room and a warm relationship in the same neighborhood.</li>
-      <li><b>Still open:</b> pick a date, walk the space, and confirm chairs, tables, wifi, and the coffee urn.</li>
-    </ul>
-    <p class="kicker">First venue offered, not rented. <span class="hl">Commerce grows out of community.</span></p>
+    <div class="post">
+      <div class="phead">
+        <span class="avatar av-jon">J</span>
+        <span class="pwho"><b>Jon Godbout</b><span class="pmeta">via Brett &middot; early August 2026</span></span>
+        <span class="pill">&#9733; Notable</span>
+      </div>
+      <div class="pbody">
+        <h2>A room of our own.</h2>
+        <p>Jon Godbout said the club can use the office space at <b>the rectory</b> to host our first meeting. The rectory is part of Ticonic Commons, the former Sacred Heart Church campus in Waterville that Nova Nord purchased in December 2025 and is redeveloping.</p>
+        <ul>
+          <li>A free, friendly room removes the last logistical excuse. A former rectory is about as far from a tech&#8209;bro venue as it gets, which is exactly the brand.</li>
+          <li>This joins Bricks Coworking as a venue option. Bricks stays the plan of record for the first 101 class; the rectory gives us a second room and a warm relationship in the same neighborhood.</li>
+          <li>Still open: pick a date, walk the space, and confirm chairs, tables, wifi, and the coffee urn.</li>
+        </ul>
+        <p class="quiet">First venue offered, not rented. Commerce grows out of community.</p>
+      </div>
+      <div class="pfoot"><span class="tag">#venue</span><span class="tag">#rectory</span><span class="cue">&#128172; pin a note</span></div>
+    </div>
   </div>
 </section>
 
-<!-- 06 · SABRINA IS BRAINSTORMING -->
-<section class="slide w-sky" id="s6" data-title="Sabrina is on it">
+<!-- 06 · SABRINA IS ON IT -->
+<section class="slide" id="s6" data-title="Sabrina is on it">
   <div class="sheet">
-    <span class="chip"><span class="dot" style="background:var(--sky)"></span>Early August 2026</span>
-    <h2>The chamber bench gets deeper.</h2>
-    <p class="lede">Brett also socialized the club with <b>Sabrina Gormely</b> at the local chamber. She is going to start brainstorming resources for the club.</p>
-    <ul class="rules">
-      <li><b>Why it matters:</b> two chamber champions are better than one. Kim opens the stage; Sabrina digs for rooms, lists, and program money.</li>
-      <li><b>Still open:</b> follow up with Sabrina on what she finds, and connect her hunt to the funding plan (fiscal sponsor first, then the fall deadlines).</li>
-    </ul>
-    <p class="kicker">Nobody was pitched a product. <span class="hl">They were invited to a table.</span></p>
+    <div class="post">
+      <div class="phead">
+        <span class="avatar av-sab">S</span>
+        <span class="pwho"><b>Sabrina Gormely</b><span class="pmeta">via Brett &middot; early August 2026</span></span>
+      </div>
+      <div class="pbody">
+        <h2>The chamber bench gets deeper.</h2>
+        <p>Brett also socialized the club with <b>Sabrina Gormely</b> at the local chamber. She is going to start brainstorming resources for the club.</p>
+        <ul>
+          <li>Two chamber champions are better than one. Kim opens the stage; Sabrina digs for rooms, lists, and program money.</li>
+          <li>Still open: follow up on what she finds, and point the hunt at the funding plan (fiscal sponsor first, then the fall deadlines).</li>
+        </ul>
+        <p class="quiet">Nobody was pitched a product. They were invited to a table.</p>
+      </div>
+      <div class="pfoot"><span class="tag">#chamber</span><span class="tag">#resources</span><span class="cue">&#128172; pin a note</span></div>
+    </div>
   </div>
 </section>
 
 <!-- 07 · ON THE STOVE -->
-<section class="slide w-mint" id="s7" data-title="On the stove">
+<section class="slide" id="s7" data-title="On the stove">
   <div class="sheet">
-    <span class="chip"><span class="dot" style="background:var(--teal)"></span>On the stove</span>
-    <h2>What this week put in motion.</h2>
-    <div class="agenda">
-      <div><span class="t">Title</span><span><b>Settle the breakfast talk title and subtitle with Kim.</b> <span class="d">Brett's angle: "What's Claude and ChatGPT, why do I care?"</span></span></div>
-      <div><span class="t">Agenda</span><span><b>Build the Business Breakfast Series agenda.</b> <span class="d">Meet and greet, then practical tasks worked live, then questions from the room. The 101 kit is the pantry.</span></span></div>
-      <div><span class="t">Rectory</span><span><b>Pick a date and walk the rectory office space with Jon.</b> <span class="d">Confirm the basics: chairs, tables, wifi, coffee.</span></span></div>
-      <div><span class="t">Sabrina</span><span><b>Follow up on the resource brainstorm.</b> <span class="d">Point it at the fiscal sponsor hunt first; that is the key that unlocks the fall grants.</span></span></div>
+    <div class="post">
+      <div class="phead">
+        <span class="avatar av-club">&#9749;</span>
+        <span class="pwho"><b>The club</b><span class="pmeta">on the stove &middot; updated Aug 5, 2026</span></span>
+      </div>
+      <div class="pbody">
+        <h2>What this week put in motion.</h2>
+        <ul>
+          <li><b>Title:</b> settle the breakfast talk title and subtitle with Kim. Brett's angle: "What's Claude and ChatGPT, why do I care?"</li>
+          <li><b>Agenda:</b> build the Business Breakfast Series agenda. Meet and greet, then practical tasks worked live, then questions from the room. The 101 kit is the pantry.</li>
+          <li><b>Rectory:</b> pick a date and walk the office space with Jon. Confirm the basics: chairs, tables, wifi, coffee.</li>
+          <li><b>Sabrina:</b> follow up on the resource brainstorm. Point it at the fiscal sponsor hunt first; that is the key that unlocks the fall grants.</li>
+        </ul>
+        <p class="quiet">New posts get added to the top of the feed as things happen.</p>
+      </div>
+      <div class="pfoot"><span class="tag">#todo</span><span class="cue">&#128172; pin a note</span></div>
     </div>
-    <p class="kicker">New entries get added to the top of this deck as they happen. <span class="hl">Pin notes on anything.</span></p>
   </div>
 </section>
+
+<script>
+(function(){
+  /* export the entire feed as a standalone html file */
+  var btn = document.getElementById('exportFeed');
+  if (!btn) return;
+  var CSS = [
+    ':root{--ink:#3B3227; --ink-soft:#675B49; --paper:#F8F1E3; --card:#FFFCF4;',
+    '--teal:#557C4B; --teal-deep:#3E5F37; --tangerine:#C1552F; --sky:#567F9E;',
+    '--berry:#8F5874; --lemon:#E7B84E; --w-sky:#E2EAEE; --w-mint:#E8EDD9;',
+    '--edge:rgba(59,50,39,.18)}',
+    'body{margin:0; background:var(--paper); color:var(--ink); font-family:Georgia,"Times New Roman",serif; font-size:16px; line-height:1.55; padding:32px 16px}',
+    'main{max-width:660px; margin:0 auto}',
+    'header{text-align:center; margin-bottom:18px}',
+    'header h1{font-size:1.9rem; margin:0}',
+    'header p{color:var(--ink-soft); font-size:.85rem; margin:6px 0 0}',
+    'a{color:var(--teal-deep)}',
+    'h2{font-size:1.25rem; margin:0 0 8px; line-height:1.2}',
+    '.post{background:var(--card); border:1px solid var(--edge); border-radius:16px; padding:18px 20px 12px; margin:14px 0; page-break-inside:avoid}',
+    '.phead{display:flex; align-items:center; gap:12px; margin-bottom:10px}',
+    '.avatar{width:44px; height:44px; border-radius:50%; flex:none; display:grid; place-items:center; font-weight:700; color:var(--paper); font-family:Arial,sans-serif}',
+    '.av-brett{background:var(--teal)} .av-kim{background:var(--sky)} .av-jon{background:var(--berry)}',
+    '.av-sab{background:var(--lemon); color:#3B3227} .av-club{background:var(--tangerine)}',
+    '.pwho b{display:block; font-size:1rem} .pmeta{font-size:.8rem; color:var(--ink-soft)}',
+    '.pill{margin-left:auto; flex:none; background:var(--lemon); color:#3B3227; border-radius:999px; padding:4px 12px; font-size:.68rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase}',
+    '.pbody p{margin:0 0 10px} .pbody ul{margin:0 0 10px; padding-left:20px} .pbody li{margin-bottom:4px}',
+    '.quiet{color:var(--ink-soft)}',
+    '.pfoot{border-top:2px dashed var(--edge); margin-top:10px; padding-top:8px; display:flex; gap:12px; flex-wrap:wrap; font-size:.78rem; color:var(--ink-soft)}',
+    '.tag{color:var(--teal-deep); font-weight:700} .cue{display:none}',
+    '.msg{max-width:86%; padding:11px 14px; border-radius:14px; margin:10px 0; border:1px solid var(--edge); font-size:.93rem}',
+    '.msg .m{font-size:.7rem; color:var(--ink-soft); margin-bottom:4px; font-weight:700; letter-spacing:.04em; text-transform:uppercase}',
+    '.msg p{margin:0 0 8px} .msg p:last-child{margin:0} .msg ul{margin:6px 0 8px; padding-left:18px}',
+    '.them{background:var(--w-sky); border-bottom-left-radius:5px}',
+    '.me{background:var(--w-mint); margin-left:auto; border-bottom-right-radius:5px}',
+    '.daybreak{text-align:center; font-size:.74rem; color:var(--ink-soft); margin:14px 0 6px; font-weight:700; letter-spacing:.1em; text-transform:uppercase}',
+    '@media print{body{padding:0} .post{box-shadow:none}}'
+  ].join('\n');
+  btn.addEventListener('click', function(){
+    var today = new Date();
+    var stamp = today.toISOString().slice(0, 10);
+    var nice = today.toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
+    var posts = [];
+    document.querySelectorAll('.post').forEach(function(p){
+      if (p.classList.contains('noexport')) return;
+      var c = p.cloneNode(true);
+      c.querySelectorAll('.noexport').forEach(function(n){ n.remove(); });
+      posts.push(c.outerHTML);
+    });
+    var html = '<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n' +
+      '<title>The AI Homebrew Club · The Feed · ' + stamp + '</title>\n' +
+      '<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
+      '<style>\n' + CSS + '\n</style>\n</head>\n<body>\n<main>\n' +
+      '<header>\n<h1>The AI Homebrew Club · The Feed</h1>\n' +
+      '<p>What happened, and who said yes. Exported ' + nice + ' from aihomebrewclub.com/feed.html</p>\n</header>\n' +
+      posts.join('\n') +
+      '\n</main>\n</body>\n</html>\n';
+    var blob = new Blob([html], {type: 'text/html'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'aihc-feed-' + stamp + '.html';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  });
+})();
+</script>
 
 </div><!-- /deck -->
 
