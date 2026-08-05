@@ -73,6 +73,7 @@
   .qrbox{background:#F8F1E3; border:1px solid var(--edge); border-radius:14px; padding:8px; line-height:0}
   .qrbox svg{width:118px; height:118px; display:block}
   .qrcap{font-size:.78rem; color:var(--ink-soft); font-weight:700; max-width:130px}
+  .callink{font-weight:800; font-size:.85rem; color:var(--teal-deep)}
   .past .meetup{padding:16px 20px}
   .past summary{cursor:pointer; font-weight:800; color:var(--teal-deep); font-size:.9rem; margin-top:8px}
   .empty{color:var(--ink-soft); font-weight:700}
@@ -122,6 +123,14 @@
   var BASE = 'https://aihc-notes-690dcde965fd.herokuapp.com/notes'.replace(/\/notes\b.*$/, '');
   var CITY = 'waterville';
   function esc(s){ var d = document.createElement('div'); d.textContent = String(s); return d.innerHTML; }
+  function fmtTime(t){
+    if (!/^\d{1,2}:\d{2}$/.test(t || '')) return '';
+    var parts = t.split(':');
+    var h = parseInt(parts[0], 10);
+    var ap = h >= 12 ? 'pm' : 'am';
+    h = h % 12 || 12;
+    return h + ':' + parts[1] + ' ' + ap;
+  }
 
   function qrSvg(url){
     try{
@@ -155,14 +164,16 @@
         var pill = e.left > 0
           ? '<span class="seats">' + e.left + ' of ' + e.capacity + ' seats left</span>'
           : '<span class="seats full">Full · waitlist open</span>';
+        var timeBit = e.start_time ? ' · ' + fmtTime(e.start_time) : '';
         return '<div class="meetup">' +
-          '<div class="mhead"><span class="mwhen">' + esc(e.when) + '</span>' + pill + '</div>' +
+          '<div class="mhead"><span class="mwhen">' + esc(e.when) + timeBit + '</span>' + pill + '</div>' +
           '<p class="mtitle">' + esc(e.title) + '</p>' +
           '<p class="mwhere">' + esc(e.location) + '</p>' +
           agendaHtml(e.agenda) +
           '<div class="mfoot">' +
             '<a class="gobtn" href="rsvp.html?event=' + encodeURIComponent(e.id) + '">' +
               (e.left > 0 ? 'Save my seat' : 'Join the waitlist') + '</a>' +
+            (e.gcal ? '<a class="callink" target="_blank" rel="noopener" href="' + esc(e.gcal) + '">Add to calendar</a>' : '') +
             '<span class="qrbox">' + qrSvg(rsvpUrl) + '</span>' +
             '<span class="qrcap">Scan to RSVP, or screenshot this and text a neighbor.</span>' +
           '</div>' +

@@ -574,6 +574,9 @@
         <label>Date (for sorting)
           <input type="date" id="eSort">
         </label>
+        <label>Start time <span class="hint">unlocks reminders + calendar invites</span>
+          <input type="time" id="eTime">
+        </label>
         <label class="full">Location
           <input type="text" id="eLoc" placeholder="the parlor at the rectory, Ticonic Commons, Waterville" maxlength="300">
         </label>
@@ -705,6 +708,7 @@
         editingEvent = id;
         $('formTitle').textContent = 'Edit meetup';
         $('eTitle').value = e.title; $('eWhen').value = e.when; $('eSort').value = e.sort_date;
+        $('eTime').value = e.start_time || '';
         $('eLoc').value = e.location; $('eCap').value = e.capacity; $('eCity').value = e.city;
         $('eStatus').value = e.status; $('eId').value = e.id;
         $('eAnnounce').checked = false;
@@ -756,7 +760,8 @@
       var id = ($('eId').value.trim() || slugFrom());
       var e = {
         id: id, title: $('eTitle').value.trim(), when: $('eWhen').value.trim(),
-        sort_date: $('eSort').value, location: $('eLoc').value.trim(),
+        sort_date: $('eSort').value, start_time: $('eTime').value,
+        location: $('eLoc').value.trim(),
         capacity: $('eCap').value, city: $('eCity').value.trim() || 'waterville',
         status: $('eStatus').value
       };

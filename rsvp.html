@@ -87,8 +87,11 @@
       <label>Your name
         <input type="text" id="fName" maxlength="80" autocomplete="name">
       </label>
-      <label>Email or phone <span class="opt">&middot; so we can send you the time</span>
-        <input type="text" id="fContact" maxlength="160" autocomplete="email">
+      <label>Email <span class="opt">&middot; for the welcome note and the time</span>
+        <input type="text" id="fEmail" maxlength="160" autocomplete="email" inputmode="email">
+      </label>
+      <label>Cell phone <span class="opt">&middot; for day-of texts</span>
+        <input type="text" id="fPhone" maxlength="40" autocomplete="tel" inputmode="tel">
       </label>
       <label>Business or trade <span class="opt">&middot; optional</span>
         <input type="text" id="fBiz" maxlength="160" autocomplete="organization">
@@ -102,12 +105,19 @@
     </form>
     <div class="done" id="doneSeat">
       <h2>Seat saved. &#9749;</h2>
-      <p>You're on the list for <span class="evWhenInline">the next meetup</span>. We'll send the exact time to the contact you left. Bring a neighbor; if the room is full they can join the waitlist.</p>
+      <p>You're on the list for <span class="evWhenInline">the next meetup</span>. A confirmation just landed in your email with a calendar invite and a cancel link, and we'll email a reminder before the day. Bring a neighbor; if the room is full they can join the waitlist.</p>
+      <p style="margin-top:14px"><a class="go" id="gcalGo" target="_blank" rel="noopener" hidden>Add to Google Calendar</a></p>
     </div>
     <div class="done" id="doneWait">
       <h2>You're on the waitlist.</h2>
-      <p>All the seats are spoken for, but seats do open up. We'll reach out at the contact you left if one frees, and you'll be first in line for the next one.</p>
+      <p>All the seats are spoken for, but seats do open up. If one frees, your seat is automatic and we'll email you right away.</p>
     </div>
+    <div class="done" id="doneCancel">
+      <h2 id="cxTitle">Give the seat back?</h2>
+      <p id="cxText">Plans change, no hard feelings. Your seat goes to the next neighbor in line.</p>
+      <p style="margin-top:14px"><button class="go" id="cxGo" type="button">Cancel my RSVP</button></p>
+    </div>
+    <p class="alt" id="mineNote" hidden>You already have a seat here. <a href="#" id="mineCancel">Need to cancel?</a></p>
   </div>
 </main>
 
@@ -130,11 +140,16 @@
 
   var BASE = 'https://aihc-notes-690dcde965fd.herokuapp.com/notes'.replace(/\/notes\b.*$/, '');
   /* one page, many events: /rsvp.html?event=<id> — each event gets its own QR */
-  var EVENT = new URLSearchParams(location.search).get('event') || 'aug18-bricks';
+  var params = new URLSearchParams(location.search);
+  var EVENT = params.get('event') || 'aug18-bricks';
+  var LS_MINE = 'aihc_rsvp_' + EVENT;
   function $(id){ return document.getElementById(id); }
 
+  var evData = null;
   var full = false;
   function paintSeats(d){
+    evData = d;
+    if (d.gcal){ $('gcalGo').href = d.gcal; $('gcalGo').hidden = false; }
     var pill = $('seatPill');
     full = d.left <= 0;
     if (full){
@@ -164,11 +179,22 @@
   $('rsvpForm').addEventListener('submit', function(ev){
     ev.preventDefault();
     var name = $('fName').value.trim();
-    var contact = $('fContact').value.trim();
+    var email = $('fEmail').value.trim();
+    var phone = $('fPhone').value.trim();
     var err = $('fErr');
     err.style.display = 'none';
-    if (!name || !contact){
-      err.textContent = 'We need your name and a way to reach you.';
+    if (!name || !email || !phone){
+      err.textContent = 'We need your name, email, and cell so we can reach you about your seat.';
+      err.style.display = 'block';
+      return;
+    }
+    if (email.indexOf('@') === -1){
+      err.textContent = 'That email does not look right.';
+      err.style.display = 'block';
+      return;
+    }
+    if ((phone.match(/\d/g) || []).length < 7){
+      err.textContent = 'That phone number does not look right.';
       err.style.display = 'block';
       return;
     }
@@ -176,12 +202,13 @@
     fetch(BASE + '/rsvp', {
       method: 'POST', headers: {'Content-Type': 'text/plain'},
       body: JSON.stringify({
-        event: EVENT, name: name, contact: contact,
+        event: EVENT, name: name, email: email, phone: phone,
         biz: $('fBiz').value.trim(), note: $('fNote').value.trim(),
         website: $('fWebsite').value
       })
     }).then(function(r){ return r.json(); }).then(function(d){
       if (d && d.ok){
+        if (d.id){ try { localStorage.setItem(LS_MINE, d.id); } catch(e){} }
         $('rsvpForm').style.display = 'none';
         $(d.status === 'seat' ? 'doneSeat' : 'doneWait').style.display = 'block';
         refresh();
@@ -194,5 +221,48 @@
       err.style.display = 'block';
     });
   });
+
+  /* cancel flow: via the emailed ?cancel=<id> link, or the on-device "need to cancel?" note */
+  var mineId = null;
+  try { mineId = localStorage.getItem(LS_MINE); } catch(e){}
+  function showCancel(id){
+    $('rsvpForm').style.display = 'none';
+    $('doneSeat').style.display = 'none';
+    $('doneWait').style.display = 'none';
+    $('mineNote').hidden = true;
+    $('doneCancel').style.display = 'block';
+    $('cxGo').onclick = function(){
+      $('cxGo').disabled = true;
+      fetch(BASE + '/rsvp', {
+        method: 'POST', headers: {'Content-Type': 'text/plain'},
+        body: JSON.stringify({action: 'cancel', id: id})
+      }).then(function(r){ return r.json(); }).then(function(d){
+        if (d && d.ok){
+          $('cxTitle').textContent = 'Seat returned.';
+          $('cxText').textContent = 'Done, and thank you for freeing it up. The seat goes to the next neighbor in line. Come to the next one.';
+          $('cxGo').style.display = 'none';
+          try { localStorage.removeItem(LS_MINE); } catch(e){}
+          refresh();
+        } else {
+          $('cxTitle').textContent = 'Already handled.';
+          $('cxText').textContent = 'That RSVP is not on the books anymore, so there is nothing to cancel.';
+          $('cxGo').style.display = 'none';
+        }
+      }).catch(function(){
+        $('cxGo').disabled = false;
+        $('cxText').textContent = 'Could not reach the club. Try again in a minute.';
+      });
+    };
+  }
+  var cancelParam = params.get('cancel');
+  if (cancelParam){
+    showCancel(cancelParam);
+  } else if (mineId){
+    $('mineNote').hidden = false;
+    $('mineCancel').addEventListener('click', function(ev){
+      ev.preventDefault();
+      showCancel(mineId);
+    });
+  }
 })();
 </script>
