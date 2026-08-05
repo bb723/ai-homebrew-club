@@ -74,11 +74,11 @@
 <main>
   <span class="logo" id="logo" aria-hidden="true"></span>
   <h1>Save your seat.</h1>
-  <p class="sub">The first AI Brown Bag &middot; free, and it always will be</p>
+  <p class="sub" id="evTitle">The AI Homebrew Club &middot; free, and it always will be</p>
   <div class="card">
     <span class="seats" id="seatPill">Checking seats&hellip;</span>
-    <span><b>When:</b> Tuesday, August 18. Time announced soon. One hour, coffee on.</span>
-    <span><b>Where:</b> the conference room at Bricks Coworking &amp; Innovation Space, Hathaway Creative Center, 10 Water St, downtown Waterville.</span>
+    <span id="evWhen"><b>When:</b> Tuesday, August 18. Time announced soon. One hour, coffee on.</span>
+    <span id="evWhere"><b>Where:</b> the conference room at Bricks Coworking &amp; Innovation Space, Hathaway Creative Center, 10 Water St, downtown Waterville.</span>
     <span><b>Bring:</b> a laptop or just your phone, and one real task that is eating your week.</span>
   </div>
   <div class="card">
@@ -101,11 +101,11 @@
     </form>
     <div class="done" id="doneSeat">
       <h2>Seat saved. &#9749;</h2>
-      <p>You're on the list for Tuesday, August 18. We'll send the exact time to the contact you left. Bring a neighbor; if the room is full they can join the waitlist.</p>
+      <p>You're on the list for <span class="evWhenInline">the next meetup</span>. We'll send the exact time to the contact you left. Bring a neighbor; if the room is full they can join the waitlist.</p>
     </div>
     <div class="done" id="doneWait">
       <h2>You're on the waitlist.</h2>
-      <p>All 8 seats are spoken for, but seats do open up. We'll reach out at the contact you left if one frees, and you'll be first in line for the next one.</p>
+      <p>All the seats are spoken for, but seats do open up. We'll reach out at the contact you left if one frees, and you'll be first in line for the next one.</p>
     </div>
   </div>
 </main>
@@ -128,7 +128,8 @@
   document.getElementById('logo').innerHTML = LOGO;
 
   var BASE = 'https://aihc-notes-690dcde965fd.herokuapp.com/notes'.replace(/\/notes\b.*$/, '');
-  var EVENT = 'aug18-bricks';
+  /* one page, many events: /rsvp.html?event=<id> — each event gets its own QR */
+  var EVENT = new URLSearchParams(location.search).get('event') || 'aug18-bricks';
   function $(id){ return document.getElementById(id); }
 
   var full = false;
@@ -144,12 +145,18 @@
       pill.classList.remove('full');
       $('fGo').textContent = 'Save my seat';
     }
+    if (d.title) $('evTitle').textContent = d.title + ' · free, and it always will be';
+    if (d.when){
+      $('evWhen').innerHTML = '<b>When:</b> ' + d.when + '. Time announced soon. One hour, coffee on.';
+      document.querySelectorAll('.evWhenInline').forEach(function(el){ el.textContent = d.when; });
+    }
+    if (d.location) $('evWhere').innerHTML = '<b>Where:</b> ' + d.location + '.';
   }
   function refresh(){
-    fetch(BASE + '/rsvp?event=' + EVENT)
+    fetch(BASE + '/rsvp?event=' + encodeURIComponent(EVENT))
       .then(function(r){ return r.json(); })
       .then(function(d){ if (d && d.capacity) paintSeats(d); })
-      .catch(function(){ $('seatPill').textContent = '8 seats · first come, first served'; });
+      .catch(function(){ $('seatPill').textContent = 'First come, first served'; });
   }
   refresh();
 
