@@ -1,6 +1,12 @@
 <meta charset="utf-8">
 <title>Save your seat &middot; The AI Homebrew Club</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta property="og:title" content="Save a seat at the AI Brown Bag">
+<meta property="og:description" content="One hour, one problem off your plate. Neighbors teaching neighbors to put AI to work. Free, coffee on.">
+<meta property="og:image" content="https://aihomebrewclub.com/invite-card.png">
+<meta property="og:url" content="https://aihomebrewclub.com/rsvp.html">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
 <style>
   @font-face{font-family:'Nunito'; font-style:normal; font-weight:300 900; font-display:swap; src:url(assets/fonts/nunito.woff2) format('woff2')}
   @font-face{font-family:'Besley'; font-style:normal; font-weight:400 900; font-display:swap; src:url(assets/fonts/besley.woff2) format('woff2')}
@@ -69,6 +75,16 @@
   .done{display:none; padding:8px 0 2px}
   .done h2{font-family:var(--font-display); font-weight:800; font-size:1.5rem; margin:0 0 8px}
   .err{color:var(--tangerine); font-weight:800; font-size:.85rem; display:none}
+  .sharerow{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px}
+  .go.share{
+    background:var(--teal); padding:10px 20px; font-size:.9rem; margin-top:0;
+    text-decoration:none; display:inline-block;
+  }
+  .lend{font-size:.85rem; font-weight:700; color:var(--ink-soft); margin-top:14px}
+  .lend a{color:var(--teal-deep)}
+  .pairchoice{display:none; padding:8px 0 2px}
+  .pairchoice h2{font-family:var(--font-display); font-weight:800; font-size:1.3rem; margin:0 0 8px}
+  .pairchoice .go{margin-right:8px; margin-top:8px}
 </style>
 
 <main>
@@ -96,6 +112,9 @@
       <label>Business or trade <span class="opt">&middot; optional</span>
         <input type="text" id="fBiz" maxlength="160" autocomplete="organization">
       </label>
+      <label>Bringing a neighbor? <span class="opt">&middot; optional, their name saves them a seat too</span>
+        <input type="text" id="fGuest" maxlength="80" autocomplete="off">
+      </label>
       <label>One task eating your week <span class="opt">&middot; optional, we may work it live</span>
         <textarea id="fNote" maxlength="500"></textarea>
       </label>
@@ -105,12 +124,33 @@
     </form>
     <div class="done" id="doneSeat">
       <h2>Seat saved. &#9749;</h2>
-      <p>You're on the list for <span class="evWhenInline">the next meetup</span>. A confirmation just landed in your email with a calendar invite and a cancel link, and we'll email a reminder before the day. Bring a neighbor; if the room is full they can join the waitlist.</p>
+      <p>You're on the list for <span class="evWhenInline">the next meetup</span>. A confirmation just landed in your email with a calendar invite and a cancel link, and we'll email a reminder before the day.</p>
+      <p style="margin-top:12px"><b>Every table fills by word of mouth.</b> Know a neighbor who should be here?</p>
+      <div class="sharerow">
+        <a class="go share shSms">Text a neighbor</a>
+        <button class="go share shCopy" type="button">Copy the link</button>
+        <button class="go share shNative" type="button" hidden>Share&hellip;</button>
+      </div>
       <p style="margin-top:14px"><a class="go" id="gcalGo" target="_blank" rel="noopener" hidden>Add to Google Calendar</a></p>
     </div>
     <div class="done" id="doneWait">
       <h2>You're on the waitlist.</h2>
       <p>All the seats are spoken for, but seats do open up. If one frees, your seat is automatic and we'll email you right away.</p>
+      <p style="margin-top:12px">Waiting is easier with company. Send a neighbor the link and they can wait with you:</p>
+      <div class="sharerow">
+        <a class="go share shSms">Text a neighbor</a>
+        <button class="go share shCopy" type="button">Copy the link</button>
+        <button class="go share shNative" type="button" hidden>Share&hellip;</button>
+      </div>
+      <p class="lend">Want a table sooner, or closer to you? <a href="lend.html?ref=overflow">Lend us a room.</a></p>
+    </div>
+    <div class="pairchoice" id="pairChoice">
+      <h2>One seat left, and you are two.</h2>
+      <p>The room is nearly full. You can take the last seat yourself, or the two of you can hold the front of the waitlist together.</p>
+      <p>
+        <button class="go" id="pcSolo" type="button">Take the last seat solo</button>
+        <button class="go" id="pcWait" type="button" style="background:var(--teal)">Waitlist us both</button>
+      </p>
     </div>
     <div class="done" id="doneCancel">
       <h2 id="cxTitle">Give the seat back?</h2>
@@ -118,6 +158,7 @@
       <p style="margin-top:14px"><button class="go" id="cxGo" type="button">Cancel my RSVP</button></p>
     </div>
     <p class="alt" id="mineNote" hidden>You already have a seat here. <a href="#" id="mineCancel">Need to cancel?</a></p>
+    <p class="lend" id="fullLend" hidden>The room is full and the waitlist is open. Want a table sooner, or closer to you? <a href="lend.html?ref=overflow">Lend us a room.</a></p>
   </div>
 </main>
 
@@ -144,6 +185,8 @@
      generic QRs stay evergreen. */
   var params = new URLSearchParams(location.search);
   var EVENT = params.get('event') || '';
+  /* ref: where this visitor came from (qr, feed, email, n-<rsvpId>...); stored with the rsvp */
+  var REF = (params.get('ref') || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 40);
   var LS_MINE = '';
   function $(id){ return document.getElementById(id); }
   function fmtTime(t){
@@ -178,6 +221,47 @@
       document.querySelectorAll('.evWhenInline').forEach(function(el){ el.textContent = d.when; });
     }
     if (d.location) $('evWhere').innerHTML = '<b>Where:</b> ' + d.location + '.';
+    $('fullLend').hidden = !full;
+  }
+
+  /* share row: the neighbor link carries this rsvp's ref tag so we learn what fills seats */
+  var shareLink = '';
+  function shareMsg(){
+    var bits = 'Come with me to ' + ((evData && evData.title) || 'the AI Brown Bag');
+    if (evData && evData.when){
+      var t = fmtTime(evData.start_time);
+      bits += ', ' + evData.when + (t ? ', ' + t : '');
+    }
+    return bits + '. Free, one hour, coffee on. Grab a seat: ' + shareLink;
+  }
+  function wireShare(){
+    if (!shareLink) shareLink = 'https://aihomebrewclub.com/rsvp.html?event=' + encodeURIComponent(EVENT);
+    document.querySelectorAll('.shSms').forEach(function(a){
+      a.href = 'sms:?&body=' + encodeURIComponent(shareMsg());
+    });
+    document.querySelectorAll('.shCopy').forEach(function(b){
+      b.onclick = function(){
+        var done = function(){ b.textContent = 'Copied.'; setTimeout(function(){ b.textContent = 'Copy the link'; }, 2000); };
+        if (navigator.clipboard && navigator.clipboard.writeText){
+          navigator.clipboard.writeText(shareLink).then(done).catch(function(){});
+        } else {
+          var ta = document.createElement('textarea');
+          ta.value = shareLink;
+          document.body.appendChild(ta);
+          ta.select();
+          try { document.execCommand('copy'); done(); } catch(e){}
+          document.body.removeChild(ta);
+        }
+      };
+    });
+    if (navigator.share){
+      document.querySelectorAll('.shNative').forEach(function(b){
+        b.hidden = false;
+        b.onclick = function(){
+          navigator.share({ title: 'The AI Brown Bag', text: shareMsg(), url: shareLink }).catch(function(){});
+        };
+      });
+    }
   }
   function refresh(){
     if (!EVENT) return;
@@ -186,6 +270,51 @@
       .then(function(d){ if (d && d.capacity) paintSeats(d); })
       .catch(function(){ $('seatPill').textContent = 'First come, first served'; });
   }
+
+  function doSubmit(extra){
+    var err = $('fErr');
+    var payload = {
+      event: EVENT, name: $('fName').value.trim(), email: $('fEmail').value.trim(),
+      phone: $('fPhone').value.trim(), biz: $('fBiz').value.trim(),
+      guest: $('fGuest').value.trim(), note: $('fNote').value.trim(),
+      website: $('fWebsite').value, ref: REF
+    };
+    for (var k in extra){ payload[k] = extra[k]; }
+    $('fGo').disabled = true;
+    fetch(BASE + '/rsvp', {
+      method: 'POST', headers: {'Content-Type': 'text/plain'},
+      body: JSON.stringify(payload)
+    }).then(function(r){ return r.json(); }).then(function(d){
+      if (d && d.ok){
+        if (d.id){ try { localStorage.setItem(LS_MINE, d.id); } catch(e){} }
+        if (d.share) shareLink = d.share;
+        $('rsvpForm').style.display = 'none';
+        $('pairChoice').style.display = 'none';
+        $(d.status === 'seat' ? 'doneSeat' : 'doneWait').style.display = 'block';
+        wireShare();
+        refresh();
+      } else if (d && d.error === 'one-seat-left'){
+        $('fGo').disabled = false;
+        $('rsvpForm').style.display = 'none';
+        $('pairChoice').style.display = 'block';
+      } else {
+        throw new Error('bad');
+      }
+    }).catch(function(){
+      $('fGo').disabled = false;
+      $('rsvpForm').style.display = '';
+      $('pairChoice').style.display = 'none';
+      err.textContent = 'Could not reach the club. Try again in a minute, or email brett.brockway@gmail.com.';
+      err.style.display = 'block';
+    });
+  }
+  $('pcSolo').addEventListener('click', function(){
+    $('fGuest').value = '';
+    doSubmit({ guest: '' });
+  });
+  $('pcWait').addEventListener('click', function(){
+    doSubmit({ forceWait: true });
+  });
 
   $('rsvpForm').addEventListener('submit', function(ev){
     ev.preventDefault();
@@ -209,28 +338,7 @@
       err.style.display = 'block';
       return;
     }
-    $('fGo').disabled = true;
-    fetch(BASE + '/rsvp', {
-      method: 'POST', headers: {'Content-Type': 'text/plain'},
-      body: JSON.stringify({
-        event: EVENT, name: name, email: email, phone: phone,
-        biz: $('fBiz').value.trim(), note: $('fNote').value.trim(),
-        website: $('fWebsite').value
-      })
-    }).then(function(r){ return r.json(); }).then(function(d){
-      if (d && d.ok){
-        if (d.id){ try { localStorage.setItem(LS_MINE, d.id); } catch(e){} }
-        $('rsvpForm').style.display = 'none';
-        $(d.status === 'seat' ? 'doneSeat' : 'doneWait').style.display = 'block';
-        refresh();
-      } else {
-        throw new Error('bad');
-      }
-    }).catch(function(){
-      $('fGo').disabled = false;
-      err.textContent = 'Could not reach the club. Try again in a minute, or email brett.brockway@gmail.com.';
-      err.style.display = 'block';
-    });
+    doSubmit({});
   });
 
   /* cancel flow: via the emailed ?cancel=<id> link, or the on-device "need to cancel?" note */

@@ -527,6 +527,9 @@
   .stag{font-size:.7rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase; border-radius:999px; padding:2px 10px}
   .stag.upcoming{background:var(--lemon); color:#3B3227}
   .stag.past{background:var(--paper); color:var(--ink-soft); border:1px solid var(--edge)}
+  .stag.offered{background:var(--lemon); color:#3B3227}
+  .stag.scheduled{background:var(--teal); color:#FFFCF4}
+  .stag.passed{background:var(--paper); color:var(--ink-soft); border:1px solid var(--edge)}
   form.grid{display:grid; grid-template-columns:1fr 1fr; gap:10px}
   form.grid .full{grid-column:1 / -1}
   label{font-weight:800; font-size:.8rem; display:flex; flex-direction:column; gap:3px}
@@ -604,7 +607,7 @@
 
     <div class="panel" id="attPanel" hidden>
       <h2 id="attTitle">Attendees</h2>
-      <p class="quiet" id="attCounts" style="font-size:.88rem"></p>
+      <p class="quiet" id="attCounts" style="font-size:.88rem; white-space:pre-line"></p>
       <div id="attList"></div>
     </div>
 
@@ -626,6 +629,12 @@
           <button class="quietbtn" id="aCancel" type="button" hidden>Cancel edit</button>
         </div>
       </form>
+    </div>
+
+    <div class="panel">
+      <h2>Rooms offered</h2>
+      <p class="quiet" style="font-size:.9rem">Neighbors lending spaces via <a href="../lend.html">aihomebrewclub.com/lend.html</a>. Schedule a meetup in one, or mark it passed.</p>
+      <div id="vnList" style="margin-top:8px"><span class="quiet">Loading&hellip;</span></div>
     </div>
 
     <div class="panel">
@@ -787,7 +796,7 @@
             id: 'meetup-' + d.id, name: 'The club',
             title: 'New meetup: ' + e.when + '.',
             body: e.title + ' is on the calendar: ' + e.when + ', ' + e.location + '. ' + e.capacity +
-              ' seats. RSVP at https://aihomebrewclub.com/rsvp.html?event=' + d.id,
+              ' seats. RSVP at https://aihomebrewclub.com/rsvp.html?event=' + d.id + '&ref=feed',
             more: '', kind: 'update', tags: '#meetup #rsvp', notable: true,
             ts: new Date().toISOString()
           }});
@@ -894,16 +903,29 @@
           var seats = rows.filter(function(r){ return r.status === 'seat'; });
           var waits = rows.filter(function(r){ return r.status === 'waitlist'; });
           var gone = rows.filter(function(r){ return r.status === 'cancelled'; });
-          $('attCounts').textContent = seats.length + ' of ' + e.capacity + ' seats taken · ' +
-            waits.length + ' on the waitlist · ' + gone.length + ' cancelled';
+          function seatSum(list){
+            return list.reduce(function(n, r){ return n + 1 + (r.guest_name ? 1 : 0); }, 0);
+          }
+          /* which channel fills seats: tally the ref tags on live rsvps */
+          var tally = {};
+          seats.concat(waits).forEach(function(r){
+            var k = r.ref || 'direct';
+            tally[k] = (tally[k] || 0) + 1;
+          });
+          var tallyBits = Object.keys(tally).sort(function(a, b){ return tally[b] - tally[a]; })
+            .map(function(k){ return k + ' ' + tally[k]; }).join(' · ');
+          $('attCounts').textContent = seatSum(seats) + ' of ' + e.capacity + ' seats taken · ' +
+            seatSum(waits) + ' on the waitlist · ' + gone.length + ' cancelled' +
+            (tallyBits ? '\nCame via: ' + tallyBits : '');
           function block(list, label){
             if (!list.length) return '';
             return '<p class="quiet" style="font-weight:800; font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; margin:12px 0 2px">' + label + '</p>' +
               list.map(function(r){
-                return '<div class="evrow"><b>' + esc(r.name) + '</b>' +
+                return '<div class="evrow"><b>' + esc(r.name) + (r.guest_name ? ' + ' + esc(r.guest_name) : '') + '</b>' +
                   '<span class="meta">' + esc(r.email || r.contact || '') +
                   (r.phone ? ' · ' + esc(r.phone) : '') +
-                  (r.biz ? ' · ' + esc(r.biz) : '') + '</span>' +
+                  (r.biz ? ' · ' + esc(r.biz) : '') +
+                  (r.ref ? ' · via ' + esc(r.ref) : '') + '</span>' +
                   (r.note ? '<span class="meta" style="flex-basis:100%">task: ' + esc(r.note) + '</span>' : '') +
                 '</div>';
               }).join('');
@@ -973,8 +995,59 @@
     }
     $('rCancel').addEventListener('click', cancelRecipe);
 
+    /* rooms offered: the venue pipeline from lend.html */
+    var venues = [];
+    function loadVenues(){
+      fetch(BASE + '/venues?secret=' + encodeURIComponent(A.secret))
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          venues = (d && d.venues) || [];
+          $('vnList').innerHTML = venues.length ? venues.map(function(v){
+            return '<div class="evrow">' +
+              '<b>' + esc(v.venue) + '</b>' +
+              '<span class="stag ' + esc(v.status) + '">' + esc(v.status) + '</span>' +
+              '<span class="meta">' + esc(v.town) + (v.seats ? ' · ~' + v.seats + ' seats' : '') +
+                ' · ' + esc(v.name) + ' · ' + esc(v.email) + (v.phone ? ' · ' + esc(v.phone) : '') + '</span>' +
+              (v.notes ? '<span class="meta" style="flex-basis:100%">' + esc(v.notes) + '</span>' : '') +
+              '<span class="spacer"></span>' +
+              '<button class="abtn" data-vn="sched" data-id="' + esc(v.id) + '" type="button">Schedule here</button>' +
+              (v.status !== 'scheduled' ? '<button class="abtn" data-vn="mark" data-id="' + esc(v.id) + '" type="button">Mark scheduled</button>' : '') +
+              (v.status !== 'passed' ? '<button class="abtn" data-vn="pass" data-id="' + esc(v.id) + '" type="button">Pass</button>' : '') +
+              '<button class="abtn warn" data-vn="del" data-id="' + esc(v.id) + '" type="button">Delete</button>' +
+            '</div>';
+          }).join('') : '<span class="quiet">No rooms offered yet. The lend page fills this.</span>';
+        });
+    }
+    $('vnList').addEventListener('click', function(ev){
+      var b = ev.target.closest('button[data-vn]');
+      if (!b) return;
+      var v = venues.find(function(x){ return x.id === b.getAttribute('data-id'); });
+      if (!v) return;
+      var act = b.getAttribute('data-vn');
+      if (act === 'sched'){
+        /* one step from offer to meetup: prefill the form and let Brett pick the date */
+        resetForm();
+        $('eLoc').value = v.venue + ', ' + v.town;
+        $('eCap').value = v.seats || 8;
+        $('eCity').value = v.town.toLowerCase().replace(/[^a-z0-9-]/g, '');
+        A.toast('Form filled from the offer. Pick a date and save.');
+        window.scrollTo({top: $('formTitle').offsetTop - 90, behavior: 'smooth'});
+      }
+      if (act === 'mark'){
+        post('/venues', {action: 'update', id: v.id, status: 'scheduled'}).then(loadVenues);
+      }
+      if (act === 'pass'){
+        post('/venues', {action: 'update', id: v.id, status: 'passed'}).then(loadVenues);
+      }
+      if (act === 'del'){
+        if (!window.confirm('Delete the offer of "' + v.venue + '"? The contact goes with it.')) return;
+        post('/venues', {action: 'delete', id: v.id}).then(function(){ A.toast('Offer deleted.'); loadVenues(); });
+      }
+    });
+
     load();
     loadRecipes();
+    loadVenues();
   }
   boot();
 })();
