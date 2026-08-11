@@ -1,11 +1,11 @@
 <meta charset="utf-8">
-<title>The AI Homebrew Club &middot; Investor Briefing</title>
+<title>The AI Homebrew Club &middot; The Clubhouse</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-  @font-face{font-family:'Nunito';font-style:normal;font-weight:300 900;font-display:swap;src:url(../assets/fonts/nunito.woff2) format('woff2')}
-  @font-face{font-family:'Besley';font-style:normal;font-weight:400 900;font-display:swap;src:url(../assets/fonts/besley.woff2) format('woff2')}
-  @font-face{font-family:'Besley';font-style:italic;font-weight:400 900;font-display:swap;src:url(../assets/fonts/besley-i.woff2) format('woff2')}
-  @font-face{font-family:'Caveat';font-style:normal;font-weight:400 700;font-display:swap;src:url(../assets/fonts/caveat.woff2) format('woff2')}
+  @font-face{font-family:'Nunito';font-style:normal;font-weight:300 900;font-display:swap;src:url(assets/fonts/nunito.woff2) format('woff2')}
+  @font-face{font-family:'Besley';font-style:normal;font-weight:400 900;font-display:swap;src:url(assets/fonts/besley.woff2) format('woff2')}
+  @font-face{font-family:'Besley';font-style:italic;font-weight:400 900;font-display:swap;src:url(assets/fonts/besley-i.woff2) format('woff2')}
+  @font-face{font-family:'Caveat';font-style:normal;font-weight:400 700;font-display:swap;src:url(assets/fonts/caveat.woff2) format('woff2')}
 
   /* ===== Bean Supper is the brand: grange hall, gingham, recipe cards, the coffee urn ===== */
   :root{
@@ -497,280 +497,768 @@
 </div>
 
 <div class="deck" id="deck">
-<!-- 01 · COVER -->
-<section class="slide" id="s1" data-title="Cover">
-  <div class="sheet">
-    <div class="cover">
-      <div>
-        <h1>The hardest<br>room in<br>America</h1>
-        <p class="motto" style="margin-top:16px">The AI Homebrew Club</p>
-        <p class="lede quiet" style="margin-top:10px; max-width:44ch">An investor briefing from Maine, the state that trusts AI least. That is exactly the point.</p>
-      </div>
-      <div class="fig">
-        <span class="logo" data-size="210"></span>
+<style>
+  /* clubhouse-only styles: this block ships only with chat.html, so bare overrides are safe */
+  html{scroll-snap-type:none}
+  .slide{min-height:100svh; display:block; padding:0; background:var(--w-cream)}
+  #s1::after{display:none} /* the gingham strip would sit under the composer */
+  .rail,.hint,.notesbtn,.clickhint{display:none} /* one screen, no slides to pin notes on */
+  .sidepane{display:none!important} /* the notes pane has no business in the clubhouse */
+  body.pane-open .deck{margin-right:0}
+
+  .avatar{
+    border-radius:50%; flex:none; display:grid; place-items:center;
+    font-weight:800; font-family:var(--font-body); color:var(--paper);
+  }
+
+  .chatapp{
+    height:100svh; height:100dvh;
+    display:grid; grid-template-columns:250px 1fr;
+  }
+
+  /* ---- channel rail ---- */
+  .chanrail{
+    background:var(--card); border-right:1px solid var(--edge);
+    display:flex; flex-direction:column; overflow-y:auto; padding:14px 10px 12px;
+  }
+  .railhead{display:flex; align-items:center; gap:8px; padding:2px 8px 10px 54px; border-bottom:2px dashed var(--edge)}
+  .railhead b{font-family:var(--font-display); font-size:1.15rem}
+  .livedot{
+    margin-left:auto; font-size:.66rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase;
+    padding:3px 9px; border-radius:999px; background:var(--paper); color:var(--ink-soft);
+  }
+  .livedot.on{background:var(--teal); color:#fff}
+  .railgroup{
+    font-family:var(--font-display); font-weight:800; font-size:.8rem; letter-spacing:.06em;
+    text-transform:uppercase; color:var(--ink-soft); padding:14px 8px 6px;
+  }
+  .chan{
+    display:flex; align-items:center; gap:7px; width:100%; text-align:left;
+    background:none; border:none; border-radius:12px; padding:9px 10px; cursor:pointer;
+    font-family:var(--font-body); font-weight:700; font-size:.95rem; color:var(--ink);
+  }
+  .chan:hover{background:var(--paper)}
+  .chan.here{background:var(--w-mint); font-weight:800}
+  .chan .hash{color:var(--ink-soft); font-weight:800}
+  .chan .nm{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .chan .dot{
+    margin-left:auto; flex:none; min-width:10px; height:10px; border-radius:999px;
+    background:var(--tangerine);
+  }
+  .who{display:flex; align-items:center; gap:9px; padding:6px 10px; font-size:.88rem; font-weight:700}
+  .who .avatar{width:26px; height:26px; font-size:.72rem}
+  .who .wch{margin-left:auto; color:var(--ink-soft); font-size:.74rem; font-style:italic}
+  .who .on{width:8px; height:8px; border-radius:50%; background:var(--teal); flex:none}
+  .railempty{color:var(--ink-soft); font-size:.82rem; font-weight:700; padding:4px 10px}
+
+  /* ---- main column ---- */
+  .chatmain{display:flex; flex-direction:column; min-width:0; min-height:0}
+  .chanhead{
+    display:flex; align-items:baseline; gap:10px; padding:14px 18px 10px 66px;
+    background:var(--card); border-bottom:1px solid var(--edge); box-shadow:var(--shadow);
+    position:relative; z-index:2;
+  }
+  .chanhead b{font-family:var(--font-display); font-size:1.25rem}
+  .chanhead .topic{color:var(--ink-soft); font-size:.86rem; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .chanhead .onl{margin-left:auto; flex:none; color:var(--teal-deep); font-size:.8rem; font-weight:800}
+  .railtog{
+    display:none; border:none; background:var(--paper); border-radius:10px; padding:6px 12px;
+    font-family:var(--font-body); font-weight:800; cursor:pointer; color:var(--ink); font-size:1rem; flex:none;
+  }
+
+  .msgscroll{flex:1; overflow-y:auto; overscroll-behavior:contain; padding:14px 18px 8px}
+  .chatstate{text-align:center; color:var(--ink-soft); font-weight:700; font-size:.88rem; padding:26px 0}
+  .daymark{
+    text-align:center; font-size:.72rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--ink-soft); margin:16px 0 6px;
+  }
+
+  .mrow{display:flex; gap:10px; padding:3px 6px; border-radius:12px; position:relative}
+  .mrow:hover{background:color-mix(in srgb, var(--card) 60%, transparent)}
+  .mrow.mention-me{background:var(--w-lemon)}
+  .mrow .avatar{width:36px; height:36px; margin-top:3px; font-size:.9rem}
+  .c0{background:var(--teal)} .c1{background:var(--sky)} .c2c{background:var(--berry)}
+  .c3{background:var(--lemon); color:#3B3227} .c4{background:var(--tangerine)}
+  .mrow .spacer{width:36px; flex:none}
+  .mrow.grouped{padding-top:0}
+  .mcol{min-width:0; flex:1}
+  .mhead{display:flex; align-items:baseline; gap:8px}
+  .mhead b{font-size:.94rem}
+  .mtime{font-size:.72rem; color:var(--ink-soft); font-weight:700}
+  .mbody{font-size:.95rem; overflow-wrap:break-word}
+  .mbody p{margin:0 0 4px} .mbody p:last-child{margin-bottom:0}
+  .mbody ul{margin:2px 0 6px; padding-left:20px}
+  .mention{background:var(--w-lemon); border-radius:6px; padding:0 4px; font-weight:800; color:var(--tangerine-deep)}
+  .pending{opacity:.55}
+
+  .mchips{display:flex; gap:6px; flex-wrap:wrap; margin-top:4px}
+  .rchip{
+    border:1px solid var(--edge); background:var(--paper); border-radius:999px;
+    padding:2px 10px; font-family:var(--font-body); font-weight:800; font-size:.8rem;
+    cursor:pointer; color:var(--ink);
+  }
+  .rchip.on{border-color:var(--teal); background:var(--w-mint)}
+  .tchip{
+    border:none; background:none; padding:2px 4px; cursor:pointer;
+    font-family:var(--font-body); font-weight:800; font-size:.8rem; color:var(--teal-deep);
+  }
+  .tchip:hover{text-decoration:underline}
+
+  .mact{
+    position:absolute; right:8px; top:-12px; display:none; gap:2px;
+    background:var(--card); border:1px solid var(--edge); border-radius:999px; padding:2px 6px;
+    box-shadow:var(--shadow); z-index:3;
+  }
+  .mrow:hover .mact{display:flex}
+  @media (hover:none){ .mact{display:flex; opacity:.85} }
+  .mact button{
+    border:none; background:none; cursor:pointer; font-size:.92rem; padding:3px 5px;
+    color:var(--ink-soft); font-family:var(--font-body); font-weight:800;
+  }
+  .mact button:hover{color:var(--ink)}
+
+  .emojipick{
+    position:fixed; z-index:120; background:var(--card); border:1px solid var(--edge);
+    border-radius:999px; padding:6px 10px; box-shadow:0 16px 40px rgba(0,0,0,.25); display:flex; gap:2px;
+  }
+  .emojipick button{border:none; background:none; font-size:1.25rem; cursor:pointer; padding:3px 6px; border-radius:8px}
+  .emojipick button:hover{background:var(--paper)}
+
+  /* ---- composer ---- */
+  .composerbar{
+    padding:10px 18px calc(14px + env(safe-area-inset-bottom)); background:var(--card);
+    border-top:1px solid var(--edge); position:relative;
+  }
+  .composerbar .row{display:flex; gap:10px; align-items:flex-end}
+  .composerbar textarea{
+    flex:1; min-height:44px; max-height:140px; resize:none; border:1px solid var(--edge);
+    border-radius:14px; background:var(--paper); color:var(--ink);
+    font-family:var(--font-body); font-size:.95rem; line-height:1.45; padding:11px 13px;
+  }
+  .composerbar textarea:focus{outline:2px solid var(--teal)}
+  .sendbtn{
+    background:var(--teal); color:#fff; border:none; border-radius:999px; flex:none;
+    padding:11px 22px; font-family:var(--font-body); font-weight:800; font-size:.88rem;
+    letter-spacing:.05em; text-transform:uppercase; cursor:pointer;
+  }
+  .sendbtn:disabled{opacity:.45; cursor:default}
+  .mentionpick{
+    position:absolute; bottom:100%; left:18px; margin-bottom:6px; z-index:110;
+    background:var(--card); border:1px solid var(--edge); border-radius:14px;
+    box-shadow:0 16px 40px rgba(0,0,0,.25); overflow:hidden; min-width:200px;
+  }
+  .mentionpick button{
+    display:flex; align-items:center; gap:8px; width:100%; text-align:left; border:none;
+    background:none; padding:8px 12px; cursor:pointer; font-family:var(--font-body);
+    font-weight:700; font-size:.9rem; color:var(--ink);
+  }
+  .mentionpick button.sel, .mentionpick button:hover{background:var(--w-mint)}
+  .mentionpick .avatar{width:24px; height:24px; font-size:.68rem}
+
+  /* ---- thread pane ---- */
+  .threadpane{
+    position:fixed; top:0; right:0; bottom:0; width:min(400px,100vw); z-index:60;
+    background:var(--card); box-shadow:-8px 0 30px rgba(0,0,0,.18);
+    display:flex; flex-direction:column;
+  }
+  .threadpane[hidden]{display:none}
+  .threadpane > header{
+    padding:14px 16px 10px; display:flex; align-items:baseline; gap:10px;
+    border-bottom:2px dashed var(--edge);
+  }
+  .threadpane > header h3{font-size:1.15rem}
+  .threadpane > header .quiet{font-size:.8rem; font-weight:700}
+  .threadpane .close{
+    margin-left:auto; border:none; background:none; color:var(--ink-soft);
+    font-weight:800; cursor:pointer; font-size:1.05rem; padding:2px 6px;
+  }
+  .threadpane .close:hover{color:var(--ink)}
+  .tscroll{flex:1; overflow-y:auto; overscroll-behavior:contain; padding:12px 14px}
+  .troot{border-bottom:2px dashed var(--edge); padding-bottom:10px; margin-bottom:10px}
+  .threadpane .composerbar{padding:10px 14px calc(12px + env(safe-area-inset-bottom))}
+
+  /* ---- phones: rail becomes a drawer, thread goes full screen ---- */
+  @media (max-width:860px){
+    .chatapp{grid-template-columns:1fr}
+    .chanrail{
+      position:fixed; left:0; top:0; bottom:0; z-index:65; width:min(300px,86vw);
+      box-shadow:8px 0 30px rgba(0,0,0,.18); transform:translateX(-105%);
+    }
+    body.rail-open .chanrail{transform:none}
+    @media (prefers-reduced-motion: no-preference){ .chanrail{transition:transform .22s} }
+    .railtog{display:inline-block}
+    .chanhead{padding-left:66px}
+    .threadpane{width:100vw}
+    .msgscroll{padding:12px 12px 6px}
+    .composerbar{padding-left:12px; padding-right:12px}
+  }
+  @media (min-width:861px){
+    .chanhead{padding-left:66px}
+  }
+</style>
+
+<!-- the whole clubhouse is one slide: channel rail, the stream, and a thread drawer -->
+<section class="slide" id="s1" data-title="The clubhouse">
+  <div class="chatapp" id="chatApp">
+    <aside class="chanrail" id="chanRail">
+      <div class="railhead"><b>The clubhouse</b><span class="livedot" id="liveDot">connecting</span></div>
+      <div class="railgroup">Rooms</div>
+      <div id="chanList"><div class="railempty">Setting the table&hellip;</div></div>
+      <div class="railgroup">Here now</div>
+      <div id="whosHere"><div class="railempty">Just you, so far.</div></div>
+    </aside>
+    <div class="chatmain">
+      <header class="chanhead">
+        <button class="railtog" id="railTog" type="button" aria-label="Rooms">&#9776;</button>
+        <b id="chanName">#general</b>
+        <span class="topic" id="chanTopic"></span>
+        <span class="onl" id="onlCount"></span>
+      </header>
+      <div class="msgscroll" id="msgScroll"><div class="chatstate">Pouring the coffee&hellip;</div></div>
+      <div class="composerbar">
+        <div class="mentionpick" id="mentionPick" hidden></div>
+        <div class="row">
+          <textarea id="chatText" maxlength="4000" rows="1" placeholder="Say something to the room&hellip;"></textarea>
+          <button class="sendbtn" id="chatSend" type="button">Send</button>
+        </div>
       </div>
     </div>
   </div>
+
+  <aside class="threadpane" id="threadPane" hidden>
+    <header>
+      <h3>Thread</h3><span class="quiet" id="threadChan"></span>
+      <button class="close" id="threadClose" type="button" aria-label="Close thread">&#10005;</button>
+    </header>
+    <div class="tscroll" id="threadScroll"></div>
+    <div class="composerbar">
+      <div class="row">
+        <textarea id="threadText" maxlength="4000" rows="1" placeholder="Reply in thread&hellip;"></textarea>
+        <button class="sendbtn" id="threadSend" type="button">Reply</button>
+      </div>
+    </div>
+  </aside>
 </section>
 
-<!-- 02 · THE PROBLEM -->
-<section class="slide w-peach" id="s2" data-title="The problem">
-  <div class="sheet">
-    <span class="chip"><span class="dot"></span>The problem</span>
-    <h2>AI has an adoption problem, and it is not the technology.</h2>
-    <div class="statrow">
-      <div class="stat a-tangerine"><span class="n">50%</span><span class="l">of U.S. adults are more concerned than excited about AI</span></div>
-      <div class="stat a-teal"><span class="n">10%</span><span class="l">are more excited than concerned</span></div>
-      <div class="stat a-berry"><span class="n">37%</span><span class="l">were more concerned in 2021. The gap is widening.</span></div>
-    </div>
-    <p class="statsrc"><a href="https://www.pewresearch.org/science/2025/09/17/how-americans-view-ai-and-its-impact-on-people-and-society/">Pew Research Center, fielded June 2025</a>; adoption trend: <a href="https://www.uschamber.com/technology/empowering-small-business-the-impact-of-technology-on-u-s-small-business">U.S. Chamber of Commerce</a>; integration gap: <a href="https://www.goldmansachs.com/community-transformation/10000-small-businesses-voices/insights/ai-presents-a-major-opportunity-for-small-businesses">Goldman Sachs 10,000 Small Businesses, 2026</a></p>
-    <p class="lede">The tools got cheap. The trust did not. Small&#8209;business AI use has more than doubled since 2023, yet only about 14% of small businesses have AI wired into how they actually run, and 73% of owners say more training would get them there. Everyone is dabbling; almost nobody has crossed over. That crossing is the market.</p>
-    <p class="kicker">The bottleneck on AI adoption is not capability or price. <span class="hl">It is trust.</span></p>
-  </div>
-</section>
+<script>
+(function(){
+  'use strict';
+  function boot(){
+    if (!window.AIHC || !window.AIHC.viewer()){ setTimeout(boot, 300); return; }
+    var A = window.AIHC;
+    var BASE = String(A.sync || '').replace(/\/notes\b.*$/, '');
+    if (!/^https?:/.test(BASE)) return; /* no backend configured: leave the loading note */
+    var WS_URL = BASE.replace(/^http/, 'ws') + '/chat/ws';
+    var LS_READ = 'aihc_chat_read_v1';
+    var EMOJI = ['👍','❤️','😂','🎉','🍺','🤯'];
 
-<!-- 03 · WHY MAINE -->
-<section class="slide w-sky" id="s3" data-title="Why Maine">
-  <div class="sheet">
-    <span class="chip"><span class="dot" style="background:var(--sky)"></span>Why Maine</span>
-    <h2>Maine is where the fear runs deepest.</h2>
-    <div class="statrow">
-      <div class="stat a-tangerine"><span class="n">3 in 5</span><span class="l">Mainers expect AI to hurt the country over the next decade</span></div>
-      <div class="stat a-berry"><span class="n">2 in 3</span><span class="l">would oppose an AI data center in their own town</span></div>
-      <div class="stat a-teal"><span class="n">51%</span><span class="l">already use AI regularly anyway</span></div>
-    </div>
-    <p class="statsrc"><a href="https://scholars.unh.edu/survey_center_polls/964/">UNH Survey Center, Pine Tree State Poll, June 2026</a></p>
-    <p class="lede">Read those together: half the state is already using a technology most of the state distrusts. That gap between use and trust is the whole market, concentrated in one place.</p>
-    <p class="kicker">An economy of owner&#8209;operators, a culture that hates being sold to, and the deepest AI skepticism we can find. <span class="hl">If goodwill can be built here, it can be built anywhere.</span></p>
-  </div>
-</section>
+    function $(id){ return document.getElementById(id); }
+    function esc(s){ var d = document.createElement('div'); d.textContent = String(s); return d.innerHTML; }
 
-<!-- 04 · THE BILL -->
-<section class="slide w-berry" id="s4" data-title="The bill">
-  <div class="sheet">
-    <span class="chip"><span class="dot" style="background:var(--berry)"></span>The proof</span>
-    <h2>One signature from telling AI no.</h2>
-    <p class="lede">In April 2026 Maine&rsquo;s Legislature passed, with bipartisan support, what would have been the nation&rsquo;s first moratorium on large AI data centers. The governor vetoed it over an exemption for a single project, even while calling a moratorium &ldquo;appropriate,&rdquo; and stood up an advisory council instead. No other state has come closer to putting its distrust of AI into law.</p>
-    <p class="lede">That one project is the whole story in miniature: a $550 million data center planned for the floor of a paper mill in Jay that went dark in 2023, ending 130 years of papermaking in a town built by the great 1898 mill consolidation. Maine has watched a new economy move into its buildings and set the terms before. The skepticism is not ignorance. <span class="hl">It is memory.</span></p>
-    <p class="lede quiet">Add the laws already signed here against deceptive AI&#8209;generated images and undisclosed chatbots, and nearly two in three Mainers opposing a data center in their own town, and Maine is the closest thing America has to a controlled experiment in AI skepticism.</p>
-    <p class="statsrc"><a href="https://www.mainepublic.org/politics/2026-04-25/janet-mills-vetoes-moratorium-on-data-center-development-in-maine">Maine Public, April 2026</a>; <a href="https://www.pressherald.com/2023/03/09/paper-mill-in-jay-is-no-longer-making-any-paper/">Press Herald, March 2023</a>; <a href="https://www.maine.gov/housedems/news/governor-signs-kuhn-legislation-protect-mainers-deceptive-artificial-intelligence">Maine House Democrats</a>; <a href="https://scholars.unh.edu/survey_center_polls/964/">UNH Pine Tree State Poll, June 2026</a></p>
-    <p class="kicker">You do not win a room like this with a keynote or an ad budget. <span class="hl">You win it one neighbor at a time.</span></p>
-  </div>
-</section>
+    /* ---------- state ---------- */
+    var channels = [];            /* open channels from the server, sidebar order */
+    var msgs = {};                /* channel id -> sorted message array */
+    var loaded = {};              /* channel id -> history fetched */
+    var reacts = {};              /* message id -> [{name, emoji}] */
+    var latest = {};              /* channel id -> newest ts, for unread dots */
+    var who = [];                 /* presence: [{name, channel}] */
+    var cur = 'general';
+    var openThread = null;        /* parent message id, or null */
+    var read = {};
+    try { read = JSON.parse(localStorage.getItem(LS_READ) || '{}'); } catch(e){ read = {}; }
 
-<!-- 05 · THE THESIS -->
-<section class="slide w-mint" id="s5" data-title="The thesis">
-  <div class="sheet">
-    <span class="chip"><span class="dot" style="background:var(--teal)"></span>The thesis</span>
-    <h2>Goodwill is the moat.</h2>
-    <p class="lede">Everyone is racing to build better models. Nobody is building the rooms where ordinary business owners learn to trust them. Trust does not come from content, ads, or certifications. It comes from watching a neighbor demo what AI did for their shop, then trying it yourself with someone beside you.</p>
-    <div class="cards c3">
-      <div class="card a-teal"><h3>Scarce</h3><p>Rooms where trust forms cannot be spun up with capital alone. They compound slowly and defend themselves.</p></div>
-      <div class="card a-tangerine"><h3>Proven pattern</h3><p>Homebrew, 1975: hobbyists in a garage turned a scary chip into an industry. Small rooms are where fear goes to die.</p></div>
-      <div class="card a-berry"><h3>Hardest lab first</h3><p>Prove the model in the most skeptical state in the country, and the playbook exports everywhere.</p></div>
-    </div>
-  </div>
-</section>
+    /* ---------- tiny renderers borrowed from the feed ---------- */
+    function md(t){
+      var out = [], list = null;
+      String(t).split('\n').forEach(function(raw){
+        var ln = esc(raw)
+          .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+          .replace(/(https?:\/\/[^\s<]+)/g, function(u){
+            return '<a href="' + u + '" target="_blank" rel="noopener">' + u.replace(/^https?:\/\//, '') + '</a>';
+          });
+        if (/^- /.test(raw)){
+          if (!list){ list = []; out.push(list); }
+          list.push(ln.replace(/^- /, ''));
+        } else {
+          list = null;
+          if (raw.trim()) out.push('<p>' + ln + '</p>');
+        }
+      });
+      return out.map(function(x){
+        return Array.isArray(x) ? '<ul><li>' + x.join('</li><li>') + '</li></ul>' : x;
+      }).join('');
+    }
+    function avClass(name){
+      var n = String(name).toLowerCase(), h = 0;
+      for (var i = 0; i < n.length; i++) h = (h * 31 + n.charCodeAt(i)) >>> 0;
+      return ['c0', 'c1', 'c2c', 'c3'][h % 4];
+    }
+    function avGlyph(name){ return esc(String(name).trim().charAt(0).toUpperCase()); }
+    function tOnly(ts){
+      var d = new Date(ts);
+      return isNaN(d) ? '' : d.toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'}).toLowerCase();
+    }
+    function dayOf(ts){
+      var d = new Date(ts);
+      return isNaN(d) ? '' : d.toLocaleDateString('en-US', {weekday: 'long', month: 'long', day: 'numeric'});
+    }
 
-<!-- 06 · THE ENGINE -->
-<section class="slide w-lemon" id="s6" data-title="The engine">
-  <div class="sheet">
-    <span class="chip"><span class="dot" style="background:var(--lemon)"></span>The engine</span>
-    <h2>A ladder of classes turns fear into capability.</h2>
-    <div class="cards c3">
-      <div class="card a-teal level">
-        <p class="tag">101 &middot; <span class="b-sprinkle">one scoop</span><span class="b-bean">bring your lunch</span><span class="b-camp">first badge</span><span class="b-fair">white ribbon</span></p>
-        <h3>Use AI tonight</h3>
-        <p>A free one&#8209;hour class on the six problems every owner has. Bring one real task, leave with it done. This is where goodwill is minted.</p>
-      </div>
-      <div class="card a-tangerine level">
-        <p class="tag">201 &middot; <span class="b-sprinkle">double scoop</span><span class="b-bean">bring extra</span><span class="b-camp">second badge</span><span class="b-fair">red ribbon</span></p>
-        <h3>Build with AI</h3>
-        <p>Agentic workflows, harnesses, a first GitHub. Operators become builders.</p>
-      </div>
-      <div class="card a-berry level">
-        <p class="tag">301 &middot; <span class="b-sprinkle">triple scoop</span><span class="b-bean">run the lunch counter</span><span class="b-camp">third badge</span><span class="b-fair">blue ribbon</span></p>
-        <h3>Run on AI</h3>
-        <p>The whole back office on agents, reviewed like a manager. Builders become AI&#8209;native businesses.</p>
-      </div>
-    </div>
-    <p class="kicker">Each level feeds the next. The club stays free at every rung; <span class="hl">that is what makes the ladder trustworthy.</span></p>
-  </div>
-</section>
+    /* ---------- mentions: names we know = authors + everyone here now ---------- */
+    var knownNames = {};
+    function learnName(n){ if (n) knownNames[String(n)] = true; }
+    learnName(A.viewer().name);
+    function mentionize(html){
+      var names = Object.keys(knownNames).sort(function(a, b){ return b.length - a.length; });
+      if (!names.length) return html;
+      var alt = names.map(function(n){ return esc(n).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }).join('|');
+      var re = new RegExp('@(' + alt + ')', 'gi');
+      return html.replace(re, function(m, n){ return '<span class="mention">@' + n + '</span>'; });
+    }
+    function mentionsMe(body){
+      return String(body).toLowerCase().indexOf('@' + String(A.viewer().name).toLowerCase()) !== -1;
+    }
 
-<!-- 07 · THE MODEL -->
-<section class="slide w-peach" id="s7" data-title="The model">
-  <div class="sheet">
-    <span class="chip"><span class="dot"></span>The model</span>
-    <h2>Free club. Paid periphery. Investable pipeline.</h2>
-    <div class="cards c3">
-      <div class="card a-teal">
-        <h3>Learn</h3>
-        <p>The club runs 101 through 301 and never charges members. Goodwill is the asset; we do not spend it at the door.</p>
-      </div>
-      <div class="card a-tangerine">
-        <h3>Build</h3>
-        <p>A studio alongside the club sells playbooks, workshops, and consulting to companies outside the room. Members get everything free.</p>
-      </div>
-      <div class="card a-berry">
-        <h3>Fund</h3>
-        <p>Graduates become capital&#8209;efficient, AI&#8209;native regional businesses. That is the deal flow: known founders, proven operating leverage, trust already built.</p>
-      </div>
-    </div>
-    <p class="kicker">The greatest way to redistribute wealth is to increase participation in capitalism. <span class="hl">This is the on&#8209;ramp.</span></p>
-  </div>
-</section>
+    /* ---------- message store ---------- */
+    function upsertMsg(m){
+      learnName(m.name);
+      var list = msgs[m.channel] || (msgs[m.channel] = []);
+      for (var i = 0; i < list.length; i++){
+        if (list[i].id === m.id){ list[i] = m; return; }
+      }
+      list.push(m);
+      list.sort(function(a, b){ return a.ts < b.ts ? -1 : 1; });
+      if (!latest[m.channel] || m.ts > latest[m.channel]) latest[m.channel] = m.ts;
+    }
+    function dropMsg(id, channel){
+      if (msgs[channel]) msgs[channel] = msgs[channel].filter(function(m){ return m.id !== id && m.parent !== id; });
+      delete reacts[id];
+    }
+    function replyCount(id, channel){
+      return (msgs[channel] || []).filter(function(m){ return m.parent === id; }).length;
+    }
+    function markRead(){
+      if (document.visibilityState !== 'visible') return;
+      if (latest[cur] && (!read[cur] || latest[cur] > read[cur])){
+        read[cur] = latest[cur];
+        try { localStorage.setItem(LS_READ, JSON.stringify(read)); } catch(e){}
+        renderChannels();
+      }
+    }
 
-<!-- THE TOOLKIT -->
-<section class="slide w-mint" id="s10" data-title="The toolkit">
-  <div class="sheet">
-    <span class="chip"><span class="dot" style="background:var(--teal)"></span>The studio &middot; The toolkit</span>
-    <h2>The toolkit already exists.</h2>
-    <p class="lede">The studio&rsquo;s product was not designed on a whiteboard. It runs today inside a Central Maine property&#8209;management company: an AI back office handling bill processing, invoicing, collections, work&#8209;order dispatch, marketing, and owner reporting, reviewed daily by the people who own the outcome.</p>
-    <div class="cards c3">
-      <div class="card a-teal">
-        <h3>The playbook</h3>
-        <p>The documented system: the agent briefs, the workflows, the review checklists, the this&#8209;fails&#8209;when knowledge. Written once, installed anywhere. Free for members; sold outside the region.</p>
-      </div>
-      <div class="card a-tangerine">
-        <h3>AI consulting</h3>
-        <p>The studio scopes and installs the playbook inside a business: brief, delegate, review at delivery scale. Companies pay for installation; members never pay for anything.</p>
-      </div>
-      <div class="card a-berry">
-        <h3>Workshops</h3>
-        <p>Training for companies that want their own people running the system. Paid by employers, priced like the professional development it is.</p>
-      </div>
-    </div>
-    <p class="kicker">Not a plan for a product. <span class="hl">A product with a working company behind it.</span></p>
-  </div>
-</section>
+    /* ---------- rendering ---------- */
+    function chanById(id){
+      for (var i = 0; i < channels.length; i++) if (channels[i].id === id) return channels[i];
+      return null;
+    }
+    function renderChannels(){
+      if (!channels.length){ $('chanList').innerHTML = '<div class="railempty">No rooms yet.</div>'; return; }
+      $('chanList').innerHTML = channels.map(function(c){
+        var unread = latest[c.id] && (!read[c.id] || latest[c.id] > read[c.id]) && c.id !== cur;
+        return '<button class="chan' + (c.id === cur ? ' here' : '') + '" type="button" data-chan="' + esc(c.id) + '">' +
+          '<span class="hash">#</span><span class="nm">' + esc(c.name) + '</span>' +
+          (unread ? '<span class="dot"></span>' : '') +
+        '</button>';
+      }).join('');
+    }
+    function renderPresence(){
+      var seen = {}, rows = [];
+      who.forEach(function(w){
+        if (seen[w.name]) return;
+        seen[w.name] = true;
+        var c = chanById(w.channel);
+        rows.push('<div class="who"><span class="on"></span>' +
+          '<span class="avatar ' + avClass(w.name) + '">' + avGlyph(w.name) + '</span>' +
+          '<span>' + esc(w.name) + '</span>' +
+          (c ? '<span class="wch">#' + esc(c.name) + '</span>' : '') +
+        '</div>');
+      });
+      $('whosHere').innerHTML = rows.length ? rows.join('') : '<div class="railempty">Just you, so far.</div>';
+      var inRoom = who.filter(function(w){ return w.channel === cur; }).length;
+      $('onlCount').textContent = inRoom ? inRoom + ' here' : '';
+    }
+    function reactChips(id){
+      var rs = reacts[id] || [];
+      if (!rs.length) return '';
+      var byEmoji = {};
+      rs.forEach(function(r){ (byEmoji[r.emoji] || (byEmoji[r.emoji] = [])).push(r.name); });
+      var me = A.viewer().name;
+      return Object.keys(byEmoji).map(function(e){
+        var names = byEmoji[e];
+        var mine = names.indexOf(me) !== -1;
+        return '<button class="rchip' + (mine ? ' on' : '') + '" type="button" data-react="' + esc(e) + '" ' +
+          'title="' + esc(names.join(', ')) + '">' + esc(e) + ' ' + names.length + '</button>';
+      }).join('');
+    }
+    function msgRow(m, prev, inThread){
+      var grouped = prev && prev.name === m.name && prev.parent === m.parent &&
+        (new Date(m.ts) - new Date(prev.ts)) < 5 * 60000;
+      var mine = m.name === A.viewer().name;
+      var replies = !inThread && !m.parent ? replyCount(m.id, m.channel) : 0;
+      var body = mentionize(md(m.body));
+      return '<div class="mrow' + (grouped ? ' grouped' : '') +
+          (m.pending ? ' pending' : '') +
+          (!mine && mentionsMe(m.body) ? ' mention-me' : '') + '" data-id="' + esc(m.id) + '">' +
+        (grouped ? '<span class="spacer"></span>'
+                 : '<span class="avatar ' + avClass(m.name) + '">' + avGlyph(m.name) + '</span>') +
+        '<div class="mcol">' +
+          (grouped ? '' : '<div class="mhead"><b>' + esc(m.name) + '</b><span class="mtime">' + tOnly(m.ts) + '</span></div>') +
+          '<div class="mbody">' + body + '</div>' +
+          (reactChips(m.id) || replies ?
+            '<div class="mchips">' + reactChips(m.id) +
+              (replies ? '<button class="tchip" type="button" data-thread="' + esc(m.id) + '">' +
+                replies + (replies === 1 ? ' reply' : ' replies') + ' &rarr;</button>' : '') +
+            '</div>' : '') +
+        '</div>' +
+        '<div class="mact">' +
+          '<button type="button" data-act="react" title="React">&#9786;</button>' +
+          (!inThread && !m.parent ? '<button type="button" data-act="reply" title="Reply in thread">&#8617;</button>' : '') +
+          (mine && !m.pending ? '<button type="button" data-act="del" title="Delete">&#10005;</button>' : '') +
+        '</div>' +
+      '</div>';
+    }
+    function renderMsgs(){
+      var box = $('msgScroll');
+      var stick = box.scrollHeight - box.scrollTop - box.clientHeight < 120;
+      var list = (msgs[cur] || []).filter(function(m){ return !m.parent; });
+      if (!list.length){
+        box.innerHTML = '<div class="chatstate">' +
+          (loaded[cur] ? 'Nothing said in here yet. Break the ice.' : 'Pouring the coffee&hellip;') + '</div>';
+        return;
+      }
+      var out = [], prev = null, prevDay = '';
+      list.forEach(function(m){
+        var d = dayOf(m.ts);
+        if (d !== prevDay){ out.push('<div class="daymark">' + esc(d) + '</div>'); prevDay = d; prev = null; }
+        out.push(msgRow(m, prev, false));
+        prev = m;
+      });
+      box.innerHTML = out.join('');
+      if (stick) box.scrollTop = box.scrollHeight;
+      markRead();
+    }
+    function renderThread(){
+      var pane = $('threadPane');
+      if (!openThread){ pane.hidden = true; return; }
+      var all = msgs[cur] || [];
+      var root = null;
+      all.forEach(function(m){ if (m.id === openThread) root = m; });
+      if (!root){ openThread = null; pane.hidden = true; return; }
+      pane.hidden = false;
+      var c = chanById(cur);
+      $('threadChan').textContent = c ? '#' + c.name : '';
+      var out = ['<div class="troot">' + msgRow(root, null, true) + '</div>'];
+      var prev = null;
+      all.filter(function(m){ return m.parent === openThread; }).forEach(function(m){
+        out.push(msgRow(m, prev, true));
+        prev = m;
+      });
+      var box = $('threadScroll');
+      var stick = box.scrollHeight - box.scrollTop - box.clientHeight < 120;
+      box.innerHTML = out.join('');
+      if (stick) box.scrollTop = box.scrollHeight;
+    }
+    function renderHead(){
+      var c = chanById(cur);
+      $('chanName').textContent = '#' + (c ? c.name : cur);
+      $('chanTopic').textContent = c ? c.topic : '';
+      $('chatText').placeholder = 'Say something to #' + (c ? c.name : cur) + '…';
+    }
+    function renderAll(){ renderChannels(); renderPresence(); renderHead(); renderMsgs(); renderThread(); }
 
-<!-- THE ECONOMICS -->
-<section class="slide w-peach" id="s12" data-title="The economics">
-  <div class="sheet">
-    <span class="chip"><span class="dot"></span>The studio &middot; The economics</span>
-    <h2>The install pays for the engineer. The subscription is the business.</h2>
-    <div class="statrow">
-      <div class="stat a-tangerine"><span class="n">$200K+</span><span class="l">what a forward deployed engineer costs on the coasts; AI labs pay $350K&ndash;550K</span></div>
-      <div class="stat a-teal"><span class="n">$125&ndash;250</span><span class="l">per hour, what boutique AI shops charge small businesses</span></div>
-      <div class="stat a-berry"><span class="n">$2,800+</span><span class="l">median monthly AI retainer, small and mid&#8209;market</span></div>
-    </div>
-    <p class="statsrc"><a href="https://www.levels.fyi/companies/palantir/salaries">Levels.fyi</a>, <a href="https://www.glassdoor.com/Salary/Palantir-Technologies-Forward-Deployed-Engineer-Salaries-E236375_D_KO22,47.htm">Glassdoor</a>, and <a href="https://getperspective.ai/blog/2026-forward-deployed-engineering-compensation-report-1200-fdes">2026 FDE compensation reports</a>; <a href="https://www.groovyweb.co/blog/ai-consulting-rates-2026">2026 AI consulting</a> and <a href="https://www.layer3labs.io/roi/ai-automation-agency-cost">automation pricing guides</a>; <a href="https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/">METR randomized trial, July 2025</a>; <a href="https://pubsonline.informs.org/doi/10.1287/orsc.2025.21838">Dell&rsquo;Acqua et al., Harvard/BCG field trial, Organization Science 2025</a></p>
-    <p class="lede">The AI deployment market is priced for enterprises. Main Street is priced out of it. The studio comes in underneath: fixed&#8209;fee playbook installs instead of hourly custom builds, delivered by forward deployed engineers we train instead of hire.</p>
-    <div class="cards c3">
-      <div class="card a-teal">
-        <h3>Train the crew</h3>
-        <p>The 301 kitchen is the talent pipeline: operators who already run their own back office on agents, trained into deployment engineers at strong Maine salaries, a fraction of coastal comp. The research favors them: AI&rsquo;s measured gains concentrate among the less experienced (43% vs 17% in a Harvard field trial of 758 consultants), while a 2025 randomized trial found veteran engineers slower with AI and sure they were faster. Our crew has trade judgment for the review and <b>no habits to unlearn.</b></p>
-      </div>
-      <div class="card a-tangerine">
-        <h3>The install pays back</h3>
-        <p>A playbook install is configuration and training, not custom development, so it prices in the $5&ndash;25K band and under every custom quote. A handful of installs covers an engineer&rsquo;s fully loaded year; the rest is margin and book&#8209;building.</p>
-      </div>
-      <div class="card a-berry">
-        <h3>The subscription builds ARR</h3>
-        <p>After the install, the studio stays on for the review layer: monitoring, updates, new playbooks. Priced under the market retainer, it recurs and compounds; fifty businesses on subscription is real ARR carried by a small crew.</p>
-      </div>
-    </div>
-    <div class="cards c2">
-      <div class="card a-lemon">
-        <h3>Why not Amazon&rsquo;s engineers?</h3>
-        <p>Hyperscalers and the Big 4 field deployment engineers against six&#8209; and seven&#8209;figure enterprise contracts. A $15K install in a town of eight thousand never pencils against a coastal cost structure. They are not late to this market; <b>they are structurally absent from it.</b></p>
-      </div>
-      <div class="card a-teal">
-        <h3>Why ours win it</h3>
-        <p>A crew we trained instead of hired, playbooks already written, and rooms that already trust us make the small deal profitable. The moat is not the technology. It is a cost structure and a relationship nobody with a bigger logo will ever build here.</p>
-      </div>
-    </div>
-    <p class="kicker">Installs pay for the crew. <span class="hl">Subscriptions are the company.</span></p>
-  </div>
-</section>
+    /* ---------- transport: websocket first, polling if it will not stick ---------- */
+    var ws = null, wsOk = false, failures = 0, polling = false, lastFrameAt = 0;
+    var reconnectTimer = null, pollTimer = null;
+    function setLive(state){ /* 'live' | 'reconnecting' | 'polling' */
+      var el = $('liveDot');
+      el.textContent = state === 'live' ? 'live' : state === 'polling' ? 'shared' : 'reconnecting…';
+      el.classList.toggle('on', state !== 'reconnecting');
+    }
+    function connect(){
+      clearTimeout(reconnectTimer);
+      var sock;
+      try { sock = new WebSocket(WS_URL); } catch(e){ onDown(); return; }
+      ws = sock;
+      sock.onopen = function(){
+        sock.send(JSON.stringify({type: 'hello', secret: A.secret, name: A.viewer().name, channel: cur}));
+      };
+      sock.onmessage = function(ev){
+        lastFrameAt = Date.now();
+        var f;
+        try { f = JSON.parse(ev.data); } catch(e){ return; }
+        handleFrame(f);
+      };
+      sock.onclose = function(){ if (ws === sock) onDown(); };
+      sock.onerror = function(){ /* close fires next */ };
+    }
+    function onDown(){
+      ws = null;
+      if (wsOk){ wsOk = false; failures = 0; } else { failures++; }
+      if (failures >= 3 && !polling){
+        polling = true;
+        setLive('polling');
+        pollTimer = setInterval(pollTick, 15000);
+        pollTick();
+      } else if (!polling){
+        setLive('reconnecting');
+      }
+      var wait = Math.min(30000, 1000 * Math.pow(2, Math.min(failures, 5))) * (0.7 + Math.random() * 0.6);
+      reconnectTimer = setTimeout(connect, wait);
+    }
+    function handleFrame(f){
+      if (f.type === 'welcome'){
+        wsOk = true; failures = 0;
+        if (polling){ polling = false; clearInterval(pollTimer); }
+        setLive('live');
+        channels = f.channels || [];
+        who = f.who || [];
+        who.forEach(function(w){ learnName(w.name); });
+        Object.keys(f.latest || {}).forEach(function(k){
+          if (!latest[k] || f.latest[k] > latest[k]) latest[k] = f.latest[k];
+        });
+        if (!chanById(cur) && channels.length) cur = channels[0].id;
+        loadHistory(cur, loaded[cur]); /* catch up on whatever we missed while dark */
+        renderAll();
+        return;
+      }
+      if (f.type === 'msg'){ upsertMsg(f.message); if (f.message.channel === cur){ renderMsgs(); renderThread(); } renderChannels(); return; }
+      if (f.type === 'react'){
+        var rs = reacts[f.message] || (reacts[f.message] = []);
+        reacts[f.message] = rs.filter(function(r){ return !(r.name === f.name && r.emoji === f.emoji); });
+        if (f.on) reacts[f.message].push({name: f.name, emoji: f.emoji});
+        if (!f.channel || f.channel === cur){ renderMsgs(); renderThread(); }
+        return;
+      }
+      if (f.type === 'del'){ dropMsg(f.id, f.channel); if (f.channel === cur){ renderMsgs(); renderThread(); } return; }
+      if (f.type === 'presence'){ who = f.who || []; who.forEach(function(w){ learnName(w.name); }); renderPresence(); return; }
+      if (f.type === 'channels'){ channels = f.channels || []; if (!chanById(cur) && channels.length){ switchChannel(channels[0].id); } renderChannels(); renderHead(); return; }
+      if (f.type === 'err'){ A.toast(f.msg || 'The server said no.'); return; }
+    }
+    /* the client-side half of the heartbeat: heroku cuts idle sockets at 55s.
+       also the self-heal: if the first history load failed, keep trying. */
+    setInterval(function(){
+      if (ws && ws.readyState === 1){
+        ws.send(JSON.stringify({type: 'ping'}));
+        if (lastFrameAt && Date.now() - lastFrameAt > 45000){ ws.close(); }
+      }
+      if (!loaded[cur] && document.visibilityState === 'visible') loadHistory(cur);
+    }, 25000);
 
-<!-- THE LABOR POOL -->
-<section class="slide w-lemon" id="s13" data-title="The labor pool">
-  <div class="sheet">
-    <span class="chip"><span class="dot" style="background:var(--lemon)"></span>The studio &middot; The labor pool</span>
-    <h2>The crew is already here, working three jobs.</h2>
-    <div class="statrow">
-      <div class="stat a-tangerine"><span class="n">No. 1</span><span class="l">Maine led the nation in multiple jobholding as recently as 2022 (8.1%), and has run above the U.S. average for three decades</span></div>
-      <div class="stat a-teal"><span class="n">67</span><span class="l">available workers per 100 open jobs in Maine</span></div>
-      <div class="stat a-berry"><span class="n">+18,400</span><span class="l">jobs gained by Cumberland County since 2015, while Aroostook lost 1,600</span></div>
-    </div>
-    <p class="statsrc"><a href="https://dlt.ri.gov/media/13421/download?language=en">BLS Current Population Survey (state table, pub. March 2026)</a>; <a href="https://www.uschamber.com/workforce/the-states-suffering-most-from-the-labor-shortage">U.S. Chamber of Commerce Worker Shortage Index, December 2025</a>; <a href="https://www.mainepublic.org/business-and-economy/2026-06-20/new-report-finds-steady-workforce-trends-in-maine-with-stark-regional-variation">Maine Department of Labor, June 2026</a>; <a href="https://www.mecep.org/jobs-and-income/state-of-working-maine-2025/">Maine Center for Economic Policy, December 2025</a></p>
-    <p class="lede">Rural Maine does not lack workers or work ethic; it lacks good year&#8209;round jobs. Outside the Portland metro the rural west and northeast have seen almost no economic gains since 2001 (Maine Center for Economic Policy, 2025), so Mainers run a portfolio of part&#8209;time and seasonal work instead of one corporate job. That is the recruiting pool.</p>
-    <div class="cards c3">
-      <div class="card a-teal">
-        <h3>Zero&#8209;friction recruiting</h3>
-        <p>A corporate employer must convince someone to quit a job. We just add one more, better&#8209;paying line to a stack Mainers already run. FDE work starts part&#8209;time: a few installs a month alongside the day work.</p>
-      </div>
-      <div class="card a-tangerine">
-        <h3>No bidding war</h3>
-        <p>The employers who pay $350K for deployment engineers have no office here, and no plans for one. Top&#8209;of&#8209;Maine pay, a third of coastal cost, and people who stack jobs locally precisely because they do not want to leave.</p>
-      </div>
-      <div class="card a-berry">
-        <h3>Same market, both sides</h3>
-        <p>Sixty&#8209;seven workers per hundred openings means every small business is short&#8209;handed. The labor market that supplies our trainees is the same one that makes every SMB a customer for an install.</p>
-      </div>
-    </div>
-    <p class="kicker">The gig stack is the on&#8209;ramp. <span class="hl">We add the best&#8209;paying line to it.</span></p>
-  </div>
-</section>
+    function sendFrame(f){
+      if (ws && ws.readyState === 1 && wsOk){ ws.send(JSON.stringify(f)); return true; }
+      /* no socket: fall back to the rest mirror */
+      var body = null;
+      if (f.type === 'msg') body = {action: 'msg', message: {id: f.id, channel: f.channel, parent: f.parent, name: A.viewer().name, body: f.body}};
+      if (f.type === 'react') body = {action: 'react', message: f.message, channel: f.channel, name: A.viewer().name, emoji: f.emoji};
+      if (f.type === 'del') body = {action: 'delete', id: f.id, channel: f.channel};
+      if (!body) return false;
+      body.secret = A.secret;
+      fetch(BASE + '/chat', {method: 'POST', headers: {'Content-Type': 'text/plain'}, body: JSON.stringify(body)})
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          if (d && d.message){ upsertMsg(d.message); renderMsgs(); renderThread(); }
+          else if (d && f.type === 'react'){ pollTick(); }
+        })
+        .catch(function(){ A.toast('Could not reach the server; it may not have saved.'); });
+      return true;
+    }
 
-<!-- HOW IT SPREADS -->
-<section class="slide w-sky" id="s11" data-title="How it spreads">
-  <div class="sheet">
-    <span class="chip"><span class="dot" style="background:var(--sky)"></span>Growth</span>
-    <h2>Growth costs a weekend and a tank of gas.</h2>
-    <p class="lede">The club grows in two modes. Broad: a founder seeds a new town in one weekend with a borrowed room and the 101 kit, and before leaving, the room picks its own local host. Deep: a 201 build cohort opens only where repeat attendance and member pull prove the demand. No staff, no leases, no franchise.</p>
-    <div class="cards c3">
-      <div class="card a-teal">
-        <h3>Capital&#8209;light by design</h3>
-        <p>A new chapter costs travel, coffee, and a printed kit. The local host runs it from there, in a borrowed room, on their own name.</p>
-      </div>
-      <div class="card a-tangerine">
-        <h3>Institutions carry it</h3>
-        <p>Chapters live where their towns already gather: libraries, adult ed programs, coworking spaces. Rooms funders already trust, and several bring their own grant programs with them.</p>
-      </div>
-      <div class="card a-berry">
-        <h3>Depth only on demand</h3>
-        <p>A town gets its build cohort when the signal shows: repeat faces, and a member asking how to make an agent run every week. Growth never outruns trust.</p>
-      </div>
-    </div>
-    <p class="kicker">Broad where nobody else shows up, deep where the room asks. <span class="hl">It spreads at the speed of word of mouth, and word of mouth is free.</span></p>
-  </div>
-</section>
+    function loadHistory(chan, sinceLast){
+      var url = BASE + '/chat?secret=' + encodeURIComponent(A.secret) + '&channel=' + encodeURIComponent(chan);
+      if (sinceLast && latest[chan]){
+        /* thirty seconds of overlap; upsert dedupes by id */
+        url += '&since=' + encodeURIComponent(new Date(new Date(latest[chan]) - 30000).toISOString());
+      }
+      fetch(url)
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          if (!d || !d.messages) return;
+          channels = d.channels || channels;
+          (d.messages || []).forEach(upsertMsg);
+          (d.reactions || []).forEach(function(r){
+            var rs = reacts[r.message] || (reacts[r.message] = []);
+            if (!rs.some(function(x){ return x.name === r.name && x.emoji === r.emoji; })) rs.push({name: r.name, emoji: r.emoji});
+          });
+          Object.keys(d.latest || {}).forEach(function(k){
+            if (!latest[k] || d.latest[k] > latest[k]) latest[k] = d.latest[k];
+          });
+          loaded[chan] = true;
+          renderAll();
+        })
+        .catch(function(){ if (!polling) setLive('reconnecting'); });
+    }
+    function pollTick(){
+      if (document.visibilityState !== 'visible') return;
+      loadHistory(cur, loaded[cur]);
+    }
 
-<!-- 08 · WHAT WE MEASURE -->
-<section class="slide w-mint" id="s8" data-title="What we measure">
-  <div class="sheet">
-    <span class="chip"><span class="dot" style="background:var(--teal)"></span>What we measure</span>
-    <h2>Goodwill, counted.</h2>
-    <ul class="rules">
-      <li>Seats filled at 101 classes, and how many come back.</li>
-      <li>Tasks actually completed in the room, not just watched.</li>
-      <li>Members still using AI weekly, one month later.</li>
-      <li>Operators who climb a level: 101 to 201, 201 to 301.</li>
-      <li>Towns with a standing class and a local host.</li>
-      <li>Playbooks shipped, and businesses running on them.</li>
-    </ul>
-    <p class="kicker">Every metric is a trust metric. <span class="hl">Adoption follows trust, never the other way around.</span></p>
-  </div>
-</section>
+    /* ---------- channel switching ---------- */
+    function switchChannel(id){
+      if (cur === id) return;
+      cur = id;
+      openThread = null;
+      document.body.classList.remove('rail-open');
+      if (ws && ws.readyState === 1 && wsOk) ws.send(JSON.stringify({type: 'here', channel: id}));
+      if (!loaded[id]) loadHistory(id);
+      renderAll();
+      $('chatText').focus();
+    }
+    $('chanList').addEventListener('click', function(ev){
+      var b = ev.target.closest('[data-chan]');
+      if (b) switchChannel(b.getAttribute('data-chan'));
+    });
+    $('railTog').addEventListener('click', function(){ document.body.classList.toggle('rail-open'); });
 
-<!-- 09 · THE ASK -->
-<section class="slide" id="s9" data-title="The ask">
-  <div class="sheet">
-    <div class="cover">
-      <div>
-        <h2>Help us prove it in the hardest room.</h2>
-        <p class="motto" style="margin-top:14px">&ldquo;Give to help others.&rdquo;</p>
-        <p class="lede quiet" style="margin-top:10px">The specific ask lives here once the founders set it: capital, venues, first invitees, or all three.<br><a href="https://aihomebrewclub.com/">aihomebrewclub.com</a></p>
-      </div>
-      <div class="fig">
-        <span class="logo" data-size="150"></span>
-      </div>
-    </div>
-  </div>
-</section>
+    /* ---------- sending ---------- */
+    function newId(){ return 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+    function sendMessage(ta, parent){
+      var text = ta.value.trim();
+      if (!text) return;
+      var m = {
+        id: newId(), channel: cur, parent: parent || '', name: A.viewer().name,
+        body: text, ts: new Date().toISOString(), pending: true
+      };
+      upsertMsg(m);
+      renderMsgs(); renderThread();
+      ta.value = ''; ta.style.height = 'auto';
+      $('mentionPick').hidden = true;
+      sendFrame({type: 'msg', id: m.id, channel: m.channel, parent: m.parent, body: m.body});
+    }
+    function wireComposer(taId, btnId, getParent){
+      var ta = $(taId);
+      ta.addEventListener('keydown', function(ev){
+        if (ev.key === 'Enter' && !ev.shiftKey && $('mentionPick').hidden){
+          ev.preventDefault();
+          sendMessage(ta, getParent());
+        }
+      });
+      ta.addEventListener('input', function(){
+        ta.style.height = 'auto';
+        ta.style.height = Math.min(140, ta.scrollHeight) + 'px';
+      });
+      $(btnId).addEventListener('click', function(){ sendMessage(ta, getParent()); });
+    }
+    wireComposer('chatText', 'chatSend', function(){ return ''; });
+    wireComposer('threadText', 'threadSend', function(){ return openThread || ''; });
+
+    /* ---------- @mention picker (main composer) ---------- */
+    var mentionSel = 0;
+    function mentionQuery(ta){
+      var upto = ta.value.slice(0, ta.selectionStart);
+      var m = upto.match(/(?:^|\s)@([A-Za-z][\w .'-]{0,30})?$/);
+      return m ? (m[1] || '') : null;
+    }
+    function mentionMatches(q){
+      var me = A.viewer().name;
+      return Object.keys(knownNames)
+        .filter(function(n){ return n !== me && n.toLowerCase().indexOf(q.toLowerCase()) === 0; })
+        .sort().slice(0, 6);
+    }
+    function renderMentionPick(){
+      var ta = $('chatText'), box = $('mentionPick');
+      var q = mentionQuery(ta);
+      var names = q === null ? [] : mentionMatches(q);
+      if (!names.length){ box.hidden = true; return; }
+      mentionSel = Math.min(mentionSel, names.length - 1);
+      box.hidden = false;
+      box.innerHTML = names.map(function(n, i){
+        return '<button type="button" class="' + (i === mentionSel ? 'sel' : '') + '" data-name="' + esc(n) + '">' +
+          '<span class="avatar ' + avClass(n) + '">' + avGlyph(n) + '</span>' + esc(n) + '</button>';
+      }).join('');
+    }
+    function insertMention(name){
+      var ta = $('chatText');
+      var upto = ta.value.slice(0, ta.selectionStart);
+      var rest = ta.value.slice(ta.selectionStart);
+      var replaced = upto.replace(/@([A-Za-z][\w .'-]{0,30})?$/, '@' + name + ' ');
+      ta.value = replaced + rest;
+      ta.selectionStart = ta.selectionEnd = replaced.length;
+      $('mentionPick').hidden = true;
+      ta.focus();
+    }
+    $('chatText').addEventListener('input', function(){ mentionSel = 0; renderMentionPick(); });
+    $('chatText').addEventListener('keydown', function(ev){
+      var box = $('mentionPick');
+      if (box.hidden) return;
+      var opts = box.querySelectorAll('button');
+      if (ev.key === 'ArrowDown'){ ev.preventDefault(); mentionSel = (mentionSel + 1) % opts.length; renderMentionPick(); }
+      else if (ev.key === 'ArrowUp'){ ev.preventDefault(); mentionSel = (mentionSel - 1 + opts.length) % opts.length; renderMentionPick(); }
+      else if (ev.key === 'Enter' || ev.key === 'Tab'){ ev.preventDefault(); insertMention(opts[mentionSel].getAttribute('data-name')); }
+      else if (ev.key === 'Escape'){ box.hidden = true; }
+    });
+    $('mentionPick').addEventListener('mousedown', function(ev){
+      var b = ev.target.closest('[data-name]');
+      if (b){ ev.preventDefault(); insertMention(b.getAttribute('data-name')); }
+    });
+    document.addEventListener('click', function(ev){
+      if (!ev.target.closest('#mentionPick, #chatText')) $('mentionPick').hidden = true;
+    });
+
+    /* ---------- message actions: react, reply, delete ---------- */
+    var picker = null;
+    function closePicker(){ if (picker){ picker.remove(); picker = null; } }
+    function openPicker(msgId, x, y){
+      closePicker();
+      picker = document.createElement('div');
+      picker.className = 'emojipick';
+      picker.innerHTML = EMOJI.map(function(e){
+        return '<button type="button" data-e="' + e + '">' + e + '</button>';
+      }).join('');
+      document.body.appendChild(picker);
+      var w = picker.offsetWidth || 260;
+      picker.style.left = Math.min(Math.max(8, x - w / 2), window.innerWidth - w - 8) + 'px';
+      picker.style.top = Math.max(8, y - 54) + 'px';
+      picker.addEventListener('click', function(ev){
+        var b = ev.target.closest('[data-e]');
+        if (!b) return;
+        sendFrame({type: 'react', message: msgId, channel: cur, emoji: b.getAttribute('data-e')});
+        closePicker();
+      });
+    }
+    document.addEventListener('click', function(ev){
+      if (picker && !ev.target.closest('.emojipick')) closePicker();
+    });
+    function wireStream(boxId){
+      $(boxId).addEventListener('click', function(ev){
+        var row = ev.target.closest('.mrow');
+        if (!row) return;
+        var id = row.getAttribute('data-id');
+        var act = ev.target.closest('[data-act]');
+        if (act){
+          var a = act.getAttribute('data-act');
+          if (a === 'react'){ var r = act.getBoundingClientRect(); openPicker(id, r.left, r.top); }
+          if (a === 'reply'){ openThread = id; renderThread(); $('threadText').focus(); }
+          if (a === 'del'){
+            if (!window.confirm('Delete this message for everyone?')) return;
+            dropMsg(id, cur); renderMsgs(); renderThread();
+            sendFrame({type: 'del', id: id, channel: cur});
+          }
+          return;
+        }
+        var chip = ev.target.closest('[data-react]');
+        if (chip){ sendFrame({type: 'react', message: id, channel: cur, emoji: chip.getAttribute('data-react')}); return; }
+        var th = ev.target.closest('[data-thread]');
+        if (th){ openThread = th.getAttribute('data-thread'); renderThread(); $('threadText').focus(); }
+      });
+    }
+    wireStream('msgScroll');
+    wireStream('threadScroll');
+    $('threadClose').addEventListener('click', function(){ openThread = null; renderThread(); });
+
+    /* the shell pins a note wherever you click a slide; the chat surface is not for pinning */
+    $('chatApp').addEventListener('click', function(ev){ ev.stopPropagation(); });
+    $('threadPane').addEventListener('click', function(ev){ ev.stopPropagation(); });
+
+    document.addEventListener('visibilitychange', function(){
+      if (document.visibilityState === 'visible'){ markRead(); if (polling) pollTick(); }
+    });
+
+    /* ---------- boot ---------- */
+    loadHistory(cur);
+    connect();
+  }
+  boot();
+})();
+</script>
 
 </div><!-- /deck -->
 
@@ -802,7 +1290,7 @@
 <script>
 (function(){
   'use strict';
-  var DECK_ID = 'invest';
+  var DECK_ID = 'chat';
   var SYNC_URL = 'https://aihc-notes-690dcde965fd.herokuapp.com/notes';
   var LS_USER = 'aihc_viewer_v1';
   var LS_NOTES = 'aihc_notes_' + DECK_ID;

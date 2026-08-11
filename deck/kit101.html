@@ -1164,6 +1164,7 @@
   /* ---------- deck switcher ---------- */
   var DECKS = [
     {id: 'feed', title: 'The feed', desc: 'What happened, and who said yes.', group: 'The club'},
+    {id: 'chat', title: 'The clubhouse', desc: 'Members&rsquo; chat. Pull up a chair.', group: 'The club'},
     {id: 'waterville', title: 'Waterville', desc: 'Public meetup page: agendas, seats, QR.', group: 'The club'},
     {id: 'recipes', title: 'The recipe box', desc: 'Public prompt library, one steal at a time.', group: 'The club'},
     {id: 'home', title: 'The invite', desc: 'The public landing page.', group: 'The club'},
@@ -1179,8 +1180,9 @@
   var SITE_HOSTS = ['bb723.github.io', 'aibrownbag.com', 'www.aibrownbag.com'];
   function deckHref(id){
     var local = location.protocol === 'file:' || SITE_HOSTS.indexOf(location.hostname) !== -1;
-    var atRoot = DECK_ID === 'feed'; /* the feed lives at the site root, not /deck/ */
+    var atRoot = DECK_ID === 'feed' || DECK_ID === 'chat'; /* these live at the site root, not /deck/ */
     if (id === 'feed') return local ? (atRoot ? 'feed.html' : '../feed.html') : 'https://aihomebrewclub.com/feed.html';
+    if (id === 'chat') return local ? (atRoot ? 'chat.html' : '../chat.html') : 'https://aihomebrewclub.com/chat.html';
     if (id === 'home') return local ? (atRoot ? 'index.html' : '../index.html') : 'https://aihomebrewclub.com/';
     if (id === 'waterville') return local ? (atRoot ? 'waterville.html' : '../waterville.html') : 'https://aihomebrewclub.com/waterville.html';
     if (id === 'recipes') return local ? (atRoot ? 'recipes.html' : '../recipes.html') : 'https://aihomebrewclub.com/recipes.html';

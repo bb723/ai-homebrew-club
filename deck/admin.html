@@ -638,6 +638,32 @@
     </div>
 
     <div class="panel">
+      <h2>The clubhouse</h2>
+      <p class="quiet" style="font-size:.9rem">Chat rooms live at <a href="../chat.html">aihomebrewclub.com/chat.html</a>. Rooms with history are archived instead of deleted, so nothing said is lost.</p>
+      <div id="chList" style="margin-top:8px"><span class="quiet">Loading&hellip;</span></div>
+      <form class="grid" id="chForm" style="margin-top:12px">
+        <label>Room name
+          <input type="text" id="cName" maxlength="60" placeholder="gear">
+        </label>
+        <label>Order <span class="hint">low numbers sit higher</span>
+          <input type="number" id="cPos" value="0" min="0" max="99">
+        </label>
+        <label class="full">Topic <span class="hint">one line under the room name</span>
+          <input type="text" id="cTopic" maxlength="200" placeholder="Hardware, laptops, and what to run it all on.">
+        </label>
+        <label class="chk full"><input type="checkbox" id="cAnnounce" checked> Announce the new room on the club feed</label>
+        <div class="rowbtns full">
+          <button class="gobtn" id="cSave" type="submit">Add room</button>
+          <button class="quietbtn" id="cCancel" type="button" hidden>Cancel edit</button>
+        </div>
+      </form>
+      <div id="modBox" hidden style="margin-top:12px">
+        <p class="quiet" style="font-weight:800; font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; margin:0 0 2px" id="modTitle">Recent messages</p>
+        <div id="modList"></div>
+      </div>
+    </div>
+
+    <div class="panel">
       <h2>The recipe box</h2>
       <p class="quiet" style="font-size:.9rem">Recipes are public at <a href="../recipes.html">aihomebrewclub.com/recipes.html</a>. Add the good ones from every meetup.</p>
       <div id="rcList" style="margin-top:8px"><span class="quiet">Loading&hellip;</span></div>
@@ -1045,9 +1071,114 @@
       }
     });
 
+    /* the clubhouse: rooms and light moderation */
+    var chans = [];
+    var editingChan = null;
+    var modChan = null;
+    function loadChannels(){
+      fetch(BASE + '/channels?secret=' + encodeURIComponent(A.secret))
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          chans = (d && d.channels) || [];
+          $('chList').innerHTML = chans.length ? chans.map(function(c){
+            return '<div class="evrow">' +
+              '<b>#' + esc(c.name) + '</b>' +
+              (c.status === 'archived' ? '<span class="stag past">archived</span>' : '') +
+              '<span class="meta">' + esc(c.topic || '') + '</span>' +
+              '<span class="spacer"></span>' +
+              '<button class="abtn" data-ch="edit" data-id="' + esc(c.id) + '" type="button">Edit</button>' +
+              '<button class="abtn" data-ch="mod" data-id="' + esc(c.id) + '" type="button">Messages</button>' +
+              (c.status === 'archived'
+                ? '<button class="abtn" data-ch="open" data-id="' + esc(c.id) + '" type="button">Reopen</button>'
+                : '<button class="abtn warn" data-ch="del" data-id="' + esc(c.id) + '" type="button">Close</button>') +
+            '</div>';
+          }).join('') : '<span class="quiet">No rooms yet.</span>';
+        });
+    }
+    $('chList').addEventListener('click', function(ev){
+      var b = ev.target.closest('button[data-ch]');
+      if (!b) return;
+      var c = chans.find(function(x){ return x.id === b.getAttribute('data-id'); });
+      if (!c) return;
+      var act = b.getAttribute('data-ch');
+      if (act === 'edit'){
+        editingChan = c.id;
+        $('cName').value = c.name; $('cTopic').value = c.topic; $('cPos').value = c.pos;
+        $('cAnnounce').checked = false;
+        $('cSave').textContent = 'Save room'; $('cCancel').hidden = false;
+      }
+      if (act === 'mod'){ modChan = c.id; loadModeration(); }
+      if (act === 'open'){
+        post('/channels', {action: 'update', channel: {id: c.id, name: c.name, topic: c.topic, pos: c.pos, status: 'open'}})
+          .then(function(){ A.toast('#' + c.name + ' reopened.'); loadChannels(); });
+      }
+      if (act === 'del'){
+        if (!window.confirm('Close #' + c.name + '? Rooms with history are archived, empty ones are deleted.')) return;
+        post('/channels', {action: 'delete', id: c.id}).then(function(d){
+          A.toast(d.archived ? '#' + c.name + ' archived.' : '#' + c.name + ' deleted.');
+          if (modChan === c.id){ modChan = null; $('modBox').hidden = true; }
+          loadChannels();
+        });
+      }
+    });
+    $('chForm').addEventListener('submit', function(ev){
+      ev.preventDefault();
+      var name = $('cName').value.trim();
+      if (!name){ A.toast('A room needs a name.'); return; }
+      post('/channels', {
+        action: editingChan ? 'update' : 'add',
+        announce: !editingChan && $('cAnnounce').checked,
+        channel: {id: editingChan || undefined, name: name, topic: $('cTopic').value.trim(), pos: $('cPos').value}
+      }).then(function(d){
+        if (!d.ok){ A.toast('Save failed.'); return; }
+        A.toast(editingChan ? 'Room saved.' : '#' + name + ' is open.');
+        cancelChan();
+        loadChannels();
+      });
+    });
+    function cancelChan(){
+      editingChan = null;
+      $('chForm').reset();
+      $('cPos').value = 0;
+      $('cSave').textContent = 'Add room';
+      $('cCancel').hidden = true;
+    }
+    $('cCancel').addEventListener('click', cancelChan);
+    function loadModeration(){
+      var c = chans.find(function(x){ return x.id === modChan; });
+      if (!c) return;
+      $('modBox').hidden = false;
+      $('modTitle').textContent = 'Recent messages · #' + c.name;
+      $('modList').innerHTML = '<span class="quiet">Loading&hellip;</span>';
+      fetch(BASE + '/chat?secret=' + encodeURIComponent(A.secret) + '&channel=' + encodeURIComponent(modChan))
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          var rows = ((d && d.messages) || []).slice(-60).reverse();
+          $('modList').innerHTML = rows.length ? rows.map(function(m){
+            return '<div class="evrow">' +
+              '<b>' + esc(m.name) + '</b>' +
+              '<span class="meta">' + esc(String(m.ts).replace('T', ' ').slice(0, 16)) +
+                (m.parent ? ' · in a thread' : '') + '</span>' +
+              '<span class="meta" style="flex-basis:100%">' + esc(m.body) + '</span>' +
+              '<span class="spacer"></span>' +
+              '<button class="abtn warn" data-mod="del" data-id="' + esc(m.id) + '" type="button">Delete</button>' +
+            '</div>';
+          }).join('') : '<span class="quiet">Nothing said in here yet.</span>';
+        });
+      window.scrollTo({top: $('modBox').offsetTop - 90, behavior: 'smooth'});
+    }
+    $('modList').addEventListener('click', function(ev){
+      var b = ev.target.closest('button[data-mod]');
+      if (!b) return;
+      if (!window.confirm('Delete this message (and its thread replies) for everyone?')) return;
+      post('/chat', {action: 'delete', id: b.getAttribute('data-id'), channel: modChan})
+        .then(function(){ A.toast('Message deleted.'); loadModeration(); });
+    });
+
     load();
     loadRecipes();
     loadVenues();
+    loadChannels();
   }
   boot();
 })();
@@ -1545,6 +1676,7 @@
   /* ---------- deck switcher ---------- */
   var DECKS = [
     {id: 'feed', title: 'The feed', desc: 'What happened, and who said yes.', group: 'The club'},
+    {id: 'chat', title: 'The clubhouse', desc: 'Members&rsquo; chat. Pull up a chair.', group: 'The club'},
     {id: 'waterville', title: 'Waterville', desc: 'Public meetup page: agendas, seats, QR.', group: 'The club'},
     {id: 'recipes', title: 'The recipe box', desc: 'Public prompt library, one steal at a time.', group: 'The club'},
     {id: 'home', title: 'The invite', desc: 'The public landing page.', group: 'The club'},
@@ -1560,8 +1692,9 @@
   var SITE_HOSTS = ['bb723.github.io', 'aibrownbag.com', 'www.aibrownbag.com'];
   function deckHref(id){
     var local = location.protocol === 'file:' || SITE_HOSTS.indexOf(location.hostname) !== -1;
-    var atRoot = DECK_ID === 'feed'; /* the feed lives at the site root, not /deck/ */
+    var atRoot = DECK_ID === 'feed' || DECK_ID === 'chat'; /* these live at the site root, not /deck/ */
     if (id === 'feed') return local ? (atRoot ? 'feed.html' : '../feed.html') : 'https://aihomebrewclub.com/feed.html';
+    if (id === 'chat') return local ? (atRoot ? 'chat.html' : '../chat.html') : 'https://aihomebrewclub.com/chat.html';
     if (id === 'home') return local ? (atRoot ? 'index.html' : '../index.html') : 'https://aihomebrewclub.com/';
     if (id === 'waterville') return local ? (atRoot ? 'waterville.html' : '../waterville.html') : 'https://aihomebrewclub.com/waterville.html';
     if (id === 'recipes') return local ? (atRoot ? 'recipes.html' : '../recipes.html') : 'https://aihomebrewclub.com/recipes.html';
