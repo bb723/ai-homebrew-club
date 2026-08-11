@@ -501,7 +501,7 @@
   /* clubhouse-only styles: this block ships only with chat.html, so bare overrides are safe */
   html{scroll-snap-type:none}
   .slide{min-height:100svh; display:block; padding:0; background:var(--w-cream)}
-  #s1::after{display:none} /* the gingham strip would sit under the composer */
+  #s1::after{display:none} /* the tablecloth moved: it lives above the composer now */
   .rail,.hint,.notesbtn,.clickhint{display:none} /* one screen, no slides to pin notes on */
   .sidepane{display:none!important} /* the notes pane has no business in the clubhouse */
   body.pane-open .deck{margin-right:0}
@@ -510,109 +510,136 @@
     border-radius:50%; flex:none; display:grid; place-items:center;
     font-weight:800; font-family:var(--font-body); color:var(--paper);
   }
+  .c0{background:var(--teal)} .c1{background:var(--sky)} .c2c{background:var(--berry)}
+  .c3{background:var(--lemon); color:#3B3227} .c4{background:var(--tangerine)}
 
   .chatapp{
+    width:100%; /* quirks mode shrink-wraps block grids; be explicit */
     height:100svh; height:100dvh;
-    display:grid; grid-template-columns:250px 1fr;
+    display:grid; grid-template-columns:290px 1fr;
   }
 
-  /* ---- channel rail ---- */
+  /* ---- the rail: rooms, the board, who's around ---- */
   .chanrail{
     background:var(--card); border-right:1px solid var(--edge);
-    display:flex; flex-direction:column; overflow-y:auto; padding:14px 10px 12px;
+    display:flex; flex-direction:column; overflow-y:auto; overflow-x:hidden;
+    padding:18px 14px 14px;
   }
-  .railhead{display:flex; align-items:center; gap:8px; padding:2px 8px 10px 54px; border-bottom:2px dashed var(--edge)}
-  .railhead b{font-family:var(--font-display); font-size:1.15rem}
+  .railhead{padding:0 10px 12px 56px; border-bottom:2px dashed var(--edge)}
+  .railhead .rh{display:flex; align-items:center; gap:10px}
+  .railhead b{font-family:var(--font-display); font-size:1.4rem; line-height:1.1}
+  .railhead .rh::after{content:none}
+  .railsquig{display:block; width:96px; height:12px; margin-top:8px; background:var(--squig) no-repeat left center; background-size:126px 12px}
   .livedot{
-    margin-left:auto; font-size:.66rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase;
-    padding:3px 9px; border-radius:999px; background:var(--paper); color:var(--ink-soft);
+    margin-left:auto; font-size:.64rem; font-weight:800; letter-spacing:.07em; text-transform:uppercase;
+    padding:3px 10px; border-radius:999px; background:var(--paper); color:var(--ink-soft); flex:none;
   }
   .livedot.on{background:var(--teal); color:#fff}
   .railgroup{
-    font-family:var(--font-display); font-weight:800; font-size:.8rem; letter-spacing:.06em;
-    text-transform:uppercase; color:var(--ink-soft); padding:14px 8px 6px;
+    font-family:var(--font-display); font-weight:800; font-size:.78rem; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--ink-soft); padding:16px 10px 7px;
   }
   .chan{
-    display:flex; align-items:center; gap:7px; width:100%; text-align:left;
-    background:none; border:none; border-radius:12px; padding:9px 10px; cursor:pointer;
-    font-family:var(--font-body); font-weight:700; font-size:.95rem; color:var(--ink);
+    display:flex; align-items:center; gap:9px; width:100%; text-align:left;
+    background:none; border:none; border-radius:14px; padding:10px 12px; cursor:pointer;
+    font-family:var(--font-body); font-weight:700; font-size:.98rem; color:var(--ink);
   }
   .chan:hover{background:var(--paper)}
-  .chan.here{background:var(--w-mint); font-weight:800}
-  .chan .hash{color:var(--ink-soft); font-weight:800}
+  .chan.here{background:var(--w-mint); font-weight:800; box-shadow:inset 3px 0 0 var(--teal)}
+  .chan .rdot{width:10px; height:10px; border-radius:50%; flex:none}
   .chan .nm{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-  .chan .dot{
-    margin-left:auto; flex:none; min-width:10px; height:10px; border-radius:999px;
-    background:var(--tangerine);
+  .chan .boardico{
+    width:24px; height:24px; border-radius:50%; flex:none; background:var(--tangerine);
+    display:grid; place-items:center; font-size:.8rem;
   }
-  .who{display:flex; align-items:center; gap:9px; padding:6px 10px; font-size:.88rem; font-weight:700}
-  .who .avatar{width:26px; height:26px; font-size:.72rem}
-  .who .wch{margin-left:auto; color:var(--ink-soft); font-size:.74rem; font-style:italic}
+  .chan .dot{
+    margin-left:auto; flex:none; width:10px; height:10px; border-radius:999px;
+    background:var(--lemon); border:2px solid var(--lemon-deep);
+  }
+  .who{display:flex; align-items:center; gap:9px; padding:7px 12px; font-size:.9rem; font-weight:700}
+  .who .avatar{width:28px; height:28px; font-size:.74rem}
+  .who .wch{margin-left:auto; color:var(--ink-soft); font-size:.74rem; font-style:italic; font-family:var(--font-display)}
   .who .on{width:8px; height:8px; border-radius:50%; background:var(--teal); flex:none}
-  .railempty{color:var(--ink-soft); font-size:.82rem; font-weight:700; padding:4px 10px}
+  .railempty{color:var(--ink-soft); font-size:.84rem; font-weight:700; padding:4px 12px}
 
   /* ---- main column ---- */
   .chatmain{display:flex; flex-direction:column; min-width:0; min-height:0}
   .chanhead{
-    display:flex; align-items:baseline; gap:10px; padding:14px 18px 10px 66px;
+    display:flex; align-items:baseline; gap:12px; padding:16px 24px 12px 24px;
     background:var(--card); border-bottom:1px solid var(--edge); box-shadow:var(--shadow);
     position:relative; z-index:2;
   }
-  .chanhead b{font-family:var(--font-display); font-size:1.25rem}
-  .chanhead .topic{color:var(--ink-soft); font-size:.86rem; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-  .chanhead .onl{margin-left:auto; flex:none; color:var(--teal-deep); font-size:.8rem; font-weight:800}
+  .chanhead b{font-family:var(--font-display); font-size:1.45rem; letter-spacing:-.01em}
+  .chanhead .topic{
+    font-family:'Caveat',cursive; font-weight:600; font-size:1.25rem; color:var(--ink-soft);
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; transform:rotate(-.5deg);
+  }
+  .chanhead .onl{
+    margin-left:auto; flex:none; font-size:.74rem; font-weight:800; letter-spacing:.05em;
+    text-transform:uppercase; color:var(--teal-deep); background:var(--w-mint);
+    border-radius:999px; padding:4px 12px;
+  }
   .railtog{
     display:none; border:none; background:var(--paper); border-radius:10px; padding:6px 12px;
     font-family:var(--font-body); font-weight:800; cursor:pointer; color:var(--ink); font-size:1rem; flex:none;
+    align-self:center;
   }
 
-  .msgscroll{flex:1; overflow-y:auto; overscroll-behavior:contain; padding:14px 18px 8px}
-  .chatstate{text-align:center; color:var(--ink-soft); font-weight:700; font-size:.88rem; padding:26px 0}
+  .msgscroll{flex:1; overflow-y:auto; overscroll-behavior:contain; padding:18px 24px 30px}
+  /* wide room, readable measure: everything in the stream sits in a centered column */
+  .msgscroll > *{max-width:880px; margin-left:auto; margin-right:auto}
+  .chatstate{text-align:center; color:var(--ink-soft); font-weight:700; font-size:.9rem; padding:30px 0}
   .daymark{
-    text-align:center; font-size:.72rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase;
-    color:var(--ink-soft); margin:16px 0 6px;
+    text-align:center; font-family:var(--font-display); font-style:italic; font-weight:600;
+    font-size:.85rem; color:var(--ink-soft); margin:20px auto 8px;
+  }
+  .daymark::after{
+    content:""; display:block; width:126px; height:12px; margin:4px auto 0;
+    background:var(--squig) no-repeat center; opacity:.55;
   }
 
-  .mrow{display:flex; gap:10px; padding:3px 6px; border-radius:12px; position:relative}
-  .mrow:hover{background:color-mix(in srgb, var(--card) 60%, transparent)}
+  .mrow{display:flex; gap:12px; padding:4px 10px; border-radius:14px; position:relative}
+  .mrow:hover{background:color-mix(in srgb, var(--card) 70%, transparent)}
   .mrow.mention-me{background:var(--w-lemon)}
-  .mrow .avatar{width:36px; height:36px; margin-top:3px; font-size:.9rem}
-  .c0{background:var(--teal)} .c1{background:var(--sky)} .c2c{background:var(--berry)}
-  .c3{background:var(--lemon); color:#3B3227} .c4{background:var(--tangerine)}
-  .mrow .spacer{width:36px; flex:none}
+  .mrow .avatar{width:38px; height:38px; margin-top:3px; font-size:.92rem}
+  .mrow .spacer{width:38px; flex:none}
   .mrow.grouped{padding-top:0}
+  @media (prefers-reduced-motion: no-preference){
+    .mrow.new{animation:arrive .28s ease}
+    @keyframes arrive{from{opacity:0; transform:translateY(7px)} to{opacity:1; transform:none}}
+  }
   .mcol{min-width:0; flex:1}
-  .mhead{display:flex; align-items:baseline; gap:8px}
-  .mhead b{font-size:.94rem}
+  .mhead{display:flex; align-items:baseline; gap:9px}
+  .mhead b{font-size:.97rem}
   .mtime{font-size:.72rem; color:var(--ink-soft); font-weight:700}
-  .mbody{font-size:.95rem; overflow-wrap:break-word}
+  .mbody{font-size:.97rem; overflow-wrap:break-word}
   .mbody p{margin:0 0 4px} .mbody p:last-child{margin-bottom:0}
   .mbody ul{margin:2px 0 6px; padding-left:20px}
   .mention{background:var(--w-lemon); border-radius:6px; padding:0 4px; font-weight:800; color:var(--tangerine-deep)}
   .pending{opacity:.55}
 
-  .mchips{display:flex; gap:6px; flex-wrap:wrap; margin-top:4px}
+  .mchips{display:flex; gap:6px; flex-wrap:wrap; margin-top:5px}
   .rchip{
     border:1px solid var(--edge); background:var(--paper); border-radius:999px;
-    padding:2px 10px; font-family:var(--font-body); font-weight:800; font-size:.8rem;
+    padding:2px 11px; font-family:var(--font-body); font-weight:800; font-size:.82rem;
     cursor:pointer; color:var(--ink);
   }
-  .rchip.on{border-color:var(--teal); background:var(--w-mint)}
+  .rchip.on{border-color:var(--lemon-deep); background:var(--w-lemon)}
   .tchip{
     border:none; background:none; padding:2px 4px; cursor:pointer;
-    font-family:var(--font-body); font-weight:800; font-size:.8rem; color:var(--teal-deep);
+    font-family:var(--font-body); font-weight:800; font-size:.82rem; color:var(--teal-deep);
   }
   .tchip:hover{text-decoration:underline}
 
   .mact{
-    position:absolute; right:8px; top:-12px; display:none; gap:2px;
-    background:var(--card); border:1px solid var(--edge); border-radius:999px; padding:2px 6px;
+    position:absolute; right:10px; top:-14px; display:none; gap:2px;
+    background:var(--card); border:1px solid var(--edge); border-radius:999px; padding:2px 7px;
     box-shadow:var(--shadow); z-index:3;
   }
   .mrow:hover .mact{display:flex}
   @media (hover:none){ .mact{display:flex; opacity:.85} }
   .mact button{
-    border:none; background:none; cursor:pointer; font-size:.92rem; padding:3px 5px;
+    border:none; background:none; cursor:pointer; font-size:.95rem; padding:3px 6px;
     color:var(--ink-soft); font-family:var(--font-body); font-weight:800;
   }
   .mact button:hover{color:var(--ink)}
@@ -621,87 +648,153 @@
     position:fixed; z-index:120; background:var(--card); border:1px solid var(--edge);
     border-radius:999px; padding:6px 10px; box-shadow:0 16px 40px rgba(0,0,0,.25); display:flex; gap:2px;
   }
-  .emojipick button{border:none; background:none; font-size:1.25rem; cursor:pointer; padding:3px 6px; border-radius:8px}
+  .emojipick button{border:none; background:none; font-size:1.3rem; cursor:pointer; padding:3px 7px; border-radius:8px}
   .emojipick button:hover{background:var(--paper)}
 
-  /* ---- composer ---- */
-  .composerbar{
-    padding:10px 18px calc(14px + env(safe-area-inset-bottom)); background:var(--card);
-    border-top:1px solid var(--edge); position:relative;
+  /* ---- the bulletin board: club feed cards inside the clubhouse ---- */
+  .post{
+    background:var(--card); border:1px solid var(--edge); border-radius:18px;
+    box-shadow:var(--shadow); padding:16px 18px 10px; margin:14px auto;
+    max-width:720px!important;
   }
-  .composerbar .row{display:flex; gap:10px; align-items:flex-end}
+  .phead{display:flex; align-items:center; gap:11px; margin-bottom:8px}
+  .phead .avatar{width:44px; height:44px; font-size:1.02rem}
+  .pwho{min-width:0}
+  .pwho b{display:block; font-size:.98rem; line-height:1.25}
+  .pmeta{font-size:.8rem; color:var(--ink-soft); font-weight:700}
+  .pill{
+    margin-left:auto; flex:none; background:var(--lemon); color:#3B3227;
+    border-radius:999px; padding:3px 11px; font-size:.68rem; font-weight:800;
+    letter-spacing:.08em; text-transform:uppercase;
+  }
+  .ptitle{font-family:var(--font-display); font-weight:800; font-size:1.22rem; line-height:1.2; margin:0 0 6px}
+  .pbody{font-size:.96rem}
+  .pbody p{margin:0 0 9px}
+  .pbody ul{margin:0 0 9px; padding-left:20px}
+  .pmore{display:none; border-left:3px solid var(--edge); padding-left:14px; margin:4px 0 8px}
+  .post.open .pmore{display:block}
+  .morebtn{
+    background:none; border:none; padding:0 0 8px; cursor:pointer;
+    font-family:var(--font-body); font-weight:800; font-size:.85rem; color:var(--teal-deep);
+  }
+  .morebtn::before{content:"\25B8  "; font-size:.75rem}
+  .post.open .morebtn::before{content:"\25BE  "}
+  .pfoot{
+    border-top:2px dashed var(--edge); padding-top:7px; margin-top:2px;
+    display:flex; gap:12px; flex-wrap:wrap; align-items:baseline;
+    font-size:.78rem; color:var(--ink-soft); font-weight:700;
+  }
+  .tag{color:var(--teal-deep); font-weight:800}
+  .delbtn{
+    margin-left:auto; background:none; border:none; padding:0; cursor:pointer;
+    font-family:var(--font-body); font-weight:700; font-size:.76rem; color:var(--ink-soft);
+  }
+  .delbtn:hover{color:var(--tangerine)}
+  .fmsg{
+    max-width:88%; padding:10px 13px; border-radius:15px; margin:9px 0;
+    border:1px solid var(--edge); font-size:.92rem;
+  }
+  .fmsg .m{font-size:.7rem; color:var(--ink-soft); margin-bottom:4px; font-weight:800; letter-spacing:.04em; text-transform:uppercase}
+  .fmsg p{margin:0 0 8px}
+  .fmsg p:last-child{margin-bottom:0}
+  .fmsg.them{background:var(--w-sky); border-bottom-left-radius:5px}
+  .fmsg.me{background:var(--w-mint); margin-left:auto; border-bottom-right-radius:5px}
+
+  /* ---- the composer sits at the gingham table edge ---- */
+  .composerbar{
+    padding:14px 24px calc(16px + env(safe-area-inset-bottom)); background:var(--card);
+    position:relative;
+  }
+  .composerbar::before{
+    content:""; position:absolute; left:0; right:0; top:-20px; height:20px;
+    border-top:2px solid var(--edge); pointer-events:none;
+    background-color:var(--card);
+    background-image:
+      repeating-linear-gradient(0deg, color-mix(in srgb, var(--tangerine) 22%, transparent) 0 8px, transparent 8px 16px),
+      repeating-linear-gradient(90deg, color-mix(in srgb, var(--tangerine) 22%, transparent) 0 8px, transparent 8px 16px);
+  }
+  .composerbar .row{display:flex; gap:10px; align-items:flex-end; max-width:880px; margin:0 auto}
   .composerbar textarea{
-    flex:1; min-height:44px; max-height:140px; resize:none; border:1px solid var(--edge);
-    border-radius:14px; background:var(--paper); color:var(--ink);
-    font-family:var(--font-body); font-size:.95rem; line-height:1.45; padding:11px 13px;
+    flex:1; min-height:46px; max-height:150px; resize:none; border:1px solid var(--edge);
+    border-radius:16px; background:var(--paper); color:var(--ink);
+    font-family:var(--font-body); font-size:.97rem; line-height:1.45; padding:12px 15px;
   }
   .composerbar textarea:focus{outline:2px solid var(--teal)}
   .sendbtn{
-    background:var(--teal); color:#fff; border:none; border-radius:999px; flex:none;
-    padding:11px 22px; font-family:var(--font-body); font-weight:800; font-size:.88rem;
-    letter-spacing:.05em; text-transform:uppercase; cursor:pointer;
+    background:var(--tangerine); color:#fff; border:none; border-radius:999px; flex:none;
+    padding:12px 24px; font-family:var(--font-display); font-weight:800; font-size:.95rem;
+    cursor:pointer;
   }
+  .sendbtn:hover{filter:brightness(1.06)}
   .sendbtn:disabled{opacity:.45; cursor:default}
   .mentionpick{
-    position:absolute; bottom:100%; left:18px; margin-bottom:6px; z-index:110;
+    position:absolute; bottom:100%; left:24px; margin-bottom:24px; z-index:110;
     background:var(--card); border:1px solid var(--edge); border-radius:14px;
-    box-shadow:0 16px 40px rgba(0,0,0,.25); overflow:hidden; min-width:200px;
+    box-shadow:0 16px 40px rgba(0,0,0,.25); overflow:hidden; min-width:210px;
   }
   .mentionpick button{
-    display:flex; align-items:center; gap:8px; width:100%; text-align:left; border:none;
-    background:none; padding:8px 12px; cursor:pointer; font-family:var(--font-body);
-    font-weight:700; font-size:.9rem; color:var(--ink);
+    display:flex; align-items:center; gap:9px; width:100%; text-align:left; border:none;
+    background:none; padding:9px 13px; cursor:pointer; font-family:var(--font-body);
+    font-weight:700; font-size:.92rem; color:var(--ink);
   }
   .mentionpick button.sel, .mentionpick button:hover{background:var(--w-mint)}
-  .mentionpick .avatar{width:24px; height:24px; font-size:.68rem}
+  .mentionpick .avatar{width:26px; height:26px; font-size:.7rem}
 
   /* ---- thread pane ---- */
   .threadpane{
-    position:fixed; top:0; right:0; bottom:0; width:min(400px,100vw); z-index:60;
+    position:fixed; top:0; right:0; bottom:0; width:min(420px,100vw); z-index:60;
     background:var(--card); box-shadow:-8px 0 30px rgba(0,0,0,.18);
     display:flex; flex-direction:column;
   }
   .threadpane[hidden]{display:none}
   .threadpane > header{
-    padding:14px 16px 10px; display:flex; align-items:baseline; gap:10px;
+    padding:16px 18px 10px; display:flex; align-items:baseline; gap:10px;
     border-bottom:2px dashed var(--edge);
   }
-  .threadpane > header h3{font-size:1.15rem}
-  .threadpane > header .quiet{font-size:.8rem; font-weight:700}
+  .threadpane > header h3{font-size:1.25rem}
+  .threadpane > header .quiet{font-size:.82rem; font-weight:700}
   .threadpane .close{
     margin-left:auto; border:none; background:none; color:var(--ink-soft);
     font-weight:800; cursor:pointer; font-size:1.05rem; padding:2px 6px;
   }
   .threadpane .close:hover{color:var(--ink)}
-  .tscroll{flex:1; overflow-y:auto; overscroll-behavior:contain; padding:12px 14px}
+  .tscroll{flex:1; overflow-y:auto; overscroll-behavior:contain; padding:12px 16px}
   .troot{border-bottom:2px dashed var(--edge); padding-bottom:10px; margin-bottom:10px}
-  .threadpane .composerbar{padding:10px 14px calc(12px + env(safe-area-inset-bottom))}
+  .threadpane .composerbar{padding:12px 16px calc(12px + env(safe-area-inset-bottom))}
+  .threadpane .composerbar .row{max-width:none}
 
   /* ---- phones: rail becomes a drawer, thread goes full screen ---- */
   @media (max-width:860px){
     .chatapp{grid-template-columns:1fr}
     .chanrail{
-      position:fixed; left:0; top:0; bottom:0; z-index:65; width:min(300px,86vw);
+      position:fixed; left:0; top:0; bottom:0; z-index:65; width:min(310px,86vw);
       box-shadow:8px 0 30px rgba(0,0,0,.18); transform:translateX(-105%);
     }
     body.rail-open .chanrail{transform:none}
     @media (prefers-reduced-motion: no-preference){ .chanrail{transition:transform .22s} }
     .railtog{display:inline-block}
-    .chanhead{padding-left:66px}
+    .chanhead{padding:14px 14px 10px 72px}
+    .chanhead b{font-size:1.2rem}
+    .chanhead .topic{display:none}
     .threadpane{width:100vw}
-    .msgscroll{padding:12px 12px 6px}
+    .msgscroll{padding:14px 12px 26px}
     .composerbar{padding-left:12px; padding-right:12px}
   }
   @media (min-width:861px){
-    .chanhead{padding-left:66px}
+    .chanhead{padding-left:24px}
   }
 </style>
 
-<!-- the whole clubhouse is one slide: channel rail, the stream, and a thread drawer -->
+<!-- the whole clubhouse is one slide: rail, the stream, and a thread drawer -->
 <section class="slide" id="s1" data-title="The clubhouse">
   <div class="chatapp" id="chatApp">
     <aside class="chanrail" id="chanRail">
-      <div class="railhead"><b>The clubhouse</b><span class="livedot" id="liveDot">connecting</span></div>
+      <div class="railhead">
+        <span class="rh"><b>The clubhouse</b><span class="livedot" id="liveDot">connecting</span></span>
+        <span class="railsquig"></span>
+      </div>
+      <div class="railgroup">The bulletin board</div>
+      <div id="boardEntry"></div>
       <div class="railgroup">Rooms</div>
       <div id="chanList"><div class="railempty">Setting the table&hellip;</div></div>
       <div class="railgroup">Here now</div>
@@ -709,10 +802,10 @@
     </aside>
     <div class="chatmain">
       <header class="chanhead">
-        <button class="railtog" id="railTog" type="button" aria-label="Rooms">&#9776;</button>
+        <button class="railtog" id="railTog" type="button" aria-label="Rooms">#</button>
         <b id="chanName">#general</b>
         <span class="topic" id="chanTopic"></span>
-        <span class="onl" id="onlCount"></span>
+        <span class="onl" id="onlCount" hidden></span>
       </header>
       <div class="msgscroll" id="msgScroll"><div class="chatstate">Pouring the coffee&hellip;</div></div>
       <div class="composerbar">
@@ -751,6 +844,7 @@
     var WS_URL = BASE.replace(/^http/, 'ws') + '/chat/ws';
     var LS_READ = 'aihc_chat_read_v1';
     var EMOJI = ['👍','❤️','😂','🎉','🍺','🤯'];
+    var BOARD = '~feed'; /* pseudo-room for the club feed; slugs can never collide with it */
 
     function $(id){ return document.getElementById(id); }
     function esc(s){ var d = document.createElement('div'); d.textContent = String(s); return d.innerHTML; }
@@ -766,6 +860,11 @@
     var openThread = null;        /* parent message id, or null */
     var read = {};
     try { read = JSON.parse(localStorage.getItem(LS_READ) || '{}'); } catch(e){ read = {}; }
+    /* the board */
+    var posts = [];
+    var postsLoaded = false;
+    var tableInfo = null;         /* {events, attendees} for the who's-coming card */
+    var openIds = {};             /* drilled-open feed posts, survives re-render */
 
     /* ---------- tiny renderers borrowed from the feed ---------- */
     function md(t){
@@ -789,11 +888,15 @@
       }).join('');
     }
     function avClass(name){
-      var n = String(name).toLowerCase(), h = 0;
+      var n = String(name).toLowerCase();
+      if (n === 'the club') return 'c4';
+      var h = 0;
       for (var i = 0; i < n.length; i++) h = (h * 31 + n.charCodeAt(i)) >>> 0;
       return ['c0', 'c1', 'c2c', 'c3'][h % 4];
     }
-    function avGlyph(name){ return esc(String(name).trim().charAt(0).toUpperCase()); }
+    function avGlyph(name){
+      return String(name).toLowerCase() === 'the club' ? '☕' : esc(String(name).trim().charAt(0).toUpperCase());
+    }
     function tOnly(ts){
       var d = new Date(ts);
       return isNaN(d) ? '' : d.toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'}).toLowerCase();
@@ -802,10 +905,16 @@
       var d = new Date(ts);
       return isNaN(d) ? '' : d.toLocaleDateString('en-US', {weekday: 'long', month: 'long', day: 'numeric'});
     }
+    function when(ts){
+      var d = new Date(ts);
+      if (isNaN(d)) return '';
+      return d.toLocaleDateString('en-US', {month: 'short', day: 'numeric'}) + ' · ' +
+        d.toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'}).toLowerCase();
+    }
 
     /* ---------- mentions: names we know = authors + everyone here now ---------- */
     var knownNames = {};
-    function learnName(n){ if (n) knownNames[String(n)] = true; }
+    function learnName(n){ if (n && n !== 'The club') knownNames[String(n)] = true; }
     learnName(A.viewer().name);
     function mentionize(html){
       var names = Object.keys(knownNames).sort(function(a, b){ return b.length - a.length; });
@@ -841,7 +950,7 @@
       if (latest[cur] && (!read[cur] || latest[cur] > read[cur])){
         read[cur] = latest[cur];
         try { localStorage.setItem(LS_READ, JSON.stringify(read)); } catch(e){}
-        renderChannels();
+        renderRail();
       }
     }
 
@@ -850,13 +959,20 @@
       for (var i = 0; i < channels.length; i++) if (channels[i].id === id) return channels[i];
       return null;
     }
-    function renderChannels(){
+    function hasUnread(id){
+      return latest[id] && (!read[id] || latest[id] > read[id]) && id !== cur;
+    }
+    function renderRail(){
+      $('boardEntry').innerHTML =
+        '<button class="chan' + (cur === BOARD ? ' here' : '') + '" type="button" data-chan="' + BOARD + '">' +
+          '<span class="boardico">☕</span><span class="nm">The feed</span>' +
+          (hasUnread(BOARD) ? '<span class="dot"></span>' : '') +
+        '</button>';
       if (!channels.length){ $('chanList').innerHTML = '<div class="railempty">No rooms yet.</div>'; return; }
       $('chanList').innerHTML = channels.map(function(c){
-        var unread = latest[c.id] && (!read[c.id] || latest[c.id] > read[c.id]) && c.id !== cur;
         return '<button class="chan' + (c.id === cur ? ' here' : '') + '" type="button" data-chan="' + esc(c.id) + '">' +
-          '<span class="hash">#</span><span class="nm">' + esc(c.name) + '</span>' +
-          (unread ? '<span class="dot"></span>' : '') +
+          '<span class="rdot ' + avClass(c.id) + '"></span><span class="nm">#' + esc(c.name) + '</span>' +
+          (hasUnread(c.id) ? '<span class="dot"></span>' : '') +
         '</button>';
       }).join('');
     }
@@ -866,15 +982,17 @@
         if (seen[w.name]) return;
         seen[w.name] = true;
         var c = chanById(w.channel);
+        var where = w.channel === BOARD ? 'the board' : (c ? '#' + c.name : '');
         rows.push('<div class="who"><span class="on"></span>' +
           '<span class="avatar ' + avClass(w.name) + '">' + avGlyph(w.name) + '</span>' +
           '<span>' + esc(w.name) + '</span>' +
-          (c ? '<span class="wch">#' + esc(c.name) + '</span>' : '') +
+          (where ? '<span class="wch">' + esc(where) + '</span>' : '') +
         '</div>');
       });
       $('whosHere').innerHTML = rows.length ? rows.join('') : '<div class="railempty">Just you, so far.</div>';
       var inRoom = who.filter(function(w){ return w.channel === cur; }).length;
-      $('onlCount').textContent = inRoom ? inRoom + ' here' : '';
+      $('onlCount').hidden = !inRoom;
+      $('onlCount').textContent = inRoom + ' here';
     }
     function reactChips(id){
       var rs = reacts[id] || [];
@@ -917,6 +1035,7 @@
       '</div>';
     }
     function renderMsgs(){
+      if (cur === BOARD){ renderBoard(); return; }
       var box = $('msgScroll');
       var stick = box.scrollHeight - box.scrollTop - box.clientHeight < 120;
       var list = (msgs[cur] || []).filter(function(m){ return !m.parent; });
@@ -958,12 +1077,155 @@
       if (stick) box.scrollTop = box.scrollHeight;
     }
     function renderHead(){
+      if (cur === BOARD){
+        $('chanName').textContent = 'The bulletin board';
+        $('chanTopic').textContent = 'What happened, and who said yes.';
+        $('chatText').placeholder = 'Post it to the club…';
+        return;
+      }
       var c = chanById(cur);
       $('chanName').textContent = '#' + (c ? c.name : cur);
       $('chanTopic').textContent = c ? c.topic : '';
       $('chatText').placeholder = 'Say something to #' + (c ? c.name : cur) + '…';
     }
-    function renderAll(){ renderChannels(); renderPresence(); renderHead(); renderMsgs(); renderThread(); }
+    function renderAll(){ renderRail(); renderPresence(); renderHead(); renderMsgs(); renderThread(); }
+
+    /* ---------- the bulletin board: feed posts as cards ---------- */
+    function renderMore(p){
+      if (p.kind === 'thread'){
+        var data = null;
+        try { data = JSON.parse(p.more); } catch(e){}
+        if (!data || !data.messages) return '';
+        return data.messages.map(function(m){
+          return '<div class="fmsg ' + (m.side === 'me' ? 'me' : 'them') + '">' +
+            '<div class="m">' + esc(m.meta) + '</div>' + md(m.text) + '</div>';
+        }).join('');
+      }
+      return md(p.more);
+    }
+    function tableCard(){
+      if (!tableInfo) return '';
+      var events = tableInfo.events, att = tableInfo.attendees;
+      if (!events.length) return '';
+      var inner = events.map(function(e){
+        var mine = att.filter(function(a){ return a.event === e.id; });
+        var seats = mine.filter(function(a){ return a.status === 'seat'; });
+        var waits = mine.filter(function(a){ return a.status === 'waitlist'; });
+        function names(list){
+          return list.map(function(a){ return esc(a.name) + (a.biz ? ' (' + esc(a.biz) + ')' : ''); }).join(', ');
+        }
+        return '<p><b>' + esc(e.when) + '</b> · ' + esc(e.location) + '</p>' +
+          (seats.length
+            ? '<p>At the table (' + seats.length + ' of ' + e.capacity + '): ' + names(seats) + '</p>'
+            : '<p>No seats claimed yet. Be the first.</p>') +
+          (waits.length ? '<p class="quiet">Waiting for a seat: ' + names(waits) + '</p>' : '') +
+          (e.left > 0
+            ? '<p class="quiet">' + e.left + ' seat' + (e.left === 1 ? '' : 's') + ' open · <a href="rsvp.html?event=' + encodeURIComponent(e.id) + '">save one</a></p>'
+            : '<p class="quiet">Full · <a href="rsvp.html?event=' + encodeURIComponent(e.id) + '">join the waitlist</a></p>');
+      }).join('<hr style="border:none; border-top:2px dashed var(--edge); margin:10px 0">');
+      return '<article class="post">' +
+        '<div class="phead"><span class="avatar c4">☕</span>' +
+        '<span class="pwho"><b>The table</b><span class="pmeta">who&rsquo;s coming</span></span></div>' +
+        '<div class="pbody">' + inner + '</div></article>';
+    }
+    function renderBoard(){
+      var box = $('msgScroll');
+      var stickTop = box.scrollTop < 60; /* the board reads newest-first from the top */
+      if (!postsLoaded){
+        box.innerHTML = '<div class="chatstate">Unpinning the notices&hellip;</div>';
+        return;
+      }
+      var cards = posts.map(function(p){
+        var hasMore = p.more && String(p.more).trim();
+        var moreLabel = p.kind === 'thread' ? 'Read the thread' : 'Show more';
+        if (p.kind === 'thread'){
+          try { moreLabel += ' (' + JSON.parse(p.more).messages.length + ' messages)'; } catch(e){}
+        }
+        var mine = A.viewer().name === p.name && p.id.indexOf('seed-') !== 0;
+        return '<article class="post' + (openIds[p.id] ? ' open' : '') + '" data-post="' + esc(p.id) + '">' +
+          '<div class="phead">' +
+            '<span class="avatar ' + avClass(p.name) + '">' + avGlyph(p.name) + '</span>' +
+            '<span class="pwho"><b>' + esc(p.name) + '</b><span class="pmeta">' + when(p.ts) + '</span></span>' +
+            (p.notable ? '<span class="pill">&#9733; Notable</span>' : '') +
+          '</div>' +
+          '<div class="pbody">' +
+            (p.title ? '<div class="ptitle">' + esc(p.title) + '</div>' : '') +
+            md(p.body) +
+            (hasMore ? '<button class="morebtn" type="button">' + moreLabel + '</button>' +
+                       '<div class="pmore">' + renderMore(p) + '</div>' : '') +
+          '</div>' +
+          (p.tags || mine ?
+            '<div class="pfoot">' +
+              String(p.tags || '').split(/\s+/).filter(Boolean).map(function(t){ return '<span class="tag">' + esc(t) + '</span>'; }).join('') +
+              (mine ? '<button class="delbtn" type="button">delete</button>' : '') +
+            '</div>' : '') +
+        '</article>';
+      }).join('');
+      box.innerHTML = tableCard() + (cards || '<div class="chatstate">Nothing on the board yet. Post the first notice.</div>');
+      if (stickTop) box.scrollTop = 0;
+      markRead();
+    }
+    function loadBoard(){
+      fetch(BASE + '/posts?secret=' + encodeURIComponent(A.secret))
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          if (!d || !d.posts) return;
+          posts = d.posts;
+          postsLoaded = true;
+          posts.forEach(function(p){ learnName(p.name); });
+          if (posts.length && (!latest[BOARD] || posts[0].ts > latest[BOARD])) latest[BOARD] = posts[0].ts;
+          if (cur === BOARD){ renderBoard(); renderHead(); }
+          renderRail();
+        })
+        .catch(function(){});
+      Promise.all([
+        fetch(BASE + '/events').then(function(r){ return r.json(); }),
+        fetch(BASE + '/attendees?secret=' + encodeURIComponent(A.secret)).then(function(r){ return r.json(); })
+      ]).then(function(res){
+        var events = ((res[0] && res[0].events) || []).filter(function(e){ return e.status === 'upcoming'; })
+          .sort(function(a, b){ return a.sort_date < b.sort_date ? -1 : 1; });
+        tableInfo = { events: events, attendees: (res[1] && res[1].attendees) || [] };
+        if (cur === BOARD) renderBoard();
+      }).catch(function(){});
+    }
+    function sendBoardPost(text){
+      var p = {
+        id: 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+        name: A.viewer().name, title: '', body: text, more: '', kind: 'update',
+        tags: '', notable: false, ts: new Date().toISOString()
+      };
+      posts.unshift(p);
+      latest[BOARD] = p.ts;
+      renderBoard();
+      fetch(BASE + '/posts', {
+        method: 'POST', headers: {'Content-Type': 'text/plain'},
+        body: JSON.stringify({secret: A.secret, action: 'add', post: p})
+      }).then(function(r){
+        if (r.ok) A.toast('Pinned to the board.');
+        else A.toast('Could not reach the server; it may not have saved.');
+      }).catch(function(){ A.toast('Could not reach the server; it may not have saved.'); });
+    }
+
+    /* board clicks: drill-in + delete */
+    $('msgScroll').addEventListener('click', function(ev){
+      if (cur !== BOARD) return;
+      var card = ev.target.closest('.post');
+      if (!card || !card.getAttribute('data-post')) return;
+      var id = card.getAttribute('data-post');
+      if (ev.target.closest('.morebtn')){
+        openIds[id] = !openIds[id];
+        card.classList.toggle('open', !!openIds[id]);
+      }
+      if (ev.target.closest('.delbtn')){
+        if (!window.confirm('Delete this post for everyone?')) return;
+        posts = posts.filter(function(p){ return p.id !== id; });
+        renderBoard();
+        fetch(BASE + '/posts', {
+          method: 'POST', headers: {'Content-Type': 'text/plain'},
+          body: JSON.stringify({secret: A.secret, action: 'delete', id: id})
+        }).catch(function(){});
+      }
+    });
 
     /* ---------- transport: websocket first, polling if it will not stick ---------- */
     var ws = null, wsOk = false, failures = 0, polling = false, lastFrameAt = 0;
@@ -1015,12 +1277,21 @@
         Object.keys(f.latest || {}).forEach(function(k){
           if (!latest[k] || f.latest[k] > latest[k]) latest[k] = f.latest[k];
         });
-        if (!chanById(cur) && channels.length) cur = channels[0].id;
-        loadHistory(cur, loaded[cur]); /* catch up on whatever we missed while dark */
+        if (cur !== BOARD && !chanById(cur) && channels.length) cur = channels[0].id;
+        if (cur !== BOARD) loadHistory(cur, loaded[cur]); /* catch up on whatever we missed while dark */
         renderAll();
         return;
       }
-      if (f.type === 'msg'){ upsertMsg(f.message); if (f.message.channel === cur){ renderMsgs(); renderThread(); } renderChannels(); return; }
+      if (f.type === 'msg'){
+        upsertMsg(f.message);
+        if (f.message.channel === cur){
+          renderMsgs(); renderThread();
+          var row = $('msgScroll').querySelector('.mrow[data-id="' + f.message.id + '"]');
+          if (row && f.message.name !== A.viewer().name) row.classList.add('new');
+        }
+        renderRail();
+        return;
+      }
       if (f.type === 'react'){
         var rs = reacts[f.message] || (reacts[f.message] = []);
         reacts[f.message] = rs.filter(function(r){ return !(r.name === f.name && r.emoji === f.emoji); });
@@ -1030,17 +1301,24 @@
       }
       if (f.type === 'del'){ dropMsg(f.id, f.channel); if (f.channel === cur){ renderMsgs(); renderThread(); } return; }
       if (f.type === 'presence'){ who = f.who || []; who.forEach(function(w){ learnName(w.name); }); renderPresence(); return; }
-      if (f.type === 'channels'){ channels = f.channels || []; if (!chanById(cur) && channels.length){ switchChannel(channels[0].id); } renderChannels(); renderHead(); return; }
+      if (f.type === 'channels'){
+        channels = f.channels || [];
+        if (cur !== BOARD && !chanById(cur) && channels.length){ switchChannel(channels[0].id); }
+        renderRail(); renderHead();
+        return;
+      }
       if (f.type === 'err'){ A.toast(f.msg || 'The server said no.'); return; }
     }
     /* the client-side half of the heartbeat: heroku cuts idle sockets at 55s.
-       also the self-heal: if the first history load failed, keep trying. */
+       also the self-heal (retry a failed first load) and the board's slow poll. */
     setInterval(function(){
       if (ws && ws.readyState === 1){
         ws.send(JSON.stringify({type: 'ping'}));
         if (lastFrameAt && Date.now() - lastFrameAt > 45000){ ws.close(); }
       }
-      if (!loaded[cur] && document.visibilityState === 'visible') loadHistory(cur);
+      if (document.visibilityState !== 'visible') return;
+      if (cur !== BOARD && !loaded[cur]) loadHistory(cur);
+      loadBoard(); /* system posts land on the board from rsvps; keep its dot honest */
     }, 25000);
 
     function sendFrame(f){
@@ -1088,6 +1366,7 @@
     }
     function pollTick(){
       if (document.visibilityState !== 'visible') return;
+      if (cur === BOARD){ loadBoard(); return; }
       loadHistory(cur, loaded[cur]);
     }
 
@@ -1098,13 +1377,18 @@
       openThread = null;
       document.body.classList.remove('rail-open');
       if (ws && ws.readyState === 1 && wsOk) ws.send(JSON.stringify({type: 'here', channel: id}));
-      if (!loaded[id]) loadHistory(id);
+      if (id === BOARD){ if (!postsLoaded) loadBoard(); }
+      else if (!loaded[id]) loadHistory(id);
       renderAll();
       $('chatText').focus();
     }
     $('chanList').addEventListener('click', function(ev){
       var b = ev.target.closest('[data-chan]');
       if (b) switchChannel(b.getAttribute('data-chan'));
+    });
+    $('boardEntry').addEventListener('click', function(ev){
+      var b = ev.target.closest('[data-chan]');
+      if (b) switchChannel(BOARD);
     });
     $('railTog').addEventListener('click', function(){ document.body.classList.toggle('rail-open'); });
 
@@ -1113,14 +1397,15 @@
     function sendMessage(ta, parent){
       var text = ta.value.trim();
       if (!text) return;
+      ta.value = ''; ta.style.height = 'auto';
+      $('mentionPick').hidden = true;
+      if (cur === BOARD && !parent){ sendBoardPost(text); return; }
       var m = {
         id: newId(), channel: cur, parent: parent || '', name: A.viewer().name,
         body: text, ts: new Date().toISOString(), pending: true
       };
       upsertMsg(m);
       renderMsgs(); renderThread();
-      ta.value = ''; ta.style.height = 'auto';
-      $('mentionPick').hidden = true;
       sendFrame({type: 'msg', id: m.id, channel: m.channel, parent: m.parent, body: m.body});
     }
     function wireComposer(taId, btnId, getParent){
@@ -1133,7 +1418,7 @@
       });
       ta.addEventListener('input', function(){
         ta.style.height = 'auto';
-        ta.style.height = Math.min(140, ta.scrollHeight) + 'px';
+        ta.style.height = Math.min(150, ta.scrollHeight) + 'px';
       });
       $(btnId).addEventListener('click', function(){ sendMessage(ta, getParent()); });
     }
@@ -1219,6 +1504,7 @@
     });
     function wireStream(boxId){
       $(boxId).addEventListener('click', function(ev){
+        if (cur === BOARD && boxId === 'msgScroll') return; /* board clicks handled above */
         var row = ev.target.closest('.mrow');
         if (!row) return;
         var id = row.getAttribute('data-id');
@@ -1254,6 +1540,7 @@
 
     /* ---------- boot ---------- */
     loadHistory(cur);
+    loadBoard();
     connect();
   }
   boot();
