@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /deck/
+Disallow: /chat.html
+Disallow: /feed.html

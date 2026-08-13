@@ -1,6 +1,10 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
 <meta charset="utf-8">
 <title>The AI Homebrew Club &middot; Why We Meet</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
 <style>
   @font-face{font-family:'Nunito';font-style:normal;font-weight:300 900;font-display:swap;src:url(../assets/fonts/nunito.woff2) format('woff2')}
   @font-face{font-family:'Besley';font-style:normal;font-weight:400 900;font-display:swap;src:url(../assets/fonts/besley.woff2) format('woff2')}
@@ -482,6 +486,8 @@
     body.pane-open .deck{margin-right:0}
   }
 </style>
+</head>
+<body>
 
 <!-- ===================== GATE ===================== -->
 <div class="gate" id="gate">
@@ -1123,7 +1129,7 @@
     {id: 'funding', title: 'The funding plan', desc: 'Grants, links, deadlines, in unlock order.', group: 'Internal'},
     {id: 'model', title: 'The model', desc: 'The studio P&amp;L, live.', group: 'Internal'}
   ];
-  var SITE_HOSTS = ['bb723.github.io', 'aibrownbag.com', 'www.aibrownbag.com'];
+  var SITE_HOSTS = ['aihomebrewclub.com', 'www.aihomebrewclub.com', 'bb723.github.io', 'aibrownbag.com', 'www.aibrownbag.com', 'localhost', '127.0.0.1'];
   function deckHref(id){
     var local = location.protocol === 'file:' || SITE_HOSTS.indexOf(location.hostname) !== -1;
     var atRoot = DECK_ID === 'feed' || DECK_ID === 'chat'; /* these live at the site root, not /deck/ */
@@ -1146,7 +1152,7 @@
       }
       var a = document.createElement('a');
       a.href = deckHref(d.id);
-      if (location.protocol !== 'file:' && location.hostname !== 'bb723.github.io') a.target = '_blank';
+      if (location.protocol !== 'file:' && SITE_HOSTS.indexOf(location.hostname) === -1) a.target = '_blank';
       if (d.id === DECK_ID) a.className = 'here';
       a.innerHTML = '<span class="t">' + d.title + '</span><span class="d">' + d.desc + '</span>' +
         (d.id === DECK_ID ? '<span class="yh">You are here</span>' : '');
@@ -1323,3 +1329,5 @@
   renderPins(); renderList();
 })();
 </script>
+</body>
+</html>
