@@ -120,12 +120,12 @@
       <h1>You&rsquo;re invited. One hour, and one problem off your plate.</h1>
       <p class="motto" style="margin-top:16px">&ldquo;Give to help others.&rdquo;</p>
       <div class="invite">
-        <span class="when">The first AI Brown Bag</span>
-        <span><b>Where:</b> the conference room at Bricks Coworking &amp; Innovation Space, Hathaway Creative Center, 10 Water St, downtown Waterville</span>
-        <span><b>When:</b> Tuesday, August 18, 9:00 to 10:00 am. Coffee on.</span>
+        <span class="when" id="invTitle">The next AI Brown Bag</span>
+        <span id="invWhere"><b>Where:</b> posted on <a href="waterville.html">the Waterville page</a> the moment it's set</span>
+        <span id="invWhen"><b>When:</b> the next date lands on <a href="waterville.html">the Waterville page</a> first</span>
         <span><b>Bring:</b> a laptop or just your phone, and one real task that is eating your week.</span>
         <span><b>Cost:</b> free. No tickets, no vendors, nobody selling you anything.</span>
-        <span><b>Seats:</b> 8, first come, first served. <a href="rsvp.html?ref=home">RSVP here</a> so we can save yours.</span>
+        <span id="invSeats"><b>Seats:</b> first come, first served. <a href="rsvp.html?ref=home" id="invRsvp">RSVP here</a> so we can save yours.</span>
         <span><b>Agenda:</b> posted on <a href="waterville.html">the Waterville page</a>, along with every meetup we've held.</span>
       </div>
     </div>
@@ -247,10 +247,40 @@
     <p>Bricks Coworking &amp; Innovation Space &middot; Hathaway Creative Center &middot; 10 Water St, Waterville</p>
     <p style="margin-top:6px"><a href="recipes.html">The recipes are free.</a> They always will be.</p>
     <p style="margin-top:6px">Got a room and a coffee pot? <a href="lend.html?ref=home">Lend it to the club.</a></p>
+    <p style="margin-top:6px">Been to a meetup? <a href="chat.html">The members' clubhouse</a> is open.</p>
   </div>
 </footer>
 
 <script src="assets/config.js"></script>
 <script src="assets/site.js"></script>
+<script>
+(function(){
+  'use strict';
+  /* the invite card fills itself from the live calendar, so the date can never go stale */
+  var esc = window.AIHC_UI.esc;
+  var fmtTime = window.AIHC_UI.fmtTime;
+  fetch(window.AIHC_CONFIG.API_BASE + '/events')
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var up = ((d && d.events) || []).filter(function(e){ return e.status === 'upcoming'; })
+        .sort(function(a, b){ return a.sort_date < b.sort_date ? -1 : 1; });
+      if (!up.length) return;
+      var e = up[0];
+      if (e.title) document.getElementById('invTitle').textContent = e.title;
+      if (e.location) document.getElementById('invWhere').innerHTML = '<b>Where:</b> ' + esc(e.location);
+      if (e.when){
+        var t = fmtTime(e.start_time);
+        document.getElementById('invWhen').innerHTML = '<b>When:</b> ' + esc(e.when) + (t ? ', ' + t : '') + '. Coffee on.';
+      }
+      var seatBit = e.left > 0
+        ? esc(String(e.capacity)) + ', first come, first served — ' + esc(String(e.left)) + ' left.'
+        : 'all spoken for, but the waitlist works.';
+      document.getElementById('invSeats').innerHTML = '<b>Seats:</b> ' + seatBit +
+        ' <a href="rsvp.html?event=' + encodeURIComponent(e.id) + '&ref=home">' +
+        (e.left > 0 ? 'RSVP here' : 'Join the waitlist') + '</a>' + (e.left > 0 ? ' so we can save yours.' : '.');
+    })
+    .catch(function(){ /* the static fallback copy stands */ });
+})();
+</script>
 </body>
 </html>
