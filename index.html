@@ -26,6 +26,7 @@
   header.site .wrap{display:flex; align-items:center; gap:14px}
   header.site .name{font-family:var(--font-display); font-weight:800; font-size:1.15rem}
   header.site .where{margin-left:auto; color:var(--ink-soft); font-weight:700; font-size:.88rem}
+  header.site .members{margin-left:0} /* .where already claims the flex gap */
 
   .hero .wrap{display:grid; grid-template-columns:1.4fr 1fr; gap:clamp(24px,4vw,64px); align-items:center}
   .motto{font-family:var(--font-display); font-style:italic; font-weight:600; font-size:clamp(1.15rem,2vw,1.5rem); color:var(--tangerine)}
@@ -112,6 +113,7 @@
     <span class="logo" data-size="44" aria-hidden="true"></span>
     <span class="name">The AI Homebrew Club</span>
     <span class="where">Central Maine &middot; est. 2026, after 1975</span>
+    <a class="members" href="chat.html">Members</a>
   </div>
 </header>
 

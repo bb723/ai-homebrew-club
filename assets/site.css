@@ -59,6 +59,13 @@ a{color:var(--teal-deep); font-weight:700}
 /* the shared masthead: urn + wordmark, linking home */
 header.top{display:flex; align-items:center; gap:12px; padding:20px 0 6px; font-weight:800}
 header.top a{color:var(--ink); text-decoration:none; display:flex; align-items:center; gap:10px}
+/* the quiet clubhouse door in every masthead */
+a.members{
+  margin-left:auto; font-size:.82rem; font-weight:800; letter-spacing:.05em;
+  text-transform:uppercase; color:var(--ink-soft); text-decoration:none;
+  border:1px solid var(--edge); border-radius:999px; padding:5px 14px;
+}
+a.members:hover{color:var(--teal-deep); border-color:var(--teal)}
 
 footer{padding:44px 0 60px; text-align:center; color:var(--ink-soft); font-weight:700}
 footer a{color:var(--teal-deep)}
