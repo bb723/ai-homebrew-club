@@ -1,0 +1,98 @@
+/* Shared site config: the one place that knows the backend, the nav, and the logo.
+   Loaded by every page (public and gated) before site.js / club.js. */
+window.AIHC_CONFIG = (function(){
+  'use strict';
+
+  var API_BASE = 'https://aihc-notes-690dcde965fd.herokuapp.com';
+
+  var SITE_HOSTS = ['aihomebrewclub.com', 'www.aihomebrewclub.com', 'bb723.github.io',
+                    'aibrownbag.com', 'www.aibrownbag.com', 'localhost', '127.0.0.1'];
+
+  /* The one nav. Order is display order; group headings render on change. */
+  var DECKS = [
+    {id: 'chat', title: 'The clubhouse', desc: 'Members&rsquo; chat and the bulletin board.', group: 'The club'},
+    {id: 'waterville', title: 'Waterville', desc: 'Public meetup page: agendas, seats, QR.', group: 'The club'},
+    {id: 'recipes', title: 'The recipe box', desc: 'Public prompt library, one steal at a time.', group: 'The club'},
+    {id: 'home', title: 'The invite', desc: 'The public landing page.', group: 'The club'},
+    {id: 'admin', title: 'Meetup controls', desc: 'Create meetups, edit agendas.', group: 'Internal'},
+    {id: 'invest', title: 'Investor pitch', desc: 'The hardest room in America.', group: 'The pitches'},
+    {id: 'join', title: 'Attendee pitch', desc: 'Come to the first AI Brown Bag.', group: 'The pitches'},
+    {id: 'why', title: 'Why we meet', desc: 'Fear, lies, and folding chairs.', group: 'The pitches'},
+    {id: 'charter', title: 'The Charter', desc: 'The whole plan. Every pitch is cut from this.', group: 'Internal'},
+    {id: 'kit101', title: 'The 101 kit', desc: 'Twelve live demos, step by step.', group: 'Internal'},
+    {id: 'funding', title: 'The funding plan', desc: 'Grants, links, deadlines, in unlock order.', group: 'Internal'},
+    {id: 'model', title: 'The model', desc: 'The studio P&amp;L, live.', group: 'Internal'}
+  ];
+
+  /* Root-level pages; everything else lives under deck/. 'feed' stays routable for old links. */
+  var ROOT_PAGES = {feed: 1, chat: 1, waterville: 1, recipes: 1};
+
+  function deckHref(id){
+    var local = location.protocol === 'file:' || SITE_HOSTS.indexOf(location.hostname) !== -1;
+    var inDeck = /\/deck\//.test(location.pathname);
+    var up = inDeck ? '../' : '';
+    if (id === 'home') return local ? up + 'index.html' : 'https://aihomebrewclub.com/';
+    if (ROOT_PAGES[id]) return local ? up + id + '.html' : 'https://aihomebrewclub.com/' + id + '.html';
+    return local ? (inDeck ? '' : 'deck/') + id + '.html' : 'https://aihomebrewclub.com/deck/' + id + '.html';
+  }
+
+  /* Renders the member nav into a .deckpane element. currentId gets the "You are here" badge. */
+  function buildDeckPane(pane, currentId){
+    if (!pane) return;
+    pane.innerHTML = '';
+    var lastGroup = '';
+    DECKS.forEach(function(d){
+      if (d.group !== lastGroup){
+        var h = document.createElement('h3');
+        h.textContent = d.group;
+        pane.appendChild(h);
+        lastGroup = d.group;
+      }
+      var a = document.createElement('a');
+      a.href = deckHref(d.id);
+      if (location.protocol !== 'file:' && SITE_HOSTS.indexOf(location.hostname) === -1) a.target = '_blank';
+      if (d.id === currentId) a.className = 'here';
+      a.innerHTML = '<span class="t">' + d.title + '</span><span class="d">' + d.desc + '</span>' +
+        (d.id === currentId ? '<span class="yh">You are here</span>' : '');
+      pane.appendChild(a);
+    });
+    var c = document.createElement('button');
+    c.className = 'close'; c.type = 'button'; c.textContent = 'Close';
+    c.addEventListener('click', function(){ document.body.classList.remove('deck-open'); });
+    pane.appendChild(c);
+  }
+
+  /* The one urn. Paints every <span class="logo" data-size="N"> under root. */
+  var LOGO = '<svg viewBox="0 0 120 120" fill="none" role="img" aria-label="A church-supper coffee urn with a cup">' +
+    '<rect x="34" y="30" width="48" height="56" rx="9" stroke="var(--ink)" stroke-width="5"/>' +
+    '<path d="M40 30 a18 10 0 0 1 36 0" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>' +
+    '<circle cx="58" cy="14" r="4.5" fill="var(--tangerine)"/>' +
+    '<circle cx="58" cy="64" r="4" fill="var(--sky)"/>' +
+    '<path d="M58 68 v10" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/>' +
+    '<path d="M42 86 v9" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>' +
+    '<path d="M74 86 v9" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>' +
+    '<path d="M90 88 h18 v6 a7 7 0 0 1 -7 7 h-4 a7 7 0 0 1 -7 -7 Z" stroke="var(--ink)" stroke-width="4" stroke-linejoin="round"/>' +
+    '<path d="M99 82 c-2 -3 2 -5 0 -9" stroke="var(--tangerine)" stroke-width="3.5" stroke-linecap="round"/>' +
+    '<path d="M46 46 h24" stroke="var(--teal)" stroke-width="4" stroke-linecap="round"/>' +
+    '<path d="M46 54 h16" stroke="var(--lemon)" stroke-width="4" stroke-linecap="round"/></svg>';
+
+  function paintLogos(root){
+    (root || document).querySelectorAll('.logo').forEach(function(el){
+      var size = el.getAttribute('data-size') || '150';
+      el.innerHTML = LOGO;
+      var svg = el.firstChild;
+      if (svg){ svg.setAttribute('width', size); svg.setAttribute('height', size); }
+    });
+  }
+
+  return {
+    API_BASE: API_BASE,
+    SYNC_URL: API_BASE + '/notes',
+    SITE_HOSTS: SITE_HOSTS,
+    DECKS: DECKS,
+    LOGO: LOGO,
+    deckHref: deckHref,
+    buildDeckPane: buildDeckPane,
+    paintLogos: paintLogos
+  };
+})();
