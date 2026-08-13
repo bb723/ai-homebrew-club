@@ -11,52 +11,15 @@
 <meta property="og:url" content="https://aihomebrewclub.com/">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="assets/site.css">
 <style>
-  @font-face{font-family:'Nunito';font-style:normal;font-weight:300 900;font-display:swap;src:url(assets/fonts/nunito.woff2) format('woff2')}
-  @font-face{font-family:'Besley';font-style:normal;font-weight:400 900;font-display:swap;src:url(assets/fonts/besley.woff2) format('woff2')}
-  @font-face{font-family:'Besley';font-style:italic;font-weight:400 900;font-display:swap;src:url(assets/fonts/besley-i.woff2) format('woff2')}
-  @font-face{font-family:'Caveat';font-style:normal;font-weight:400 700;font-display:swap;src:url(assets/fonts/caveat.woff2) format('woff2')}
-
-  :root{
-    --font-display:'Besley','Nunito',serif;
-    --font-body:'Nunito',"Segoe UI",system-ui,sans-serif;
-    --ink:#3B3227; --ink-soft:#675B49; --paper:#F8F1E3; --card:#FFFCF4;
-    --teal:#557C4B; --teal-deep:#3E5F37;
-    --tangerine:#C1552F; --tangerine-deep:#96401D;
-    --lemon:#E7B84E; --lemon-deep:#8F6A11;
-    --sky:#567F9E; --sky-deep:#3D627E;
-    --berry:#8F5874; --berry-deep:#6F3F58;
-    --shadow:0 8px 20px rgba(59,50,39,.13);
-    --edge:rgba(59,50,39,.18);
-    --squig:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='126' height='12'><path d='M3 8 q10 -9 20 0 t20 0 t20 0 t20 0 t20 0' fill='none' stroke='%23C1552F' stroke-width='3.5' stroke-linecap='round'/></svg>");
-  }
-  @media (prefers-color-scheme: dark){
-    :root{
-      --ink:#F4EAD8; --ink-soft:#C6B79F; --paper:#2A2118; --card:#362B20;
-      --teal:#8CB47E; --teal-deep:#AEC99A;
-      --tangerine:#EC8A61; --tangerine-deep:#F5AB88;
-      --lemon:#EFC96F; --lemon-deep:#F6DA97;
-      --sky:#8FB4CE; --sky-deep:#B0CBDE;
-      --berry:#C48BA8; --berry-deep:#D6A9C0;
-      --shadow:0 8px 20px rgba(0,0,0,.4);
-      --edge:rgba(244,234,216,.16);
-      --squig:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='126' height='12'><path d='M3 8 q10 -9 20 0 t20 0 t20 0 t20 0 t20 0' fill='none' stroke='%23EC8A61' stroke-width='3.5' stroke-linecap='round'/></svg>");
-    }
-  }
-
-  *{box-sizing:border-box}
-  body{
-    margin:0; background:var(--paper); color:var(--ink);
-    font-family:var(--font-body); font-size:16.5px; line-height:1.6;
-  }
-  h1,h2,h3{font-family:var(--font-display); margin:0; text-wrap:balance}
+  h1,h2,h3{text-wrap:balance}
   h1{font-size:clamp(2.4rem,6vw,4.2rem); line-height:1.08; font-weight:800}
   h2{font-size:clamp(1.7rem,3.6vw,2.6rem); line-height:1.14; font-weight:800}
   h2::after{content:""; display:block; width:126px; height:12px; margin-top:12px; background:var(--squig) no-repeat left center}
   p{margin:0}
-  a{color:var(--teal-deep); font-weight:700}
 
-  .wrap{max-width:1020px; margin:0 auto; padding:0 clamp(18px,4vw,40px)}
+  .wrap{max-width:1020px; width:auto; padding:0 clamp(18px,4vw,40px)}
   section{padding:clamp(44px,7vw,84px) 0}
   header.site{padding:20px 0; border-bottom:1px solid var(--edge)}
   header.site .wrap{display:flex; align-items:center; gap:14px}
@@ -100,7 +63,7 @@
   .card.a-lemon{border-top-color:var(--lemon)} .card.a-lemon h3{color:var(--lemon-deep)}
   .card p{font-size:.98rem}
   .steal{
-    margin-top:auto; font-family:'Caveat',cursive; font-weight:600; font-size:1.3rem; line-height:27px;
+    margin-top:auto; font-family:var(--font-hand); font-weight:600; font-size:1.3rem; line-height:27px;
     border:1px solid var(--edge); border-radius:6px; padding:10px 14px;
     background-color:var(--card);
     background-image:repeating-linear-gradient(transparent 0 26px, var(--edge) 26px 27px);
@@ -130,52 +93,8 @@
   .alt{background:var(--card); border-top:1px solid var(--edge); border-bottom:1px solid var(--edge)}
   @media (prefers-color-scheme: dark){ .alt{background:#312619} }
 
-  footer{position:relative; padding:56px 0 84px; text-align:center; color:var(--ink-soft); font-weight:700}
-  footer::after{
-    content:""; position:absolute; left:0; right:0; bottom:0; height:22px;
-    border-top:2px solid var(--edge); background-color:var(--card);
-    background-image:
-      repeating-linear-gradient(0deg, color-mix(in srgb, var(--tangerine) 22%, transparent) 0 8px, transparent 8px 16px),
-      repeating-linear-gradient(90deg, color-mix(in srgb, var(--tangerine) 22%, transparent) 0 8px, transparent 8px 16px);
-  }
+  footer{padding:56px 0 84px; text-align:center; color:var(--ink-soft); font-weight:700}
   footer .big{font-family:var(--font-display); font-weight:800; font-size:clamp(1.6rem,3.4vw,2.4rem); color:var(--ink); margin-bottom:8px}
-
-  /* members-only nav: injected by script only when this device has passed the gate */
-  .deckbtn{
-    position:fixed; left:16px; top:16px; z-index:50;
-    border:none; border-radius:999px; padding:10px 18px; cursor:pointer;
-    background:var(--ink); color:var(--paper); font-family:var(--font-display); font-weight:800; font-size:.95rem;
-    box-shadow:0 8px 20px rgba(0,0,0,.25);
-  }
-  .deckbtn:hover{filter:brightness(1.15)}
-  .deckbtn:focus-visible{outline:3px solid var(--tangerine); outline-offset:2px}
-  .deckpane{
-    position:fixed; left:0; top:0; bottom:0; z-index:65; width:min(320px, 88vw);
-    background:var(--card); box-shadow:8px 0 30px rgba(0,0,0,.18);
-    display:flex; flex-direction:column; gap:8px; padding:18px 14px;
-    transform:translateX(-105%); overflow-y:auto;
-  }
-  @media (prefers-reduced-motion: no-preference){ .deckpane{transition:transform .22s} }
-  body.deck-open .deckpane{transform:none}
-  .deckpane h3{font-family:var(--font-display); font-size:1.3rem; margin:0; padding:0 8px 8px; border-bottom:2px dashed var(--edge)}
-  .deckpane a{
-    display:flex; flex-direction:column; gap:2px; text-decoration:none; color:var(--ink);
-    background:var(--paper); border-radius:14px; padding:12px 14px; border:2px solid transparent; font-weight:400;
-  }
-  .deckpane a:hover{border-color:var(--teal)}
-  .deckpane a:focus-visible{outline:3px solid var(--teal); outline-offset:2px}
-  .deckpane a.here{border-color:var(--tangerine)}
-  .deckpane a .t{font-weight:800; font-size:1.05rem}
-  .deckpane a .d{color:var(--ink-soft); font-size:.85rem; font-weight:700}
-  .deckpane a .yh{
-    align-self:flex-start; margin-top:4px; font-size:.68rem; font-weight:800;
-    letter-spacing:.1em; text-transform:uppercase; color:var(--tangerine);
-  }
-  .deckpane .close{
-    margin-top:auto; border:none; background:none; color:var(--ink-soft);
-    font-weight:800; cursor:pointer; padding:8px; font-size:.85rem;
-  }
-  .deckpane .close:hover{color:var(--ink)}
 
   @media (max-width:860px){
     .hero .wrap{grid-template-columns:1fr}
@@ -331,87 +250,7 @@
   </div>
 </footer>
 
-<script>
-(function(){
-  'use strict';
-  var LOGO = '<svg viewBox="0 0 120 120" fill="none" role="img" aria-label="A church-supper coffee urn with a cup">' +
-    '<rect x="34" y="30" width="48" height="56" rx="9" stroke="var(--ink)" stroke-width="5"/>' +
-    '<path d="M40 30 a18 10 0 0 1 36 0" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>' +
-    '<circle cx="58" cy="14" r="4.5" fill="var(--tangerine)"/>' +
-    '<circle cx="58" cy="64" r="4" fill="var(--sky)"/>' +
-    '<path d="M58 68 v10" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/>' +
-    '<path d="M42 86 v9" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>' +
-    '<path d="M74 86 v9" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>' +
-    '<path d="M90 88 h18 v6 a7 7 0 0 1 -7 7 h-4 a7 7 0 0 1 -7 -7 Z" stroke="var(--ink)" stroke-width="4" stroke-linejoin="round"/>' +
-    '<path d="M99 82 c-2 -3 2 -5 0 -9" stroke="var(--tangerine)" stroke-width="3.5" stroke-linecap="round"/>' +
-    '<path d="M46 46 h24" stroke="var(--teal)" stroke-width="4" stroke-linecap="round"/>' +
-    '<path d="M46 54 h16" stroke="var(--lemon)" stroke-width="4" stroke-linecap="round"/></svg>';
-  function lvlsvg(inner){ return '<svg viewBox="0 0 80 120" fill="none" aria-hidden="true">' + inner + '</svg>'; }
-  var LEVELS = {
-    1: lvlsvg('<path d="M40 114 V56" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/><path d="M30 22 v20 a10 10 0 0 0 20 0 V22" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/><path d="M40 22 v20" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/><rect x="34" y="66" width="12" height="18" rx="6" fill="var(--teal)"/>'),
-    2: lvlsvg('<ellipse cx="40" cy="84" rx="28" ry="12" fill="var(--tangerine)" stroke="var(--ink)" stroke-width="4"/><path d="M14 78 a26 16 0 0 1 52 0" fill="var(--lemon)" stroke="var(--ink)" stroke-width="4"/><circle cx="40" cy="58" r="5" fill="var(--ink)"/><path d="M30 44 c-3 -5 3 -8 0 -13" stroke="var(--teal)" stroke-width="4" stroke-linecap="round"/><path d="M50 44 c-3 -5 3 -8 0 -13" stroke="var(--sky)" stroke-width="4" stroke-linecap="round"/>'),
-    3: lvlsvg('<rect x="14" y="56" width="52" height="42" rx="7" fill="var(--berry)" stroke="var(--ink)" stroke-width="4"/><path d="M14 66 h-7" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/><path d="M66 66 h7" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/><path d="M12 56 h56" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/><circle cx="40" cy="47" r="5" fill="var(--ink)"/><path d="M28 36 c-3 -5 3 -8 0 -14" stroke="var(--teal)" stroke-width="4" stroke-linecap="round"/><path d="M40 32 c-3 -6 3 -9 0 -16" stroke="var(--tangerine)" stroke-width="4" stroke-linecap="round"/><path d="M52 36 c-3 -5 3 -8 0 -14" stroke="var(--lemon)" stroke-width="4" stroke-linecap="round"/>')
-  };
-  document.querySelectorAll('.logo').forEach(function(el){
-    var size = el.getAttribute('data-size') || '150';
-    el.innerHTML = LOGO;
-    var svg = el.firstChild;
-    if (svg){ svg.setAttribute('width', size); svg.setAttribute('height', size); svg.style.display = 'inline-block'; }
-  });
-  document.querySelectorAll('.lvlicon').forEach(function(el){
-    el.innerHTML = LEVELS[el.getAttribute('data-level') || '1'] || '';
-    var svg = el.firstChild;
-    if (svg){ svg.setAttribute('width', '60'); svg.setAttribute('height', '84'); }
-  });
-
-  /* members-only nav: only for devices that have already passed the gate elsewhere.
-     the public page itself never mentions or links the gated area. */
-  var viewer = null;
-  try { viewer = JSON.parse(localStorage.getItem('aihc_viewer_v1') || 'null'); } catch(e){}
-  if (!viewer || !viewer.name) return;
-  var LINKS = [
-    {href: 'feed.html', t: 'The feed', d: 'What happened, and who said yes.', g: 'The club'},
-    {href: 'chat.html', t: 'The clubhouse', d: 'Members&rsquo; chat. Pull up a chair.', g: 'The club'},
-    {href: 'waterville.html', t: 'Waterville', d: 'Public meetup page: agendas, seats, QR.', g: 'The club'},
-    {href: 'recipes.html', t: 'The recipe box', d: 'Public prompt library, one steal at a time.', g: 'The club'},
-    {here: true, t: 'The invite', d: 'The public landing page.', g: 'The club'},
-    {href: 'deck/admin.html', t: 'Meetup controls', d: 'Create meetups, edit agendas.', g: 'Internal'},
-    {href: 'deck/invest.html', t: 'Investor pitch', d: 'The hardest room in America.', g: 'The pitches'},
-    {href: 'deck/join.html', t: 'Attendee pitch', d: 'Come to the first AI Brown Bag.', g: 'The pitches'},
-    {href: 'deck/why.html', t: 'Why we meet', d: 'Fear, lies, and folding chairs.', g: 'The pitches'},
-    {href: 'deck/charter.html', t: 'The Charter', d: 'The whole plan. Every pitch is cut from this.', g: 'Internal'},
-    {href: 'deck/kit101.html', t: 'The 101 kit', d: 'Twelve live demos, step by step.', g: 'Internal'},
-    {href: 'deck/funding.html', t: 'The funding plan', d: 'Grants, links, deadlines, in unlock order.', g: 'Internal'},
-    {href: 'deck/model.html', t: 'The model', d: 'The studio P&amp;L, live.', g: 'Internal'}
-  ];
-  var btn = document.createElement('button');
-  btn.className = 'deckbtn'; btn.type = 'button'; btn.innerHTML = '&#9776;'; btn.setAttribute('aria-label', 'Menu');
-  var pane = document.createElement('nav');
-  pane.className = 'deckpane';
-  var lastGroup = '';
-  LINKS.forEach(function(d){
-    if (d.g !== lastGroup){
-      var h = document.createElement('h3'); h.textContent = d.g; pane.appendChild(h); lastGroup = d.g;
-    }
-    var a = document.createElement('a');
-    if (d.here){
-      a.href = '#'; a.className = 'here';
-      a.addEventListener('click', function(ev){ ev.preventDefault(); document.body.classList.remove('deck-open'); });
-    } else {
-      a.href = d.href;
-    }
-    a.innerHTML = '<span class="t">' + d.t + '</span><span class="d">' + d.d + '</span>' +
-      (d.here ? '<span class="yh">You are here</span>' : '');
-    pane.appendChild(a);
-  });
-  var c = document.createElement('button');
-  c.className = 'close'; c.type = 'button'; c.textContent = 'Close';
-  c.addEventListener('click', function(){ document.body.classList.remove('deck-open'); });
-  pane.appendChild(c);
-  document.body.appendChild(btn);
-  document.body.appendChild(pane);
-  btn.addEventListener('click', function(){ document.body.classList.toggle('deck-open'); });
-})();
-</script>
+<script src="assets/config.js"></script>
+<script src="assets/site.js"></script>
 </body>
 </html>

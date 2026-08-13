@@ -10,68 +10,12 @@
 <meta property="og:url" content="https://aihomebrewclub.com/lend.html">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="assets/site.css">
 <style>
-  @font-face{font-family:'Nunito'; font-style:normal; font-weight:300 900; font-display:swap; src:url(assets/fonts/nunito.woff2) format('woff2')}
-  @font-face{font-family:'Besley'; font-style:normal; font-weight:400 900; font-display:swap; src:url(assets/fonts/besley.woff2) format('woff2')}
-  @font-face{font-family:'Besley'; font-style:italic; font-weight:400 900; font-display:swap; src:url(assets/fonts/besley-i.woff2) format('woff2')}
-  :root{
-    --font-display:'Besley',Georgia,serif;
-    --font-body:'Nunito',system-ui,sans-serif;
-    --ink:#3B3227; --ink-soft:#675B49; --paper:#F8F1E3; --card:#FFFCF4;
-    --teal:#557C4B; --teal-deep:#3E5F37; --tangerine:#C1552F;
-    --lemon:#E7B84E; --sky:#567F9E; --edge:rgba(59,50,39,.18);
-    --shadow:0 8px 20px rgba(59,50,39,.13);
-  }
-  @media (prefers-color-scheme: dark){
-    :root{
-      --ink:#F4EAD8; --ink-soft:#C6B79F; --paper:#2A2118; --card:#362B20;
-      --teal:#8CB47E; --teal-deep:#AEC99A; --tangerine:#EC8A61;
-      --lemon:#EFC96F; --sky:#8FB4CE; --edge:rgba(244,234,216,.16);
-      --shadow:0 8px 20px rgba(0,0,0,.4);
-    }
-  }
-  *{box-sizing:border-box}
-  body{
-    margin:0; background:var(--paper); color:var(--ink);
-    font-family:var(--font-body); font-size:16.5px; line-height:1.6;
-    min-height:100svh; display:grid; place-items:center; padding:24px 16px 60px;
-  }
-  body::after{
-    content:""; position:fixed; left:0; right:0; bottom:0; height:22px;
-    border-top:2px solid var(--edge); background-color:var(--card);
-    background-image:
-      repeating-linear-gradient(0deg, color-mix(in srgb, var(--tangerine) 22%, transparent) 0 8px, transparent 8px 16px),
-      repeating-linear-gradient(90deg, color-mix(in srgb, var(--tangerine) 22%, transparent) 0 8px, transparent 8px 16px);
-  }
+  body{min-height:100svh; display:grid; place-items:center; padding:24px 16px 60px}
   main{width:min(520px,100%); text-align:center}
-  h1{font-family:var(--font-display); font-weight:800; font-size:clamp(2rem,7vw,2.7rem); line-height:1.1; margin:14px 0 6px}
+  h1{font-weight:800; font-size:clamp(2rem,7vw,2.7rem); line-height:1.1; margin:14px 0 6px}
   .sub{color:var(--ink-soft); font-weight:700; margin:0 0 18px}
-  .card{
-    background:var(--card); border:1px solid var(--edge); border-radius:18px;
-    box-shadow:var(--shadow); padding:20px 22px; text-align:left;
-    display:flex; flex-direction:column; gap:10px; margin-bottom:16px;
-  }
-  .card b{font-weight:800}
-  form{display:flex; flex-direction:column; gap:10px; text-align:left}
-  label{font-weight:800; font-size:.85rem; display:flex; flex-direction:column; gap:4px}
-  label .opt{color:var(--ink-soft); font-weight:700}
-  input[type=text], textarea{
-    border:1px solid var(--edge); border-radius:12px; background:var(--paper); color:var(--ink);
-    font-family:var(--font-body); font-size:.95rem; padding:10px 12px; width:100%;
-  }
-  input:focus, textarea:focus{outline:2px solid var(--teal)}
-  textarea{min-height:56px; resize:vertical}
-  .hp{position:absolute; left:-5000px; top:-5000px}
-  .go{
-    background:var(--tangerine); color:#FFFCF4; border:none; cursor:pointer;
-    border-radius:999px; padding:13px 34px; font-family:var(--font-body); font-weight:800;
-    font-size:1rem; letter-spacing:.04em; box-shadow:var(--shadow); margin-top:4px;
-  }
-  .go:hover{filter:brightness(1.08)}
-  .go:disabled{opacity:.5; cursor:default}
-  .done{display:none; padding:8px 0 2px}
-  .done h2{font-family:var(--font-display); font-weight:800; font-size:1.5rem; margin:0 0 8px}
-  .err{color:var(--tangerine); font-weight:800; font-size:.85rem; display:none}
   .foot{color:var(--ink-soft); font-weight:700; font-size:.85rem}
   .foot a{color:var(--teal-deep)}
 </style>
@@ -79,7 +23,7 @@
 <body>
 
 <main>
-  <span class="logo" id="logo" aria-hidden="true"></span>
+  <span class="logo" data-size="110" aria-hidden="true"></span>
   <h1>Got a room and a coffee pot?</h1>
   <p class="sub">That's a chapter of the AI Homebrew Club.</p>
   <div class="card">
@@ -123,27 +67,15 @@
   <p class="foot"><a href="index.html">aihomebrewclub.com</a></p>
 </main>
 
+<script src="assets/config.js"></script>
+<script src="assets/site.js"></script>
 <script>
 (function(){
   'use strict';
-  var LOGO = '<svg viewBox="0 0 120 120" width="110" height="110" fill="none" role="img" aria-label="A church-supper coffee urn with a cup">' +
-    '<rect x="34" y="30" width="48" height="56" rx="9" stroke="var(--ink)" stroke-width="5"/>' +
-    '<path d="M40 30 a18 10 0 0 1 36 0" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>' +
-    '<circle cx="58" cy="14" r="4.5" fill="var(--tangerine)"/>' +
-    '<circle cx="58" cy="64" r="4" fill="var(--sky)"/>' +
-    '<path d="M58 68 v10" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/>' +
-    '<path d="M42 86 v9" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>' +
-    '<path d="M74 86 v9" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>' +
-    '<path d="M90 88 h18 v6 a7 7 0 0 1 -7 7 h-4 a7 7 0 0 1 -7 -7 Z" stroke="var(--ink)" stroke-width="4" stroke-linejoin="round"/>' +
-    '<path d="M99 82 c-2 -3 2 -5 0 -9" stroke="var(--tangerine)" stroke-width="3.5" stroke-linecap="round"/>' +
-    '<path d="M46 46 h24" stroke="var(--teal)" stroke-width="4" stroke-linecap="round"/>' +
-    '<path d="M46 54 h16" stroke="var(--lemon)" stroke-width="4" stroke-linecap="round"/></svg>';
-  document.getElementById('logo').innerHTML = LOGO;
-
-  var BASE = 'https://aihc-notes-690dcde965fd.herokuapp.com/notes'.replace(/\/notes\b.*$/, '');
+  var BASE = window.AIHC_CONFIG.API_BASE;
+  var $ = window.AIHC_UI.$;
   var params = new URLSearchParams(location.search);
   var REF = (params.get('ref') || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 40);
-  function $(id){ return document.getElementById(id); }
 
   $('lendForm').addEventListener('submit', function(ev){
     ev.preventDefault();

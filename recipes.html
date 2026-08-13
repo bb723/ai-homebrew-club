@@ -10,55 +10,18 @@
 <meta property="og:url" content="https://aihomebrewclub.com/recipes.html">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="assets/site.css">
 <style>
-  @font-face{font-family:'Nunito'; font-style:normal; font-weight:300 900; font-display:swap; src:url(assets/fonts/nunito.woff2) format('woff2')}
-  @font-face{font-family:'Besley'; font-style:normal; font-weight:400 900; font-display:swap; src:url(assets/fonts/besley.woff2) format('woff2')}
-  @font-face{font-family:'Besley'; font-style:italic; font-weight:400 900; font-display:swap; src:url(assets/fonts/besley-i.woff2) format('woff2')}
-  @font-face{font-family:'Caveat'; font-style:normal; font-weight:400 700; font-display:swap; src:url(assets/fonts/caveat.woff2) format('woff2')}
-  :root{
-    --font-display:'Besley',Georgia,serif;
-    --font-body:'Nunito',system-ui,sans-serif;
-    --font-hand:'Caveat',cursive;
-    --ink:#3B3227; --ink-soft:#675B49; --paper:#F8F1E3; --card:#FFFCF4;
-    --teal:#557C4B; --teal-deep:#3E5F37; --tangerine:#C1552F;
-    --lemon:#E7B84E; --sky:#567F9E; --edge:rgba(59,50,39,.18);
-    --shadow:0 8px 20px rgba(59,50,39,.13);
-    --squig:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='126' height='12'><path d='M3 8 q10 -9 20 0 t20 0 t20 0 t20 0 t20 0' fill='none' stroke='%23C1552F' stroke-width='3.5' stroke-linecap='round'/></svg>");
-  }
-  @media (prefers-color-scheme: dark){
-    :root{
-      --ink:#F4EAD8; --ink-soft:#C6B79F; --paper:#2A2118; --card:#362B20;
-      --teal:#8CB47E; --teal-deep:#AEC99A; --tangerine:#EC8A61;
-      --lemon:#EFC96F; --sky:#8FB4CE; --edge:rgba(244,234,216,.16);
-      --shadow:0 8px 20px rgba(0,0,0,.4);
-      --squig:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='126' height='12'><path d='M3 8 q10 -9 20 0 t20 0 t20 0 t20 0 t20 0' fill='none' stroke='%23EC8A61' stroke-width='3.5' stroke-linecap='round'/></svg>");
-    }
-  }
-  *{box-sizing:border-box}
-  body{
-    margin:0; background:var(--paper); color:var(--ink);
-    font-family:var(--font-body); font-size:16.5px; line-height:1.6;
-    padding-bottom:60px; position:relative;
-  }
-  body::after{
-    content:""; position:fixed; left:0; right:0; bottom:0; height:22px; z-index:5;
-    border-top:2px solid var(--edge); background-color:var(--card);
-    background-image:
-      repeating-linear-gradient(0deg, color-mix(in srgb, var(--tangerine) 22%, transparent) 0 8px, transparent 8px 16px),
-      repeating-linear-gradient(90deg, color-mix(in srgb, var(--tangerine) 22%, transparent) 0 8px, transparent 8px 16px);
-  }
-  .wrap{width:min(760px,100%); margin:0 auto; padding:0 clamp(14px,3.5vw,24px)}
-  header.top{display:flex; align-items:center; gap:12px; padding:20px 0 6px; font-weight:800}
-  header.top a{color:var(--ink); text-decoration:none; display:flex; align-items:center; gap:10px}
-  h1{font-family:var(--font-display); font-weight:800; font-size:clamp(2.4rem,7.5vw,3.6rem); line-height:1.05; margin:18px 0 4px; letter-spacing:-.01em}
+  body{padding-bottom:60px; position:relative}
+  h1{font-weight:800; font-size:clamp(2.4rem,7.5vw,3.6rem); line-height:1.05; margin:18px 0 4px; letter-spacing:-.01em}
   h1::after{content:""; display:block; width:126px; height:12px; margin-top:12px; background:var(--squig) no-repeat left center}
   .kicker{font-family:var(--font-display); font-style:italic; font-weight:600; color:var(--ink-soft); font-size:1.1rem; margin:0 0 20px}
-  h2{font-family:var(--font-display); font-weight:800; font-size:clamp(1.35rem,3.6vw,1.8rem); margin:32px 0 6px}
+  h2{font-weight:800; font-size:clamp(1.35rem,3.6vw,1.8rem); margin:32px 0 6px}
   .recipe{
     background:var(--card); border:1px solid var(--edge); border-radius:18px;
     box-shadow:var(--shadow); padding:18px 20px 14px; margin:14px 0;
   }
-  .recipe h3{font-family:var(--font-display); font-weight:800; font-size:1.2rem; margin:0 0 4px}
+  .recipe h3{font-weight:800; font-size:1.2rem; margin:0 0 4px}
   .why{color:var(--ink-soft); font-weight:700; font-size:.92rem; margin:0 0 12px}
   .steal{
     background:var(--paper); border:1px solid var(--edge); border-radius:12px;
@@ -68,22 +31,14 @@
   .rfoot{display:flex; gap:12px; align-items:baseline; margin-top:10px; flex-wrap:wrap}
   .notes{color:var(--ink-soft); font-size:.86rem; font-weight:700; flex:1; min-width:200px}
   .byline{color:var(--ink-soft); font-size:.78rem; font-weight:700}
-  .copybtn{
-    background:var(--teal); color:var(--paper); border:none; border-radius:999px; cursor:pointer;
-    font-family:var(--font-body); font-weight:800; font-size:.78rem; letter-spacing:.05em;
-    text-transform:uppercase; padding:7px 16px; flex:none;
-  }
-  .copybtn:hover{filter:brightness(1.08)}
   .empty{color:var(--ink-soft); font-weight:700}
-  footer{padding:44px 0 60px; text-align:center; color:var(--ink-soft); font-weight:700}
-  footer a{color:var(--teal-deep)}
 </style>
 </head>
 <body>
 
 <div class="wrap">
   <header class="top">
-    <a href="index.html"><span class="logo" id="logo"></span><span>The AI Homebrew Club</span></a>
+    <a href="index.html"><span class="logo" data-size="40"></span><span>The AI Homebrew Club</span></a>
   </header>
 
   <h1>The recipe box.</h1>
@@ -97,23 +52,13 @@
   </footer>
 </div>
 
+<script src="assets/config.js"></script>
+<script src="assets/site.js"></script>
 <script>
 (function(){
   'use strict';
-  var LOGO = '<svg viewBox="0 0 120 120" width="40" height="40" fill="none" aria-label="Coffee urn logo">' +
-    '<rect x="34" y="30" width="48" height="56" rx="9" stroke="var(--ink)" stroke-width="5"/>' +
-    '<path d="M40 30 a18 10 0 0 1 36 0" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>' +
-    '<circle cx="58" cy="14" r="4.5" fill="var(--tangerine)"/>' +
-    '<circle cx="58" cy="64" r="4" fill="var(--sky)"/>' +
-    '<path d="M58 68 v10" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/>' +
-    '<path d="M42 86 v9" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>' +
-    '<path d="M74 86 v9" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>' +
-    '<path d="M46 46 h24" stroke="var(--teal)" stroke-width="4" stroke-linecap="round"/>' +
-    '<path d="M46 54 h16" stroke="var(--lemon)" stroke-width="4" stroke-linecap="round"/></svg>';
-  document.getElementById('logo').innerHTML = LOGO;
-
-  var BASE = 'https://aihc-notes-690dcde965fd.herokuapp.com/notes'.replace(/\/notes\b.*$/, '');
-  function esc(s){ var d = document.createElement('div'); d.textContent = String(s); return d.innerHTML; }
+  var BASE = window.AIHC_CONFIG.API_BASE;
+  var esc = window.AIHC_UI.esc;
 
   function render(recipes){
     var box = document.getElementById('box');
