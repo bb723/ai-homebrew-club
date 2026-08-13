@@ -375,7 +375,7 @@
     if (!/^https?:/.test(BASE)) return; /* no backend configured: leave the loading note */
     var WS_URL = BASE.replace(/^http/, 'ws') + '/chat/ws';
     var LS_READ = 'aihc_chat_read_v1';
-    var EMOJI = ['👍','❤️','😂','🎉','🍺','🤯'];
+    var EMOJI = ['ðŸ‘','â¤ï¸','ðŸ˜‚','ðŸŽ‰','ðŸº','ðŸ¤¯'];
     var BOARD = '~feed'; /* pseudo-room for the club feed; slugs can never collide with it */
 
     function $(id){ return document.getElementById(id); }
@@ -431,7 +431,7 @@
       return ['c0', 'c1', 'c2c', 'c3'][h % 4];
     }
     function avGlyph(name){
-      return String(name).toLowerCase() === 'the club' ? '☕' : esc(String(name).trim().charAt(0).toUpperCase());
+      return String(name).toLowerCase() === 'the club' ? 'â˜•' : esc(String(name).trim().charAt(0).toUpperCase());
     }
     function tOnly(ts){
       var d = new Date(ts);
@@ -444,7 +444,7 @@
     function when(ts){
       var d = new Date(ts);
       if (isNaN(d)) return '';
-      return d.toLocaleDateString('en-US', {month: 'short', day: 'numeric'}) + ' · ' +
+      return d.toLocaleDateString('en-US', {month: 'short', day: 'numeric'}) + ' Â· ' +
         d.toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'}).toLowerCase();
     }
 
@@ -503,7 +503,7 @@
       $('boardLabel').style.display = isAdmin() ? '' : 'none';
       $('boardEntry').innerHTML = !isAdmin() ? '' :
         '<button class="chan' + (cur === BOARD ? ' here' : '') + '" type="button" data-chan="' + BOARD + '">' +
-          '<span class="boardico">☕</span><span class="nm">The feed</span>' +
+          '<span class="boardico">â˜•</span><span class="nm">The feed</span>' +
           (hasUnread(BOARD) ? '<span class="dot"></span>' : '') +
         '</button>';
       if (!channels.length){ $('chanList').innerHTML = '<div class="railempty">No rooms yet.</div>'; return; }
@@ -618,13 +618,13 @@
       if (cur === BOARD){
         $('chanName').textContent = 'The bulletin board';
         $('chanTopic').textContent = 'What happened, and who said yes.';
-        $('chatText').placeholder = 'Post it to the club…';
+        $('chatText').placeholder = 'Post it to the clubâ€¦';
         return;
       }
       var c = chanById(cur);
       $('chanName').textContent = '#' + (c ? c.name : cur);
       $('chanTopic').textContent = c ? c.topic : '';
-      $('chatText').placeholder = 'Say something to #' + (c ? c.name : cur) + '…';
+      $('chatText').placeholder = 'Say something to #' + (c ? c.name : cur) + 'â€¦';
     }
     function renderAll(){ renderRail(); renderPresence(); renderHead(); renderMsgs(); renderThread(); }
 
@@ -652,17 +652,17 @@
         function names(list){
           return list.map(function(a){ return esc(a.name) + (a.biz ? ' (' + esc(a.biz) + ')' : ''); }).join(', ');
         }
-        return '<p><b>' + esc(e.when) + '</b> · ' + esc(e.location) + '</p>' +
+        return '<p><b>' + esc(e.when) + '</b> Â· ' + esc(e.location) + '</p>' +
           (seats.length
             ? '<p>At the table (' + seats.length + ' of ' + e.capacity + '): ' + names(seats) + '</p>'
             : '<p>No seats claimed yet. Be the first.</p>') +
           (waits.length ? '<p class="quiet">Waiting for a seat: ' + names(waits) + '</p>' : '') +
           (e.left > 0
-            ? '<p class="quiet">' + e.left + ' seat' + (e.left === 1 ? '' : 's') + ' open · <a href="rsvp.html?event=' + encodeURIComponent(e.id) + '">save one</a></p>'
-            : '<p class="quiet">Full · <a href="rsvp.html?event=' + encodeURIComponent(e.id) + '">join the waitlist</a></p>');
+            ? '<p class="quiet">' + e.left + ' seat' + (e.left === 1 ? '' : 's') + ' open Â· <a href="rsvp.html?event=' + encodeURIComponent(e.id) + '">save one</a></p>'
+            : '<p class="quiet">Full Â· <a href="rsvp.html?event=' + encodeURIComponent(e.id) + '">join the waitlist</a></p>');
       }).join('<hr style="border:none; border-top:2px dashed var(--edge); margin:10px 0">');
       return '<article class="post">' +
-        '<div class="phead"><span class="avatar c4">☕</span>' +
+        '<div class="phead"><span class="avatar c4">â˜•</span>' +
         '<span class="pwho"><b>The table</b><span class="pmeta">who&rsquo;s coming</span></span></div>' +
         '<div class="pbody">' + inner + '</div></article>';
     }
@@ -771,7 +771,7 @@
     var reconnectTimer = null, pollTimer = null;
     function setLive(state){ /* 'live' | 'reconnecting' | 'polling' */
       var el = $('liveDot');
-      el.textContent = state === 'live' ? 'live' : state === 'polling' ? 'shared' : 'reconnecting…';
+      el.textContent = state === 'live' ? 'live' : state === 'polling' ? 'shared' : 'reconnectingâ€¦';
       el.classList.toggle('on', state !== 'reconnecting');
     }
     function connect(){
@@ -1092,6 +1092,6 @@
 
 <script>window.AIHC_PAGE = {deck: 'chat', gate: 'member'};</script>
 <script src="assets/config.js"></script>
-<script src="assets/club.js"></script>
+<script src="assets/club.js?v=2"></script>
 </body>
 </html>

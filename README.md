@@ -45,20 +45,22 @@ Load order contract for gated pages: `club.css` in `<head>` → inline gate mark
 
 ### Backend
 
-One Heroku app (URL in `assets/config.js`), not in this repo. Endpoints used: `GET /events`, `GET /recipes`, `GET/POST /rsvp`, `POST /venues`, `GET/POST /notes`, `GET/POST /posts`, `GET/POST /chat` + `WS /chat/ws`, `GET /attendees`, `GET /rsvps`, `POST /agenda`, `GET/POST /channels`.
+One Heroku app (URL in `assets/config.js`), not in this repo. Endpoints used: `GET /events`, `GET /recipes`, `GET/POST /rsvp`, `POST /venues`, `GET/POST /notes`, `GET/POST /posts`, `GET/POST /chat` + `WS /chat/ws`, `GET /attendees`, `GET /rsvps`, `POST /agenda` (incl. `action:'replace'` — the whole run sheet in one transaction), `GET/POST /channels`, `GET/POST /blocks` (the run-sheet block library), `POST /agenda-draft` (AI lineup proposal), `POST /admin-secret` (self-serve admin-word rotation).
+
+**The run-sheet builder:** meetup content lives as reusable blocks (`aihc_blocks`: title, kind demo/talk/task/admin, minutes, the prompt/script, presenter notes, links) managed in the console's "block shelf" panel. Each event's Agenda panel builds a lineup from those blocks with auto-computed `t` labels (clock times when the event has a `start_time`, else `0:00`-style offsets) and saves through `POST /agenda {action:'replace'}`. The "Draft it for me" button calls `POST /agenda-draft`, which asks `claude-opus-5` (via `@anthropic-ai/sdk`) for a lineup constrained to a JSON schema; it appears only when the server has `ANTHROPIC_API_KEY` set (`heroku config:set ANTHROPIC_API_KEY=<key> -a aihc-notes`) and never writes anything itself — the admin edits, then writes.
 
 **The text/plain trick:** every POST sends `Content-Type: text/plain` with a JSON string body so browsers skip the CORS preflight. Keep it verbatim in any new fetch code.
 
 **Auth model (two tiers, enforced server-side):**
-- **Admins** authenticate with `ADMIN_SECRET` (a Heroku env var; until it is set, the old shared word still works as admin and the server emails a daily rotation nag). Admin-only surfaces: the feed (`/posts`), attendees/rsvps, venues, notes, events/agenda/recipes/channel writes, the members keyring.
+- **Admins** authenticate with the admin word, resolved in this order: the **DB-stored word** (scrypt hash in `aihc_config.admin_hash`, set from the console's "admin word" panel or the gate's rotate prompt) → the **`ADMIN_SECRET` env var** (kept as a recovery override) → only while *neither* exists, the old burned shared word (and the server emails a daily rotation nag + the gate prompts a change on login). Admin-only surfaces: the feed (`/posts`), attendees/rsvps, venues, notes, events/agenda/recipes/channel writes, the members keyring, the block shelf, the AI drafter.
 - **Members** hold personal revocable tokens (`aihc_members` table), minted when an admin marks an RSVP *attended* (the invite emails itself: `members.html?invite=<token>`) or adds someone by hand in the console. Members get chat and member-visible channels; the gate stores the key in `localStorage.aihc_member_v1`.
 - Chat rooms have a `visibility` (`members`/`admins`) enforced in listings, history, message writes, WebSocket fan-out, unread timestamps, and presence.
 - The credential travels in the same `secret`/`token` body/query slots (or the `X-AIHC-Token` header); `POST /member` validates a token for the gate.
 
-**Rotation runbook** (do this once):
-1. `heroku config:set ADMIN_SECRET=<a strong new secret> -a aihc-notes` — the old word dies everywhere the moment this lands.
+**Rotation runbook** (do this once — easiest path first):
+1. Log in to `deck/admin.html` with the old word — the gate itself asks for a new one ("Pick a new admin word"). Or use the console's "The admin word" panel any time. Either way the old word dies everywhere the moment it saves.
 2. Give the new word to the founders (or mint them admin-role member keys in the console and skip the word entirely).
-3. Later: `heroku config:unset SECRET -a aihc-notes` to delete the dead config.
+3. Recovery fallback: `heroku config:set ADMIN_SECRET=<a strong secret> -a aihc-notes` always works as a second valid admin credential. Later: `heroku config:unset SECRET -a aihc-notes` to delete the dead legacy config.
 
 **Accepted residual risks** (documented on purpose): member tokens are stored plaintext in the DB and shown to admins in the console (proportionate for a two-founder club); anyone holding admin can post under any display name; invites go wherever the RSVP email points, so glance at the address before marking someone attended; presence/revocation socket handling assumes the single Heroku dyno the chat already requires.
 

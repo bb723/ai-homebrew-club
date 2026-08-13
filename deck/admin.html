@@ -84,6 +84,18 @@
   .agrow .t{font-family:var(--font-display); font-weight:800; color:var(--tangerine); flex:none; width:48px}
   .agrow .d{color:var(--ink-soft); font-size:.85rem; display:block}
   .agrow .grow{flex:1; min-width:0}
+  /* the agenda builder: shelf chips + the timed lineup */
+  .shelfrow{display:flex; flex-wrap:wrap; gap:6px; margin-top:4px}
+  .shelfchip{
+    background:var(--paper); border:1.5px solid var(--edge); border-radius:999px; cursor:pointer;
+    font-family:var(--font-body); font-weight:800; font-size:.8rem; color:var(--ink); padding:5px 12px;
+  }
+  .shelfchip:hover{border-color:var(--teal); color:var(--teal-deep)}
+  .lurow{display:flex; gap:8px; align-items:baseline; border-bottom:2px dashed var(--edge); padding:6px 0}
+  .lurow .t{font-family:var(--font-display); font-weight:800; color:var(--tangerine); flex:none; width:64px}
+  .lurow .grow{flex:1; min-width:0}
+  .lurow .d{color:var(--ink-soft); font-size:.85rem; display:block}
+  .lurow input.min{width:56px; flex:none; text-align:right; padding:3px 6px; font-weight:800}
   .qrbox{background:#F8F1E3; border:1px solid var(--edge); border-radius:12px; padding:6px; display:inline-block; line-height:0; margin-top:8px}
   .qrbox svg{width:104px; height:104px; display:block}
 </style>
@@ -145,6 +157,21 @@
     <div class="panel" id="agPanel" hidden>
       <h2 id="agTitle">Agenda</h2>
       <div id="agList"></div>
+
+      <p class="quiet" style="font-weight:800; font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; margin:16px 0 0">Build it from the shelf</p>
+      <div id="agShelf" class="shelfrow"></div>
+      <div id="agLineup" style="margin-top:8px"></div>
+      <p class="quiet" id="agTotal" style="font-size:.85rem; margin:6px 0 0"></p>
+      <label id="agBriefWrap" hidden style="margin-top:10px">Anything the drafter should know? <span class="hint">optional</span>
+        <input type="text" id="agBrief" maxlength="500" placeholder="Spotlight the invoice recipe; two first-timers coming.">
+      </label>
+      <div class="rowbtns" style="margin-top:10px">
+        <button class="gobtn" id="agWrite" type="button" disabled>Write this agenda</button>
+        <button class="quietbtn" id="agDraft" type="button" hidden>&#10024; Draft it for me</button>
+        <button class="quietbtn" id="agClear" type="button" hidden>Clear</button>
+      </div>
+
+      <p class="quiet" style="font-weight:800; font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; margin:16px 0 0">Or one item at a time</p>
       <form class="grid" id="agForm" style="margin-top:12px">
         <label>Time <span class="hint">0:00 style or 7:30</span>
           <input type="text" id="aT" maxlength="40" placeholder="0:15">
@@ -247,6 +274,57 @@
         </div>
       </form>
     </div>
+
+    <div class="panel">
+      <h2>The block shelf</h2>
+      <p class="quiet" style="font-size:.9rem">Reusable run-sheet blocks &mdash; demos, talks, worked tasks, housekeeping. Open any meetup&rsquo;s Agenda and build the hour from these.</p>
+      <div id="bkList" style="margin-top:8px"><span class="quiet">Loading&hellip;</span></div>
+      <form class="grid" id="bkForm" style="margin-top:12px">
+        <label>Title
+          <input type="text" id="bTitle" maxlength="200" placeholder="The demo">
+        </label>
+        <label>Kind
+          <select id="bKind">
+            <option value="demo">Demo</option>
+            <option value="talk">Talk</option>
+            <option value="task">Worked task</option>
+            <option value="admin">Housekeeping</option>
+          </select>
+        </label>
+        <label>Minutes
+          <input type="number" id="bMin" value="10" min="1" max="120">
+        </label>
+        <label>Links <span class="hint">optional, comma-separated</span>
+          <input type="text" id="bLinks" maxlength="500">
+        </label>
+        <label class="full">The prompt or script <span class="hint">what actually runs on stage</span>
+          <textarea id="bPrompt" maxlength="4000" style="min-height:80px"></textarea>
+        </label>
+        <label class="full">Presenter notes <span class="hint">the first line doubles as the public agenda detail</span>
+          <input type="text" id="bNotes" maxlength="2000">
+        </label>
+        <div class="rowbtns full">
+          <button class="gobtn" id="bSave" type="submit">Add block</button>
+          <button class="quietbtn" id="bCancel" type="button" hidden>Cancel edit</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="panel">
+      <h2>The admin word</h2>
+      <p class="quiet" style="font-size:.9rem">Saving changes the word for every admin on the spot &mdash; tell the other founder first. You stay signed in here.</p>
+      <form class="grid" id="awForm" style="margin-top:12px">
+        <label>New word <span class="hint">8+ characters</span>
+          <input type="password" id="aw1" autocomplete="new-password">
+        </label>
+        <label>Same again
+          <input type="password" id="aw2" autocomplete="new-password">
+        </label>
+        <div class="rowbtns full">
+          <button class="gobtn" id="awGo" type="submit">Change the word</button>
+        </div>
+      </form>
+    </div>
   </div>
 </section>
 
@@ -255,7 +333,9 @@
 (function(){
   'use strict';
   function boot(){
-    if (!window.AIHC){ setTimeout(boot, 50); return; }
+    /* wait for the gate: the admin-only loads need a credential, and on a fresh
+       login none exists until the door opens */
+    if (!window.AIHC || !window.AIHC.cred || !window.AIHC.cred()){ setTimeout(boot, 300); return; }
     var A = window.AIHC;
     var BASE = String(A.sync || '').replace(/\/notes\b.*$/, '');
     function $(id){ return document.getElementById(id); }
@@ -284,7 +364,7 @@
         return '<div class="evrow">' +
           '<b>' + esc(e.when) + '</b>' +
           '<span class="stag ' + e.status + '">' + e.status + '</span>' +
-          '<span class="meta">' + esc(e.title) + ' · ' + esc(e.city) + ' · ' + e.taken + '/' + e.capacity + ' seats taken</span>' +
+          '<span class="meta">' + esc(e.title) + ' Â· ' + esc(e.city) + ' Â· ' + e.taken + '/' + e.capacity + ' seats taken</span>' +
           '<span class="spacer"></span>' +
           '<button class="abtn" data-act="edit" data-id="' + esc(e.id) + '" type="button">Edit</button>' +
           '<button class="abtn" data-act="agenda" data-id="' + esc(e.id) + '" type="button">Agenda</button>' +
@@ -314,8 +394,10 @@
       }
       if (b.getAttribute('data-act') === 'agenda'){
         agEvent = id; editingItem = null;
+        lineup = [];
         $('agPanel').hidden = false;
         paintAgenda();
+        paintBuilder();
         window.scrollTo({top: $('agPanel').offsetTop - 90, behavior: 'smooth'});
       }
       if (b.getAttribute('data-act') === 'att'){
@@ -405,7 +487,7 @@
     function paintAgenda(){
       var e = events.find(function(x){ return x.id === agEvent; });
       if (!e) return;
-      $('agTitle').textContent = 'Agenda · ' + e.when;
+      $('agTitle').textContent = 'Agenda Â· ' + e.when;
       var items = agItems();
       $('agList').innerHTML = items.length ? items.map(function(a, i){
         return '<div class="agrow">' +
@@ -474,8 +556,8 @@
     function showAttendees(e){
       attEvent = e;
       $('attPanel').hidden = false;
-      $('attTitle').textContent = 'Attendees · ' + e.when;
-      $('attCounts').textContent = 'Loading the book…';
+      $('attTitle').textContent = 'Attendees Â· ' + e.when;
+      $('attCounts').textContent = 'Loading the bookâ€¦';
       $('attList').innerHTML = '';
       fetch(BASE + '/rsvps?secret=' + encodeURIComponent(A.secret))
         .then(function(r){ return r.json(); })
@@ -494,9 +576,9 @@
             tally[k] = (tally[k] || 0) + 1;
           });
           var tallyBits = Object.keys(tally).sort(function(a, b){ return tally[b] - tally[a]; })
-            .map(function(k){ return k + ' ' + tally[k]; }).join(' · ');
-          $('attCounts').textContent = seatSum(seats) + ' of ' + e.capacity + ' seats taken · ' +
-            seatSum(waits) + ' on the waitlist · ' + gone.length + ' cancelled' +
+            .map(function(k){ return k + ' ' + tally[k]; }).join(' Â· ');
+          $('attCounts').textContent = seatSum(seats) + ' of ' + e.capacity + ' seats taken Â· ' +
+            seatSum(waits) + ' on the waitlist Â· ' + gone.length + ' cancelled' +
             (tallyBits ? '\nCame via: ' + tallyBits : '');
           function block(list, label){
             if (!list.length) return '';
@@ -504,13 +586,13 @@
               list.map(function(r){
                 return '<div class="evrow"><b>' + esc(r.name) + (r.guest_name ? ' + ' + esc(r.guest_name) : '') + '</b>' +
                   '<span class="meta">' + esc(r.email || r.contact || '') +
-                  (r.phone ? ' · ' + esc(r.phone) : '') +
-                  (r.biz ? ' · ' + esc(r.biz) : '') +
-                  (r.ref ? ' · via ' + esc(r.ref) : '') + '</span>' +
+                  (r.phone ? ' Â· ' + esc(r.phone) : '') +
+                  (r.biz ? ' Â· ' + esc(r.biz) : '') +
+                  (r.ref ? ' Â· via ' + esc(r.ref) : '') + '</span>' +
                   '<span class="spacer"></span>' +
                   (r.attended
-                    ? '<span class="stag">✓ attended</span>'
-                    : '<button class="abtn" data-att="' + esc(r.id) + '" type="button">Attended · send invite</button>') +
+                    ? '<span class="stag">âœ“ attended</span>'
+                    : '<button class="abtn" data-att="' + esc(r.id) + '" type="button">Attended Â· send invite</button>') +
                   (r.note ? '<span class="meta" style="flex-basis:100%">task: ' + esc(r.note) + '</span>' : '') +
                 '</div>';
               }).join('');
@@ -528,11 +610,11 @@
       b.disabled = true;
       post('/rsvps', {action: 'attended', id: b.getAttribute('data-att'), attended: true}).then(function(d){
         if (!d.ok){ A.toast('Could not mark attended.'); b.disabled = false; return; }
-        if (d.invited && d.mailed){ A.toast('Marked attended — invite emailed to ' + (d.member ? d.member.email : 'them') + '.'); }
+        if (d.invited && d.mailed){ A.toast('Marked attended â€” invite emailed to ' + (d.member ? d.member.email : 'them') + '.'); }
         else if (d.member && d.invite){
-          A.toast('Marked attended. Mail is off — invite link copied instead.');
+          A.toast('Marked attended. Mail is off â€” invite link copied instead.');
           try { navigator.clipboard.writeText(d.invite); } catch(e){}
-        } else { A.toast('Marked attended. No email on the rsvp — add them by hand in Members.'); }
+        } else { A.toast('Marked attended. No email on the rsvp â€” add them by hand in Members.'); }
         if (attEvent) showAttendees(attEvent);
         loadMembers();
       });
@@ -547,7 +629,7 @@
         $('rcList').innerHTML = recipes.length ? recipes.map(function(r){
           return '<div class="evrow">' +
             '<b>' + esc(r.title) + '</b>' +
-            '<span class="meta">' + esc(r.category) + (r.name ? ' · from ' + esc(r.name) : '') + '</span>' +
+            '<span class="meta">' + esc(r.category) + (r.name ? ' Â· from ' + esc(r.name) : '') + '</span>' +
             '<span class="spacer"></span>' +
             '<button class="abtn" data-rc="edit" data-id="' + esc(r.id) + '" type="button">Edit</button>' +
             '<button class="abtn warn" data-rc="del" data-id="' + esc(r.id) + '" type="button">Delete</button>' +
@@ -596,6 +678,199 @@
     }
     $('rCancel').addEventListener('click', cancelRecipe);
 
+    /* ---- the block shelf: reusable run-sheet segments ---- */
+    var blocks = [];
+    var aiOn = false;
+    var editingBlock = null;
+    var lineup = []; /* the builder's working order: [{block_id, title, minutes, detail}] */
+    function kindLabel(k){
+      return {demo: 'Demo', talk: 'Talk', task: 'Worked task', admin: 'Housekeeping'}[k] || k;
+    }
+    function loadBlocks(){
+      fetch(BASE + '/blocks?secret=' + encodeURIComponent(A.secret))
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          blocks = (d && d.blocks) || [];
+          aiOn = !!(d && d.ai);
+          $('bkList').innerHTML = blocks.length ? blocks.map(function(b){
+            return '<div class="evrow">' +
+              '<b>' + esc(b.title) + '</b>' +
+              '<span class="meta">' + esc(kindLabel(b.kind)) + ' &middot; ' + b.minutes + ' min</span>' +
+              '<span class="spacer"></span>' +
+              '<button class="abtn" data-bk="edit" data-id="' + esc(b.id) + '" type="button">Edit</button>' +
+              '<button class="abtn warn" data-bk="del" data-id="' + esc(b.id) + '" type="button">Delete</button>' +
+            '</div>';
+          }).join('') : '<span class="quiet">The shelf is empty. Add the first block below.</span>';
+          paintBuilder();
+        });
+    }
+    $('bkList').addEventListener('click', function(ev){
+      var b = ev.target.closest('button[data-bk]');
+      if (!b) return;
+      var blk = blocks.find(function(x){ return x.id === b.getAttribute('data-id'); });
+      if (!blk) return;
+      if (b.getAttribute('data-bk') === 'edit'){
+        editingBlock = blk.id;
+        $('bTitle').value = blk.title; $('bKind').value = blk.kind; $('bMin').value = blk.minutes;
+        $('bPrompt').value = blk.prompt; $('bNotes').value = blk.notes; $('bLinks').value = blk.links;
+        $('bSave').textContent = 'Save block'; $('bCancel').hidden = false;
+      }
+      if (b.getAttribute('data-bk') === 'del'){
+        if (!window.confirm('Take "' + blk.title + '" off the shelf?')) return;
+        post('/blocks', {action: 'delete', id: blk.id}).then(function(){ A.toast('Block removed.'); loadBlocks(); });
+      }
+    });
+    $('bkForm').addEventListener('submit', function(ev){
+      ev.preventDefault();
+      var title = $('bTitle').value.trim();
+      if (!title){ A.toast('A block needs a title.'); return; }
+      var keepPos = editingBlock ? ((blocks.find(function(x){ return x.id === editingBlock; }) || {}).pos || 0) : blocks.length + 1;
+      post('/blocks', {action: editingBlock ? 'update' : 'add', block: {
+        id: editingBlock || undefined, title: title, kind: $('bKind').value,
+        minutes: $('bMin').value, prompt: $('bPrompt').value.trim(),
+        notes: $('bNotes').value.trim(), links: $('bLinks').value.trim(), pos: keepPos
+      }}).then(function(d){
+        if (d.ok){ A.toast(editingBlock ? 'Block saved.' : 'Block on the shelf.'); cancelBlock(); loadBlocks(); }
+      });
+    });
+    function cancelBlock(){
+      editingBlock = null;
+      $('bkForm').reset();
+      $('bMin').value = 10;
+      $('bSave').textContent = 'Add block';
+      $('bCancel').hidden = true;
+    }
+    $('bCancel').addEventListener('click', cancelBlock);
+
+    /* ---- the agenda builder: shelf chips -> timed lineup -> /agenda replace ---- */
+    /* t labels: clock times when the meetup has a start_time, else 0:00-style offsets */
+    function fmtT(minsFromStart, startTime){
+      if (/^\d{1,2}:\d{2}$/.test(startTime || '')){
+        var p = startTime.split(':');
+        var total = parseInt(p[0], 10) * 60 + parseInt(p[1], 10) + minsFromStart;
+        var h = Math.floor(total / 60) % 24, m = total % 60;
+        return (h % 12 || 12) + ':' + (m < 10 ? '0' : '') + m + (h >= 12 ? ' pm' : ' am');
+      }
+      var h2 = Math.floor(minsFromStart / 60), m2 = minsFromStart % 60;
+      return h2 + ':' + (m2 < 10 ? '0' : '') + m2;
+    }
+    function paintBuilder(){
+      if (!agEvent || $('agPanel').hidden) return;
+      var e = events.find(function(x){ return x.id === agEvent; }) || {};
+      $('agShelf').innerHTML = blocks.length ? blocks.map(function(b){
+        return '<button class="shelfchip" data-add="' + esc(b.id) + '" type="button">+ ' + esc(b.title) + ' &middot; ' + b.minutes + 'm</button>';
+      }).join('') : '<span class="quiet">Nothing on the shelf yet â€” add blocks in the panel below.</span>';
+      var acc = 0;
+      $('agLineup').innerHTML = lineup.length ? lineup.map(function(it, i){
+        var t = fmtT(acc, e.start_time);
+        acc += it.minutes;
+        return '<div class="lurow">' +
+          '<span class="t">' + esc(t) + '</span>' +
+          '<span class="grow"><b>' + esc(it.title) + '</b>' + (it.detail ? '<span class="d">' + esc(it.detail) + '</span>' : '') + '</span>' +
+          '<input class="min" type="number" min="1" max="120" value="' + it.minutes + '" data-min="' + i + '" aria-label="Minutes">' +
+          '<button class="abtn" data-lu="up" data-i="' + i + '" type="button">&#8593;</button>' +
+          '<button class="abtn" data-lu="down" data-i="' + i + '" type="button">&#8595;</button>' +
+          '<button class="abtn warn" data-lu="del" data-i="' + i + '" type="button">&times;</button>' +
+        '</div>';
+      }).join('') : '<span class="quiet">Tap blocks above to build the hour' + (aiOn ? ', or let the drafter take a swing' : '') + '.</span>';
+      $('agTotal').textContent = lineup.length
+        ? ('Runs ' + acc + ' minutes' + (acc > 60 ? ' â€” over the hour, trim something.' : ' of 60.'))
+        : '';
+      $('agWrite').disabled = !lineup.length;
+      $('agClear').hidden = !lineup.length;
+      $('agDraft').hidden = !aiOn;
+      $('agBriefWrap').hidden = !aiOn;
+    }
+    $('agShelf').addEventListener('click', function(ev){
+      var b = ev.target.closest('button[data-add]');
+      if (!b) return;
+      var blk = blocks.find(function(x){ return x.id === b.getAttribute('data-add'); });
+      if (!blk) return;
+      lineup.push({
+        block_id: blk.id, title: blk.title, minutes: blk.minutes,
+        detail: blk.notes ? blk.notes.split('\n')[0].slice(0, 140) : ''
+      });
+      paintBuilder();
+    });
+    $('agLineup').addEventListener('click', function(ev){
+      var b = ev.target.closest('button[data-lu]');
+      if (!b) return;
+      var i = parseInt(b.getAttribute('data-i'), 10);
+      var act = b.getAttribute('data-lu');
+      if (act === 'del') lineup.splice(i, 1);
+      if (act === 'up' && i > 0){ var t = lineup[i - 1]; lineup[i - 1] = lineup[i]; lineup[i] = t; }
+      if (act === 'down' && i < lineup.length - 1){ var t2 = lineup[i + 1]; lineup[i + 1] = lineup[i]; lineup[i] = t2; }
+      paintBuilder();
+    });
+    $('agLineup').addEventListener('change', function(ev){
+      var inp = ev.target.closest('input[data-min]');
+      if (!inp) return;
+      var i = parseInt(inp.getAttribute('data-min'), 10);
+      if (!lineup[i]) return;
+      lineup[i].minutes = Math.min(120, Math.max(1, parseInt(inp.value, 10) || 5));
+      paintBuilder();
+    });
+    $('agClear').addEventListener('click', function(){ lineup = []; paintBuilder(); });
+    $('agWrite').addEventListener('click', function(){
+      if (!agEvent || !lineup.length) return;
+      var e = events.find(function(x){ return x.id === agEvent; }) || {};
+      var had = agItems().length;
+      if (had && !window.confirm('Write these ' + lineup.length + ' items as the agenda? The current ' + had + ' are replaced.')) return;
+      var acc = 0;
+      var items = lineup.map(function(it){
+        var t = fmtT(acc, e.start_time);
+        acc += it.minutes;
+        return {t: t, title: it.title, detail: it.detail || ''};
+      });
+      post('/agenda', {action: 'replace', event: agEvent, items: items}).then(function(d){
+        if (d && d.ok){ A.toast('Run sheet written.'); lineup = []; load(); }
+        else A.toast('That did not save.');
+      });
+    });
+    $('agDraft').addEventListener('click', function(){
+      if (!agEvent) return;
+      var btn = $('agDraft');
+      btn.disabled = true; btn.textContent = 'Thinkingâ€¦ give it a minute';
+      function rearm(){ btn.disabled = false; btn.innerHTML = '&#10024; Draft it for me'; }
+      post('/agenda-draft', {event: agEvent, brief: $('agBrief').value.trim()}).then(function(d){
+        rearm();
+        if (d && d.ok && d.draft && d.draft.items){
+          lineup = d.draft.items.map(function(it){
+            return {
+              block_id: it.block_id || null,
+              title: String(it.title || '').slice(0, 200),
+              minutes: Math.min(120, Math.max(1, parseInt(it.minutes, 10) || 5)),
+              detail: String(it.detail || '').slice(0, 1000)
+            };
+          }).filter(function(it){ return it.title; });
+          paintBuilder();
+          A.toast('Drafted. Rearrange to taste, then write it.');
+        } else {
+          A.toast(d && d.error === 'no-api-key'
+            ? 'No AI key on the server yet.'
+            : 'The drafter came up empty. Try again.');
+        }
+      }).catch(function(){ rearm(); A.toast('The drafter came up empty. Try again.'); });
+    });
+
+    /* ---- the admin word: self-serve rotation ---- */
+    $('awForm').addEventListener('submit', function(ev){
+      ev.preventDefault();
+      var w1 = $('aw1').value.trim(), w2 = $('aw2').value.trim();
+      if (w1.length < 8){ A.toast('Eight characters at least.'); return; }
+      if (w1 !== w2){ A.toast('Those two do not match.'); return; }
+      if (!window.confirm('Change the admin word for every admin, right now?')) return;
+      post('/admin-secret', {next: w1}).then(function(d){
+        if (d && d.ok){
+          if (A.setCred) A.setCred(w1);
+          $('awForm').reset();
+          A.toast('New word set. Pass it along.');
+        } else {
+          A.toast((d && d.error) || 'That did not take.');
+        }
+      });
+    });
+
     /* rooms offered: the venue pipeline from lend.html */
     var venues = [];
 
@@ -611,7 +886,7 @@
               '<b>' + esc(m.name) + '</b>' +
               (m.role === 'admin' ? '<span class="stag">admin</span>' : '') +
               (m.status === 'revoked' ? '<span class="stag past">revoked</span>' : '') +
-              '<span class="meta">' + esc(m.email || 'no email') + (m.source ? ' · ' + esc(m.source) : '') + '</span>' +
+              '<span class="meta">' + esc(m.email || 'no email') + (m.source ? ' Â· ' + esc(m.source) : '') + '</span>' +
               '<span class="spacer"></span>' +
               (m.status === 'active' ? (
                 '<button class="abtn" data-mb="copy" data-id="' + esc(m.id) + '" type="button">Copy key</button>' +
@@ -654,10 +929,10 @@
       if (!name){ A.toast('A member needs a name.'); return; }
       post('/members', {action: 'add', name: name, email: email}).then(function(d){
         if (!d.ok){ A.toast('Could not add them.'); return; }
-        if (d.existed) A.toast(name + ' already has a key — use Resend or Copy key.');
+        if (d.existed) A.toast(name + ' already has a key â€” use Resend or Copy key.');
         else if (d.mailed) A.toast('Key cut and emailed to ' + email + '.');
         else {
-          A.toast(email ? 'Key cut; mail is off, link copied.' : 'Key cut — link copied, hand it to them.');
+          A.toast(email ? 'Key cut; mail is off, link copied.' : 'Key cut â€” link copied, hand it to them.');
           try { navigator.clipboard.writeText(d.invite); } catch(e){}
         }
         $('mbForm').reset();
@@ -674,8 +949,8 @@
             return '<div class="evrow">' +
               '<b>' + esc(v.venue) + '</b>' +
               '<span class="stag ' + esc(v.status) + '">' + esc(v.status) + '</span>' +
-              '<span class="meta">' + esc(v.town) + (v.seats ? ' · ~' + v.seats + ' seats' : '') +
-                ' · ' + esc(v.name) + ' · ' + esc(v.email) + (v.phone ? ' · ' + esc(v.phone) : '') + '</span>' +
+              '<span class="meta">' + esc(v.town) + (v.seats ? ' Â· ~' + v.seats + ' seats' : '') +
+                ' Â· ' + esc(v.name) + ' Â· ' + esc(v.email) + (v.phone ? ' Â· ' + esc(v.phone) : '') + '</span>' +
               (v.notes ? '<span class="meta" style="flex-basis:100%">' + esc(v.notes) + '</span>' : '') +
               '<span class="spacer"></span>' +
               '<button class="abtn" data-vn="sched" data-id="' + esc(v.id) + '" type="button">Schedule here</button>' +
@@ -792,7 +1067,7 @@
       var c = chans.find(function(x){ return x.id === modChan; });
       if (!c) return;
       $('modBox').hidden = false;
-      $('modTitle').textContent = 'Recent messages · #' + c.name;
+      $('modTitle').textContent = 'Recent messages Â· #' + c.name;
       $('modList').innerHTML = '<span class="quiet">Loading&hellip;</span>';
       fetch(BASE + '/chat?secret=' + encodeURIComponent(A.secret) + '&channel=' + encodeURIComponent(modChan))
         .then(function(r){ return r.json(); })
@@ -802,7 +1077,7 @@
             return '<div class="evrow">' +
               '<b>' + esc(m.name) + '</b>' +
               '<span class="meta">' + esc(String(m.ts).replace('T', ' ').slice(0, 16)) +
-                (m.parent ? ' · in a thread' : '') + '</span>' +
+                (m.parent ? ' Â· in a thread' : '') + '</span>' +
               '<span class="meta" style="flex-basis:100%">' + esc(m.body) + '</span>' +
               '<span class="spacer"></span>' +
               '<button class="abtn warn" data-mod="del" data-id="' + esc(m.id) + '" type="button">Delete</button>' +
@@ -824,6 +1099,7 @@
     loadMembers();
     loadVenues();
     loadChannels();
+    loadBlocks();
   }
   boot();
 })();
@@ -835,6 +1111,6 @@
 
 <script>window.AIHC_PAGE = {deck: 'admin'};</script>
 <script src="../assets/config.js"></script>
-<script src="../assets/club.js"></script>
+<script src="../assets/club.js?v=2"></script>
 </body>
 </html>

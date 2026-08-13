@@ -124,20 +124,77 @@
           : 'That is not the word.');
         return;
       }
+      /* the burned legacy word just walked in: rotation becomes the door */
+      if (d.mustRotate){ showRotate(pass, d); return; }
       saveSession(pass, d);
       unlock(true);
     });
   }
-  $('gGo').addEventListener('click', tryLogin);
-  $('gPass').addEventListener('keydown', function(ev){ if (ev.key === 'Enter') tryLogin(); });
-  $('gName').addEventListener('keydown', function(ev){ if (ev.key === 'Enter') $('gPass').focus(); });
+  function wireGate(){
+    $('gGo').addEventListener('click', tryLogin);
+    $('gPass').addEventListener('keydown', function(ev){ if (ev.key === 'Enter') tryLogin(); });
+    $('gName').addEventListener('keydown', function(ev){ if (ev.key === 'Enter') $('gPass').focus(); });
+  }
+  wireGate();
+
+  /* the old admin word is public in git history; when it opens the door, the gate
+     turns into a pick-a-new-word step. "later" lets them through on the old word. */
+  function showRotate(oldWord, d){
+    var card = $('gateCard');
+    var original = card.innerHTML;
+    card.innerHTML =
+      '<span class="logo" data-size="90" aria-hidden="true"></span>' +
+      '<h2>Pick a new admin word</h2>' +
+      '<p>The old word shipped in public code, so it retires today. Choose a fresh one &mdash; it changes for every admin, so tell the other founder.</p>' +
+      '<input id="rw1" type="password" placeholder="A new admin word (8+ characters)" autocomplete="new-password" aria-label="New admin word">' +
+      '<input id="rw2" type="password" placeholder="Same word again" autocomplete="new-password" aria-label="New admin word, again">' +
+      '<p class="err" id="rwErr" role="alert"></p>' +
+      '<button id="rwGo">Lock it in</button>' +
+      '<p><button id="rwLater" type="button" style="background:none;border:none;color:inherit;opacity:.65;cursor:pointer;font:inherit;text-decoration:underline">Not now &mdash; ask me next time</button></p>';
+    if (CFG.paintLogos) CFG.paintLogos(card);
+    function done(word, rotated){
+      card.innerHTML = original;
+      wireGate();
+      if (CFG.paintLogos) CFG.paintLogos(card);
+      saveSession(word, d);
+      unlock(true);
+      if (rotated) toast('New word set. It is the only key now — pass it along.');
+    }
+    function fail(msg){
+      $('rwErr').textContent = msg;
+      card.classList.remove('shake'); void card.offsetWidth; card.classList.add('shake');
+    }
+    $('rwGo').addEventListener('click', function(){
+      var w1 = $('rw1').value.trim(), w2 = $('rw2').value.trim();
+      if (w1.length < 8){ fail('Eight characters at least.'); return; }
+      if (w1 !== w2){ fail('Those two do not match.'); return; }
+      fetch((CFG.API_BASE || '') + '/admin-secret', {
+        method: 'POST', headers: {'Content-Type': 'text/plain'},
+        body: JSON.stringify({secret: oldWord, next: w1})
+      }).then(function(r){ return r.json().then(function(j){ return { ok: r.ok, j: j }; }); })
+        .then(function(res){
+          if (res.ok && res.j && res.j.ok) done(w1, true);
+          else fail((res.j && res.j.error) || 'That did not take. Try again.');
+        })
+        .catch(function(){ fail('Could not reach the club. Try again in a minute.'); });
+    });
+    $('rw1').addEventListener('keydown', function(ev){ if (ev.key === 'Enter') $('rw2').focus(); });
+    $('rw2').addEventListener('keydown', function(ev){ if (ev.key === 'Enter') $('rwGo').click(); });
+    $('rwLater').addEventListener('click', function(){ done(oldWord, false); });
+    setTimeout(function(){ $('rw1').focus(); }, 50);
+  }
 
   /* bridge for page-specific scripts: everything credential-ish reads live off the session */
   window.AIHC = {
     deck: DECK_ID, sync: SYNC_URL, toast: toast,
     viewer: function(){ return viewer; },
     cred: function(){ return session ? session.token : ''; },
-    role: function(){ return session ? session.role : ''; }
+    role: function(){ return session ? session.role : ''; },
+    /* the console's admin-word panel swaps the stored credential in place so a
+       rotation does not log the rotator out */
+    setCred: function(token){
+      if (session) saveSession(String(token), { name: session.name, role: session.role });
+    }
   };
   try {
     Object.defineProperty(window.AIHC, 'secret', { get: function(){ return session ? session.token : ''; } });

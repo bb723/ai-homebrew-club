@@ -98,7 +98,7 @@
       <span class="logo" data-size="64" aria-hidden="true"></span>
       <h1 id="hubHi">Come on in.</h1>
     </div>
-    <p class="hubsub">Pour yourself a coffee — here's where everything lives.</p>
+    <p class="hubsub">Pour yourself a coffee â€” here's where everything lives.</p>
 
     <div class="hubgrid">
       <div class="hubcard nextmeet a-tangerine" id="nextCard">
@@ -132,7 +132,7 @@
 
     <div class="bo">
       <h2>The back office</h2>
-      <p class="bosub">For the folks running the place — controls, the plan, and every pitch.</p>
+      <p class="bosub">For the folks running the place â€” controls, the plan, and every pitch.</p>
       <div class="bolinks" id="boLinks"></div>
     </div>
   </div>
@@ -191,12 +191,12 @@
           var p = e.start_time.split(':'); var h = parseInt(p[0], 10);
           t = (h % 12 || 12) + ':' + p[1] + ' ' + (h >= 12 ? 'pm' : 'am');
         }
-        document.getElementById('nmWhen').textContent = e.when + (t ? ' · ' + t : '');
-        document.getElementById('nmWhere').textContent = e.title + ' — ' + e.location;
+        document.getElementById('nmWhen').textContent = e.when + (t ? ' Â· ' + t : '');
+        document.getElementById('nmWhere').textContent = e.title + ' â€” ' + e.location;
         var pill = document.getElementById('nmSeats');
         pill.hidden = false;
         if (e.left > 0){ pill.textContent = e.left + ' of ' + e.capacity + ' seats left'; }
-        else { pill.textContent = 'Full · waitlist open'; pill.classList.add('full'); }
+        else { pill.textContent = 'Full Â· waitlist open'; pill.classList.add('full'); }
         var go = document.getElementById('nmGo');
         go.textContent = e.left > 0 ? 'Save my seat' : 'Join the waitlist';
         go.href = 'rsvp.html?event=' + encodeURIComponent(e.id) + '&ref=members';
@@ -209,6 +209,6 @@
 
 <script>window.AIHC_PAGE = {deck: 'members', gate: 'member'};</script>
 <script src="assets/config.js"></script>
-<script src="assets/club.js"></script>
+<script src="assets/club.js?v=2"></script>
 </body>
 </html>
