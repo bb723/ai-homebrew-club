@@ -496,35 +496,8 @@
 
   /* ---------- art: the coffee urn and the potluck ladder ---------- */
   /* the urn logo itself lives in config.js */
-  function lvlsvg(inner){ return '<svg viewBox="0 0 80 120" fill="none" aria-hidden="true">' + inner + '</svg>'; }
-  var LEVELS = {
-    1: lvlsvg(
-      '<path d="M40 114 V56" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>' +
-      '<path d="M30 22 v20 a10 10 0 0 0 20 0 V22" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>' +
-      '<path d="M40 22 v20" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/>' +
-      '<rect x="34" y="66" width="12" height="18" rx="6" fill="var(--teal)"/>'),
-    2: lvlsvg(
-      '<ellipse cx="40" cy="84" rx="28" ry="12" fill="var(--tangerine)" stroke="var(--ink)" stroke-width="4"/>' +
-      '<path d="M14 78 a26 16 0 0 1 52 0" fill="var(--lemon)" stroke="var(--ink)" stroke-width="4"/>' +
-      '<circle cx="40" cy="58" r="5" fill="var(--ink)"/>' +
-      '<path d="M30 44 c-3 -5 3 -8 0 -13" stroke="var(--teal)" stroke-width="4" stroke-linecap="round"/>' +
-      '<path d="M50 44 c-3 -5 3 -8 0 -13" stroke="var(--sky)" stroke-width="4" stroke-linecap="round"/>'),
-    3: lvlsvg(
-      '<rect x="14" y="56" width="52" height="42" rx="7" fill="var(--berry)" stroke="var(--ink)" stroke-width="4"/>' +
-      '<path d="M14 66 h-7" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>' +
-      '<path d="M66 66 h7" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>' +
-      '<path d="M12 56 h56" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>' +
-      '<circle cx="40" cy="47" r="5" fill="var(--ink)"/>' +
-      '<path d="M28 36 c-3 -5 3 -8 0 -14" stroke="var(--teal)" stroke-width="4" stroke-linecap="round"/>' +
-      '<path d="M40 32 c-3 -6 3 -9 0 -16" stroke="var(--tangerine)" stroke-width="4" stroke-linecap="round"/>' +
-      '<path d="M52 36 c-3 -5 3 -8 0 -14" stroke="var(--lemon)" stroke-width="4" stroke-linecap="round"/>')
-  };
   CFG.paintLogos(document);
-  document.querySelectorAll('.lvlicon').forEach(function(el){
-    el.innerHTML = LEVELS[el.getAttribute('data-level') || '1'] || '';
-    var svg = el.firstChild;
-    if (svg){ svg.setAttribute('width', '64'); svg.setAttribute('height', '88'); }
-  });
+  CFG.paintLevels(document, 64, 88);
 
   /* ---------- boot ---------- */
   sortNotes();
