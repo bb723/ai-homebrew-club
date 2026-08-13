@@ -387,6 +387,10 @@
     var latest = {};              /* channel id -> newest ts, for unread dots */
     var who = [];                 /* presence: [{name, channel}] */
     var cur = 'general';
+    /* deep links: chat.html?room=~feed lands on the bulletin board (feed.html redirects here) */
+    try {
+      if (new URLSearchParams(location.search).get('room') === BOARD) cur = BOARD;
+    } catch(e){}
     var openThread = null;        /* parent message id, or null */
     var read = {};
     try { read = JSON.parse(localStorage.getItem(LS_READ) || '{}'); } catch(e){ read = {}; }
