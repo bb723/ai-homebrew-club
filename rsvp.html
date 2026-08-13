@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <title>Save your seat &middot; The AI Homebrew Club</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <meta property="og:title" content="Save a seat at the AI Brown Bag">
 <meta property="og:description" content="One hour, one problem off your plate. Neighbors teaching neighbors to put AI to work. Free, coffee on.">
 <meta property="og:image" content="https://aihomebrewclub.com/invite-card.png">
@@ -20,6 +21,10 @@
   .sharerow{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px}
   .lend{font-size:.85rem; font-weight:700; color:var(--ink-soft); margin-top:14px}
   .lend a{color:var(--teal-deep)}
+  .handnote{
+    font-family:var(--font-hand); font-size:1.45rem; line-height:1.3; color:var(--tangerine);
+    transform:rotate(-1.2deg); margin:10px 0 2px;
+  }
   .pairchoice{display:none; padding:8px 0 2px}
   .pairchoice h2{font-weight:800; font-size:1.3rem; margin:0 0 8px}
   .pairchoice .go{margin-right:8px; margin-top:8px}
@@ -67,6 +72,7 @@
     </form>
     <div class="done" id="doneSeat">
       <h2>Seat saved. &#9749;</h2>
+      <p class="handnote">We'll keep the chair tipped against the table for you.</p>
       <p>You're on the list for <span class="evWhenInline">the next meetup</span>. A confirmation just landed in your email with a calendar invite and a cancel link, and we'll email a reminder before the day.</p>
       <p style="margin-top:12px"><b>Every table fills by word of mouth.</b> Know a neighbor who should be here?</p>
       <div class="sharerow">

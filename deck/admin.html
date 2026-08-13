@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <title>The AI Homebrew Club &middot; Meetup Controls</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
 <meta name="robots" content="noindex, nofollow">
 <link rel="stylesheet" href="../assets/club.css">
 </head>
@@ -26,6 +27,10 @@
 <style>
   /* admin-only styles: this block ships only with admin.html */
   html{scroll-snap-type:none}
+  /* a form console has no slides: no rail, no arrow hints, no notes pane */
+  .rail,.hint,.notesbtn,.clickhint{display:none!important}
+  .sidepane{display:none!important}
+  body.pane-open .deck{margin-right:0}
   .slide{min-height:100svh; display:block; padding:4px clamp(12px,3vw,20px) 80px; background:var(--w-cream)}
   .sheet{width:min(720px,100%); margin:0 auto; gap:0}
   #s1 .sheet{padding-top:clamp(56px,8vh,88px)}
