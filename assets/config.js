@@ -31,7 +31,7 @@ window.AIHC_CONFIG = (function(){
   /* The circuit map: where each chapter sits on the hand-drawn Maine SVG
      (viewBox 0 0 400 520 in events.html). One line per town as chapters open. */
   var CITY_POINTS = {
-    waterville: {x: 190, y: 352, side: 'left', label: 'Waterville', page: 'waterville.html'}
+    waterville: {x: 156, y: 334, label: 'Waterville', page: 'waterville.html'}
   };
 
   function deckHref(id){
