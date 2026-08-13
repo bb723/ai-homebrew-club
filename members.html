@@ -19,7 +19,7 @@
   <div class="gate-card" id="gateCard">
     <span class="logo" data-size="90" aria-hidden="true"></span>
     <h2>The members' room</h2>
-    <p>Tell us who you are and the secret word from the meetup.</p>
+    <p>Members get in with the invite link from their email. Lost yours? It also pastes in below.</p>
     <input id="gName" type="text" placeholder="Your name" autocomplete="off" aria-label="Your name">
     <input id="gPass" type="password" placeholder="Secret word" autocomplete="off" aria-label="Secret word">
     <p class="err" id="gErr" role="alert"></p>
@@ -147,6 +147,15 @@
     if (!window.AIHC || !window.AIHC.viewer || !window.AIHC.viewer()){ setTimeout(boot, 300); return; }
     var A = window.AIHC;
 
+    /* the board and the back office belong to the folks running the place */
+    var isAdmin = A.role && A.role() === 'admin';
+    if (!isAdmin){
+      var boSec = document.querySelector('.bo');
+      if (boSec) boSec.style.display = 'none';
+      var board = document.querySelector('a.hubcard[href="chat.html?room=~feed"]');
+      if (board) board.style.display = 'none';
+    }
+
     /* the back office builds itself from the one nav in config.js: admin first,
        then everything filed under Internal and The pitches */
     var CFG = window.AIHC_CONFIG;
@@ -198,7 +207,7 @@
 })();
 </script>
 
-<script>window.AIHC_PAGE = {deck: 'members'};</script>
+<script>window.AIHC_PAGE = {deck: 'members', gate: 'member'};</script>
 <script src="assets/config.js"></script>
 <script src="assets/club.js"></script>
 </body>

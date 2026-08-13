@@ -19,7 +19,7 @@
   <div class="gate-card" id="gateCard">
     <span class="logo" data-size="90" aria-hidden="true"></span>
     <h2>Friends only, for now</h2>
-    <p>This is the members' clubhouse. Tell us who you are and the secret word from the meetup.</p>
+    <p>This is the members' clubhouse. Your invite link from the email opens it, or paste the code below.</p>
     <input id="gName" type="text" placeholder="Your name" autocomplete="off" aria-label="Your name">
     <input id="gPass" type="password" placeholder="Secret word" autocomplete="off" aria-label="Secret word">
     <p class="err" id="gErr" role="alert"></p>
@@ -324,7 +324,7 @@
         <span class="rh"><b>The clubhouse</b><span class="livedot" id="liveDot">connecting</span></span>
         <span class="railsquig"></span>
       </div>
-      <div class="railgroup">The bulletin board</div>
+      <div class="railgroup" id="boardLabel">The bulletin board</div>
       <div id="boardEntry"></div>
       <div class="railgroup">Rooms</div>
       <div id="chanList"><div class="railempty">Setting the table&hellip;</div></div>
@@ -370,6 +370,7 @@
   function boot(){
     if (!window.AIHC || !window.AIHC.viewer()){ setTimeout(boot, 300); return; }
     var A = window.AIHC;
+    function isAdmin(){ return A.role && A.role() === 'admin'; }
     var BASE = String(A.sync || '').replace(/\/notes\b.*$/, '');
     if (!/^https?:/.test(BASE)) return; /* no backend configured: leave the loading note */
     var WS_URL = BASE.replace(/^http/, 'ws') + '/chat/ws';
@@ -390,7 +391,7 @@
     var cur = 'general';
     /* deep links: chat.html?room=~feed lands on the bulletin board (feed.html redirects here) */
     try {
-      if (new URLSearchParams(location.search).get('room') === BOARD) cur = BOARD;
+      if (new URLSearchParams(location.search).get('room') === BOARD && isAdmin()) cur = BOARD;
     } catch(e){}
     var openThread = null;        /* parent message id, or null */
     var read = {};
@@ -498,7 +499,9 @@
       return latest[id] && (!read[id] || latest[id] > read[id]) && id !== cur;
     }
     function renderRail(){
-      $('boardEntry').innerHTML =
+      /* the board is internal: only the folks running the place see it */
+      $('boardLabel').style.display = isAdmin() ? '' : 'none';
+      $('boardEntry').innerHTML = !isAdmin() ? '' :
         '<button class="chan' + (cur === BOARD ? ' here' : '') + '" type="button" data-chan="' + BOARD + '">' +
           '<span class="boardico">☕</span><span class="nm">The feed</span>' +
           (hasUnread(BOARD) ? '<span class="dot"></span>' : '') +
@@ -701,6 +704,7 @@
       markRead();
     }
     function loadBoard(){
+      if (!isAdmin()) return;
       fetch(BASE + '/posts?secret=' + encodeURIComponent(A.secret))
         .then(function(r){ return r.json(); })
         .then(function(d){
@@ -1086,7 +1090,7 @@
 
 
 
-<script>window.AIHC_PAGE = {deck: 'chat'};</script>
+<script>window.AIHC_PAGE = {deck: 'chat', gate: 'member'};</script>
 <script src="assets/config.js"></script>
 <script src="assets/club.js"></script>
 </body>

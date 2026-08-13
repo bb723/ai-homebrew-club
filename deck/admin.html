@@ -15,7 +15,7 @@
   <div class="gate-card" id="gateCard">
     <span class="logo" data-size="90" aria-hidden="true"></span>
     <h2>Friends only, for now</h2>
-    <p>This is a working preview of the club deck. Tell us who you are and the secret word.</p>
+    <p>The back office. Your name and the admin word, please.</p>
     <input id="gName" type="text" placeholder="Your name" autocomplete="off" aria-label="Your name">
     <input id="gPass" type="password" placeholder="Secret word" autocomplete="off" aria-label="Secret word">
     <p class="err" id="gErr" role="alert"></p>
@@ -163,6 +163,23 @@
     </div>
 
     <div class="panel">
+      <h2>Members</h2>
+      <p class="quiet" style="font-size:.9rem">Every key to the clubhouse. Mark an rsvp attended and the invite emails itself; add plus-ones by hand. Revoking a key locks that person out everywhere, instantly.</p>
+      <div id="mbList" style="margin-top:8px"><span class="quiet">Loading&hellip;</span></div>
+      <form class="grid" id="mbForm" style="margin-top:12px">
+        <label>Name
+          <input type="text" id="mName" maxlength="80" placeholder="Pat from the hardware store">
+        </label>
+        <label>Email <span class="hint">the invite goes here</span>
+          <input type="text" id="mEmail" maxlength="160" inputmode="email">
+        </label>
+        <div class="rowbtns full">
+          <button class="gobtn" id="mSave" type="submit">Add member &middot; send invite</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="panel">
       <h2>Rooms offered</h2>
       <p class="quiet" style="font-size:.9rem">Neighbors lending spaces via <a href="../lend.html">aihomebrewclub.com/lend.html</a>. Schedule a meetup in one, or mark it passed.</p>
       <div id="vnList" style="margin-top:8px"><span class="quiet">Loading&hellip;</span></div>
@@ -181,6 +198,12 @@
         </label>
         <label class="full">Topic <span class="hint">one line under the room name</span>
           <input type="text" id="cTopic" maxlength="200" placeholder="Hardware, laptops, and what to run it all on.">
+        </label>
+        <label>Who can see it
+          <select id="cVis">
+            <option value="members">Every member</option>
+            <option value="admins">Admins only</option>
+          </select>
         </label>
         <label class="chk full"><input type="checkbox" id="cAnnounce" checked> Announce the new room on the club feed</label>
         <div class="rowbtns full">
@@ -449,6 +472,7 @@
 
     /* attendee list: full detail, admin eyes only */
     function showAttendees(e){
+      attEvent = e;
       $('attPanel').hidden = false;
       $('attTitle').textContent = 'Attendees · ' + e.when;
       $('attCounts').textContent = 'Loading the book…';
@@ -483,6 +507,10 @@
                   (r.phone ? ' · ' + esc(r.phone) : '') +
                   (r.biz ? ' · ' + esc(r.biz) : '') +
                   (r.ref ? ' · via ' + esc(r.ref) : '') + '</span>' +
+                  '<span class="spacer"></span>' +
+                  (r.attended
+                    ? '<span class="stag">✓ attended</span>'
+                    : '<button class="abtn" data-att="' + esc(r.id) + '" type="button">Attended · send invite</button>') +
                   (r.note ? '<span class="meta" style="flex-basis:100%">task: ' + esc(r.note) + '</span>' : '') +
                 '</div>';
               }).join('');
@@ -493,6 +521,22 @@
         });
       window.scrollTo({top: $('attPanel').offsetTop - 90, behavior: 'smooth'});
     }
+    var attEvent = null;
+    $('attList').addEventListener('click', function(ev){
+      var b = ev.target.closest('button[data-att]');
+      if (!b) return;
+      b.disabled = true;
+      post('/rsvps', {action: 'attended', id: b.getAttribute('data-att'), attended: true}).then(function(d){
+        if (!d.ok){ A.toast('Could not mark attended.'); b.disabled = false; return; }
+        if (d.invited && d.mailed){ A.toast('Marked attended — invite emailed to ' + (d.member ? d.member.email : 'them') + '.'); }
+        else if (d.member && d.invite){
+          A.toast('Marked attended. Mail is off — invite link copied instead.');
+          try { navigator.clipboard.writeText(d.invite); } catch(e){}
+        } else { A.toast('Marked attended. No email on the rsvp — add them by hand in Members.'); }
+        if (attEvent) showAttendees(attEvent);
+        loadMembers();
+      });
+    });
 
     /* recipe box manager */
     var recipes = [];
@@ -554,6 +598,73 @@
 
     /* rooms offered: the venue pipeline from lend.html */
     var venues = [];
+
+    /* members: the keyring */
+    var members = [];
+    function loadMembers(){
+      fetch(BASE + '/members?secret=' + encodeURIComponent(A.secret))
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          members = (d && d.members) || [];
+          $('mbList').innerHTML = members.length ? members.map(function(m){
+            return '<div class="evrow">' +
+              '<b>' + esc(m.name) + '</b>' +
+              (m.role === 'admin' ? '<span class="stag">admin</span>' : '') +
+              (m.status === 'revoked' ? '<span class="stag past">revoked</span>' : '') +
+              '<span class="meta">' + esc(m.email || 'no email') + (m.source ? ' · ' + esc(m.source) : '') + '</span>' +
+              '<span class="spacer"></span>' +
+              (m.status === 'active' ? (
+                '<button class="abtn" data-mb="copy" data-id="' + esc(m.id) + '" type="button">Copy key</button>' +
+                (m.email ? '<button class="abtn" data-mb="resend" data-id="' + esc(m.id) + '" type="button">Resend</button>' : '') +
+                (m.role === 'admin'
+                  ? '<button class="abtn" data-mb="demote" data-id="' + esc(m.id) + '" type="button">Demote</button>'
+                  : '<button class="abtn" data-mb="promote" data-id="' + esc(m.id) + '" type="button">Make admin</button>') +
+                '<button class="abtn warn" data-mb="revoke" data-id="' + esc(m.id) + '" type="button">Revoke</button>'
+              ) : '') +
+            '</div>';
+          }).join('') : '<span class="quiet">No keys cut yet. Mark somebody attended, or add them below.</span>';
+        })
+        .catch(function(){ $('mbList').innerHTML = '<span class="quiet">Could not load the keyring.</span>'; });
+    }
+    $('mbList').addEventListener('click', function(ev){
+      var b = ev.target.closest('button[data-mb]');
+      if (!b) return;
+      var m = members.find(function(x){ return x.id === b.getAttribute('data-id'); });
+      if (!m) return;
+      var act = b.getAttribute('data-mb');
+      if (act === 'copy'){
+        try { navigator.clipboard.writeText(m.invite); A.toast('Invite link copied.'); }
+        catch(e){ window.prompt('Their invite link:', m.invite); }
+        return;
+      }
+      if (act === 'revoke' && !window.confirm('Revoke ' + m.name + "'s key? They lose the clubhouse everywhere, immediately.")) return;
+      post('/members', {action: act, id: m.id}).then(function(d){
+        if (!d.ok){ A.toast('That did not take.'); return; }
+        A.toast(act === 'resend' ? (d.mailed ? 'Invite re-sent.' : 'Mail is off; copy the key instead.')
+              : act === 'revoke' ? m.name + "'s key revoked."
+              : act === 'promote' ? m.name + ' is an admin now.'
+              : m.name + ' is a member again.');
+        loadMembers();
+      });
+    });
+    $('mbForm').addEventListener('submit', function(ev){
+      ev.preventDefault();
+      var name = $('mName').value.trim();
+      var email = $('mEmail').value.trim();
+      if (!name){ A.toast('A member needs a name.'); return; }
+      post('/members', {action: 'add', name: name, email: email}).then(function(d){
+        if (!d.ok){ A.toast('Could not add them.'); return; }
+        if (d.existed) A.toast(name + ' already has a key — use Resend or Copy key.');
+        else if (d.mailed) A.toast('Key cut and emailed to ' + email + '.');
+        else {
+          A.toast(email ? 'Key cut; mail is off, link copied.' : 'Key cut — link copied, hand it to them.');
+          try { navigator.clipboard.writeText(d.invite); } catch(e){}
+        }
+        $('mbForm').reset();
+        loadMembers();
+      });
+    });
+
     function loadVenues(){
       fetch(BASE + '/venues?secret=' + encodeURIComponent(A.secret))
         .then(function(r){ return r.json(); })
@@ -615,6 +726,7 @@
             return '<div class="evrow">' +
               '<b>#' + esc(c.name) + '</b>' +
               (c.status === 'archived' ? '<span class="stag past">archived</span>' : '') +
+              (c.visibility === 'admins' ? '<span class="stag">admins only</span>' : '') +
               '<span class="meta">' + esc(c.topic || '') + '</span>' +
               '<span class="spacer"></span>' +
               '<button class="abtn" data-ch="edit" data-id="' + esc(c.id) + '" type="button">Edit</button>' +
@@ -635,6 +747,7 @@
       if (act === 'edit'){
         editingChan = c.id;
         $('cName').value = c.name; $('cTopic').value = c.topic; $('cPos').value = c.pos;
+        $('cVis').value = c.visibility === 'admins' ? 'admins' : 'members';
         $('cAnnounce').checked = false;
         $('cSave').textContent = 'Save room'; $('cCancel').hidden = false;
       }
@@ -659,7 +772,7 @@
       post('/channels', {
         action: editingChan ? 'update' : 'add',
         announce: !editingChan && $('cAnnounce').checked,
-        channel: {id: editingChan || undefined, name: name, topic: $('cTopic').value.trim(), pos: $('cPos').value}
+        channel: {id: editingChan || undefined, name: name, topic: $('cTopic').value.trim(), pos: $('cPos').value, visibility: $('cVis').value}
       }).then(function(d){
         if (!d.ok){ A.toast('Save failed.'); return; }
         A.toast(editingChan ? 'Room saved.' : '#' + name + ' is open.');
@@ -708,6 +821,7 @@
 
     load();
     loadRecipes();
+    loadMembers();
     loadVenues();
     loadChannels();
   }

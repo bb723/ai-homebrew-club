@@ -10,7 +10,6 @@
   var SYNC_URL = CFG.SYNC_URL || '';
   var LS_USER = 'aihc_viewer_v1';
   var LS_NOTES = 'aihc_notes_' + DECK_ID;
-  var SECRET = 'donuts';
   var POLL_MS = 25000;
 
   /* the chassis chrome used to be pasted into every page; now it's injected once here */
@@ -46,9 +45,37 @@
   var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
   var currentSlideId = slides.length ? slides[0].id : '';
 
-  /* ---------- gate ---------- */
-  var viewer = null;
-  try { viewer = JSON.parse(localStorage.getItem(LS_USER) || 'null'); } catch(e){}
+  /* ---------- gate v2: personal keys ----------
+     one opaque credential: a member's invite token, or the admin word.
+     the server's POST /member validates either and returns {ok, name, role}. */
+  var GATE_MODE = PAGE.gate === 'member' ? 'member' : 'admin';
+  var LS_SESSION = 'aihc_member_v1';
+  var session = null; /* {token, name, role} */
+  try { session = JSON.parse(localStorage.getItem(LS_SESSION) || 'null'); } catch(e){}
+  if (session && !session.token) session = null;
+
+  var viewer = null; /* {name}: kept for page-script compat; mirrors the session */
+
+  function validateCred(token, name, onDone){
+    fetch((CFG.API_BASE || '') + '/member', {
+      method: 'POST', headers: {'Content-Type': 'text/plain'},
+      body: JSON.stringify({token: token, name: name || ''})
+    }).then(function(r){ return r.json(); })
+      .then(function(d){ onDone(d && d.ok ? d : null); })
+      .catch(function(){ onDone(null, true); });
+  }
+  function saveSession(token, d){
+    session = { token: token, name: d.name, role: d.role };
+    viewer = { name: d.name };
+    try {
+      localStorage.setItem(LS_SESSION, JSON.stringify(session));
+      localStorage.setItem(LS_USER, JSON.stringify(viewer));
+    } catch(e){}
+  }
+  function clearSession(){
+    session = null; viewer = null;
+    try { localStorage.removeItem(LS_SESSION); localStorage.removeItem(LS_USER); } catch(e){}
+  }
 
   function lock(){
     document.body.classList.add('locked');
@@ -56,6 +83,7 @@
     document.body.classList.remove('deck-open');
     $('gate').style.display = 'grid';
     $('notesBtn').hidden = true; $('clickHint').hidden = true; $('deckBtn').hidden = true;
+    if ($('gPass')) $('gPass').placeholder = GATE_MODE === 'member' ? 'Invite code, from your email' : 'The admin word';
     try {
       var pf = JSON.parse(localStorage.getItem('aihc_prefill_v1') || 'null');
       if (pf && pf.name && !$('gName').value) $('gName').value = pf.name;
@@ -69,33 +97,51 @@
     $('whoami').innerHTML = 'Signed in as ' + esc(viewer.name) + ' &middot; <button id="switchBtn" type="button">not you?</button>';
     $('noteCount').textContent = String(notes.length);
     var sb = $('switchBtn');
-    if (sb) sb.addEventListener('click', function(){
-      localStorage.removeItem(LS_USER); viewer = null; lock();
-    });
+    if (sb) sb.addEventListener('click', function(){ clearSession(); lock(); });
     if (window.innerWidth >= 1100) document.body.classList.add('pane-open');
-    if (first) toast('Hey ' + viewer.name + '! Click anywhere on a slide to leave a note.');
+    if (first) toast('Hey ' + viewer.name + '! Welcome in.');
     startSync();
+  }
+  function gateFail(msg){
+    $('gErr').textContent = msg;
+    var c = $('gateCard'); c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake');
   }
   function tryLogin(){
     var name = $('gName').value.trim();
-    var pass = $('gPass').value.trim().toLowerCase();
-    if (!name){ $('gErr').textContent = 'Tell us your name first.'; return; }
-    if (pass !== SECRET){
-      $('gErr').textContent = 'That is not the secret word. Ask the founders.';
-      var c = $('gateCard'); c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake');
+    var pass = $('gPass').value.trim();
+    if (!pass){
+      gateFail(GATE_MODE === 'member'
+        ? 'Paste the invite code from your email.'
+        : 'The admin word goes here.');
       return;
     }
-    viewer = { name: name };
-    localStorage.setItem(LS_USER, JSON.stringify(viewer));
     $('gErr').textContent = '';
-    unlock(true);
+    validateCred(pass, name, function(d, netFail){
+      if (netFail){ gateFail('Could not reach the club. Try again in a minute.'); return; }
+      if (!d){
+        gateFail(GATE_MODE === 'member'
+          ? 'That code did not open the door. Invites come by email after your first meetup.'
+          : 'That is not the word.');
+        return;
+      }
+      saveSession(pass, d);
+      unlock(true);
+    });
   }
   $('gGo').addEventListener('click', tryLogin);
   $('gPass').addEventListener('keydown', function(ev){ if (ev.key === 'Enter') tryLogin(); });
   $('gName').addEventListener('keydown', function(ev){ if (ev.key === 'Enter') $('gPass').focus(); });
 
-  /* bridge for page-specific scripts (the feed composer): viewer is a getter so login is picked up live */
-  window.AIHC = { secret: SECRET, deck: DECK_ID, sync: SYNC_URL, toast: toast, viewer: function(){ return viewer; } };
+  /* bridge for page-specific scripts: everything credential-ish reads live off the session */
+  window.AIHC = {
+    deck: DECK_ID, sync: SYNC_URL, toast: toast,
+    viewer: function(){ return viewer; },
+    cred: function(){ return session ? session.token : ''; },
+    role: function(){ return session ? session.role : ''; }
+  };
+  try {
+    Object.defineProperty(window.AIHC, 'secret', { get: function(){ return session ? session.token : ''; } });
+  } catch(e){ window.AIHC.secret = ''; }
 
   /* ---------- notes store ---------- */
   var notes = [];
@@ -132,7 +178,7 @@
     fetch(SYNC_URL, {
       method: 'POST',
       headers: {'Content-Type': 'text/plain'},
-      body: JSON.stringify(Object.assign({secret: SECRET, deck: DECK_ID}, payload))
+      body: JSON.stringify(Object.assign({secret: session ? session.token : '', deck: DECK_ID}, payload))
     }).then(function(r){ return r.json(); })
       .then(function(d){
         if (!d || d.error) throw new Error('rejected');
@@ -154,7 +200,7 @@
   }
   function serverFetch(){
     if (!SYNC_URL) return;
-    fetch(SYNC_URL + '?secret=' + encodeURIComponent(SECRET) + '&deck=' + encodeURIComponent(DECK_ID))
+    fetch(SYNC_URL + '?secret=' + encodeURIComponent(session ? session.token : '') + '&deck=' + encodeURIComponent(DECK_ID))
       .then(function(r){ return r.json(); })
       .then(function(d){
         if (!d || !d.notes) throw new Error('bad payload');
@@ -499,8 +545,36 @@
   CFG.paintLogos(document);
   CFG.paintLevels(document, 64, 88);
 
-  /* ---------- boot ---------- */
+  /* ---------- boot: invite links, stored keys, or the gate ---------- */
   sortNotes();
-  if (viewer && viewer.name){ unlock(false); } else { lock(); }
+  (function boot(){
+    var params = new URLSearchParams(location.search);
+    var inv = (params.get('invite') || '').trim();
+    if (inv){
+      /* the token never stays in the URL or history */
+      try { history.replaceState(null, '', location.pathname + location.hash); } catch(e){}
+      validateCred(inv, '', function(d, netFail){
+        if (d){ saveSession(inv, d); unlock(true); }
+        else {
+          lock();
+          gateFail(netFail
+            ? 'Could not reach the club. Try your invite link again in a minute.'
+            : 'That invite did not open the door. Reply to your invite email for a fresh one.');
+        }
+      });
+      return;
+    }
+    if (session && session.token){
+      /* optimistic unlock; revalidate behind the scenes and re-lock if the key was retired */
+      viewer = { name: session.name };
+      unlock(false);
+      validateCred(session.token, session.name, function(d, netFail){
+        if (!d && !netFail){ clearSession(); lock(); gateFail('Your key was retired. Ask for a fresh invite.'); }
+        else if (d){ saveSession(session.token, d); } /* picks up renames and promotions */
+      });
+      return;
+    }
+    lock();
+  })();
   renderPins(); renderList();
 })();
