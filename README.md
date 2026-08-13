@@ -25,7 +25,7 @@ Zero-build GitHub Pages site at **aihomebrewclub.com** (see `CNAME`). Plain HTML
 
 | Page | Job |
 |---|---|
-| `members.html` | The members' hub: greets you by name, links the clubhouse, board, recipes, and the next meetup. The MEMBERS masthead pill lands here |
+| `members.html` | The members' hub and the invite-link landing page: greets you by name, links the clubhouse, recipes, and the next meetup; admins also get the board door and the back office here. The MEMBERS masthead pill lands here |
 | `chat.html` | The clubhouse: live chat (WebSocket w/ REST fallback), plus the bulletin-board feed |
 | `feed.html` | Redirect stub → `chat.html?room=~feed` (kept so old links work) |
 | `deck/admin.html` | Ops console: meetups, attendees, agendas, venues, chat rooms, recipes, printable QR |
@@ -49,12 +49,23 @@ One Heroku app (URL in `assets/config.js`), not in this repo. Endpoints used: `G
 
 **The text/plain trick:** every POST sends `Content-Type: text/plain` with a JSON string body so browsers skip the CORS preflight. Keep it verbatim in any new fetch code.
 
-**Auth model:** a single shared secret typed into the gate doubles as the API token (`?secret=` / `body.secret`). It ships in `club.js`, so treat the gate as a social convention, not security — `robots.txt` + `noindex` keep the gated pages out of crawlers, but real secrecy would need backend work.
+**Auth model (two tiers, enforced server-side):**
+- **Admins** authenticate with `ADMIN_SECRET` (a Heroku env var; until it is set, the old shared word still works as admin and the server emails a daily rotation nag). Admin-only surfaces: the feed (`/posts`), attendees/rsvps, venues, notes, events/agenda/recipes/channel writes, the members keyring.
+- **Members** hold personal revocable tokens (`aihc_members` table), minted when an admin marks an RSVP *attended* (the invite emails itself: `members.html?invite=<token>`) or adds someone by hand in the console. Members get chat and member-visible channels; the gate stores the key in `localStorage.aihc_member_v1`.
+- Chat rooms have a `visibility` (`members`/`admins`) enforced in listings, history, message writes, WebSocket fan-out, unread timestamps, and presence.
+- The credential travels in the same `secret`/`token` body/query slots (or the `X-AIHC-Token` header); `POST /member` validates a token for the gate.
+
+**Rotation runbook** (do this once):
+1. `heroku config:set ADMIN_SECRET=<a strong new secret> -a aihc-notes` — the old word dies everywhere the moment this lands.
+2. Give the new word to the founders (or mint them admin-role member keys in the console and skip the word entirely).
+3. Later: `heroku config:unset SECRET -a aihc-notes` to delete the dead config.
+
+**Accepted residual risks** (documented on purpose): member tokens are stored plaintext in the DB and shown to admins in the console (proportionate for a two-founder club); anyone holding admin can post under any display name; invites go wherever the RSVP email points, so glance at the address before marking someone attended; presence/revocation socket handling assumes the single Heroku dyno the chat already requires.
 
 ### Invariants — do not change these
 
 1. `Content-Type: text/plain` on POSTs (CORS preflight dodge).
-2. localStorage keys: `aihc_viewer_v1` (gate session — changing it logs every member out), `aihc_notes_<deck>`, `aihc_model_v1`, `aihc_chat_read_v1`, `aihc_rsvp_<eventId>`, `aihc_prefill_v1`.
+2. localStorage keys: `aihc_member_v1` (the personal key/session — changing it logs everyone out), `aihc_viewer_v1` (display-name cache for page scripts), `aihc_notes_<deck>`, `aihc_model_v1`, `aihc_chat_read_v1`, `aihc_rsvp_<eventId>`, `aihc_prefill_v1`.
 3. `DECK_ID` strings (`window.AIHC_PAGE.deck`) key server-side note storage.
 4. Slide `id`s in `deck/invest.html` and `deck/charter.html` are note-storage keys, not sequence numbers — never renumber them.
 5. `deck/admin.html`'s page `<style>` must stay after the `club.css` link (its overrides win by document order).
