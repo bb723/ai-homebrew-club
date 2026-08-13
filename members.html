@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The members' room &middot; The AI Homebrew Club</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:title" content="The members' room &middot; The AI Homebrew Club">
+<meta property="og:description" content="Your front door to the club: chat, recipes, the next table. Members only.">
+<meta property="og:image" content="https://aihomebrewclub.com/invite-card.png">
+<meta property="og:type" content="website">
+<link rel="stylesheet" href="assets/club.css">
+</head>
+<body>
+
+<!-- ===================== GATE ===================== -->
+<div class="gate" id="gate">
+  <div class="gate-card" id="gateCard">
+    <span class="logo" data-size="90" aria-hidden="true"></span>
+    <h2>The members' room</h2>
+    <p>Tell us who you are and the secret word from the meetup.</p>
+    <input id="gName" type="text" placeholder="Your name" autocomplete="off" aria-label="Your name">
+    <input id="gPass" type="password" placeholder="Secret word" autocomplete="off" aria-label="Secret word">
+    <p class="err" id="gErr" role="alert"></p>
+    <button id="gGo">Come on in</button>
+  </div>
+</div>
+
+<div class="deck" id="deck">
+<style>
+  /* members-hub styles: this block ships only with members.html, so bare overrides are safe */
+  html{scroll-snap-type:none}
+  .slide{min-height:100svh; display:block; padding:0 clamp(14px,3.5vw,24px) 80px; background:var(--w-cream)}
+  .rail,.hint,.notesbtn,.clickhint{display:none} /* one screen, nothing to pin notes on */
+  .sidepane{display:none!important}
+  body.pane-open .deck{margin-right:0}
+
+  .hub{width:min(880px,100%); margin:0 auto; padding-top:clamp(40px,7vh,72px)}
+  .hubhead{display:flex; align-items:center; gap:16px; margin-bottom:6px}
+  .hubhead h1{font-family:var(--font-display); font-weight:800; font-size:clamp(2rem,5.5vw,3rem); line-height:1.1; margin:0}
+  .hubsub{font-family:var(--font-hand); font-weight:600; font-size:1.45rem; color:var(--ink-soft); transform:rotate(-.6deg); margin:2px 0 26px}
+
+  .hubgrid{display:grid; grid-template-columns:repeat(2,1fr); gap:clamp(12px,2vw,18px)}
+  @media (max-width:640px){ .hubgrid{grid-template-columns:1fr} }
+  .hubcard{
+    display:flex; flex-direction:column; gap:6px; text-decoration:none; color:var(--ink);
+    background:var(--card); border:1px solid var(--edge); border-radius:18px;
+    border-top:8px solid var(--teal); box-shadow:var(--shadow); padding:18px 20px 16px;
+  }
+  .hubcard:hover{border-color:var(--teal); border-top-color:var(--teal)}
+  .hubcard:focus-visible{outline:3px solid var(--teal); outline-offset:2px}
+  .hubcard h2{font-family:var(--font-display); font-weight:800; font-size:1.25rem; margin:0}
+  .hubcard p{margin:0; font-size:.95rem; color:var(--ink-soft); font-weight:700}
+  .hubcard .tag{font-size:.68rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--teal-deep)}
+  .hubcard.a-tangerine{border-top-color:var(--tangerine)} .hubcard.a-tangerine .tag{color:var(--tangerine-deep)}
+  .hubcard.a-sky{border-top-color:var(--sky)} .hubcard.a-sky .tag{color:var(--sky-deep)}
+  .hubcard.a-lemon{border-top-color:var(--lemon)} .hubcard.a-lemon .tag{color:var(--lemon-deep)}
+  .hubcard.a-berry{border-top-color:var(--berry)} .hubcard.a-berry .tag{color:var(--berry-deep)}
+
+  .nextmeet{grid-column:1 / -1}
+  .seats{
+    display:inline-flex; align-items:center; gap:8px;
+    background:var(--lemon); color:#3B3227; border-radius:999px; padding:4px 14px;
+    font-weight:800; font-size:.76rem; letter-spacing:.06em; text-transform:uppercase;
+  }
+  .seats.full{background:var(--tangerine); color:#FFFCF4}
+  .nextmeet .row{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap}
+  .nextmeet .when{font-family:var(--font-display); font-weight:800; font-size:1.35rem}
+  .nextmeet .where{font-size:.95rem}
+  .nextmeet .go{
+    align-self:flex-start; display:inline-block; background:var(--tangerine); color:#FFFCF4;
+    text-decoration:none; border:none; border-radius:999px; padding:10px 24px;
+    font-family:var(--font-body); font-weight:800; font-size:.92rem; letter-spacing:.04em;
+    box-shadow:var(--shadow); margin-top:8px; cursor:pointer;
+  }
+  .nextmeet .go:hover{filter:brightness(1.08)}
+  .hubfoot{margin-top:22px; color:var(--ink-soft); font-weight:700; font-size:.88rem}
+  .hubfoot a{color:var(--teal-deep)}
+</style>
+
+<section class="slide" id="s1" data-title="The members' room">
+  <div class="hub">
+    <div class="hubhead">
+      <span class="logo" data-size="64" aria-hidden="true"></span>
+      <h1 id="hubHi">Come on in.</h1>
+    </div>
+    <p class="hubsub">Pour yourself a coffee — here's where everything lives.</p>
+
+    <div class="hubgrid">
+      <div class="hubcard nextmeet a-tangerine" id="nextCard">
+        <span class="tag">The next table</span>
+        <div class="row"><span class="when" id="nmWhen">Checking the calendar&hellip;</span><span class="seats" id="nmSeats" hidden></span></div>
+        <p class="where" id="nmWhere"></p>
+        <a class="go" id="nmGo" href="events.html">See the circuit</a>
+      </div>
+
+      <a class="hubcard" href="chat.html">
+        <span class="tag">Live now</span>
+        <h2>The clubhouse</h2>
+        <p>Members' chat. Pull up a chair, see who's around.</p>
+      </a>
+      <a class="hubcard a-sky" href="chat.html?room=~feed">
+        <span class="tag">Club news</span>
+        <h2>The bulletin board</h2>
+        <p>What happened, and who said yes. Post yours.</p>
+      </a>
+      <a class="hubcard a-lemon" href="recipes.html">
+        <span class="tag">Steal these</span>
+        <h2>The recipe box</h2>
+        <p>Every prompt we've written down, free forever.</p>
+      </a>
+      <a class="hubcard a-berry" href="events.html">
+        <span class="tag">The map</span>
+        <h2>The circuit</h2>
+        <p>Every table we set, on the map and the calendar.</p>
+      </a>
+    </div>
+
+    <p class="hubfoot">Looking for the pitches, the charter, or meetup controls? They're in the &#9776; menu, top left.</p>
+  </div>
+</section>
+
+</div><!-- /deck -->
+
+<script>
+(function(){
+  'use strict';
+  function boot(){
+    if (!window.AIHC || !window.AIHC.viewer || !window.AIHC.viewer()){ setTimeout(boot, 300); return; }
+    var A = window.AIHC;
+    var name = (A.viewer() || {}).name || '';
+    var hour = new Date().getHours();
+    var greet = hour < 12 ? 'Morning' : (hour < 17 ? 'Afternoon' : 'Evening');
+    if (name) document.getElementById('hubHi').textContent = greet + ', ' + name + '.';
+
+    var BASE = String(A.sync || '').replace(/\/notes\b.*$/, '');
+    fetch(BASE + '/events')
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        var up = ((d && d.events) || []).filter(function(e){ return e.status === 'upcoming'; })
+          .sort(function(a, b){ return a.sort_date < b.sort_date ? -1 : 1; });
+        if (!up.length){
+          document.getElementById('nmWhen').textContent = 'Nothing on the calendar yet.';
+          return;
+        }
+        var e = up[0];
+        var t = '';
+        if (/^\d{1,2}:\d{2}$/.test(e.start_time || '')){
+          var p = e.start_time.split(':'); var h = parseInt(p[0], 10);
+          t = (h % 12 || 12) + ':' + p[1] + ' ' + (h >= 12 ? 'pm' : 'am');
+        }
+        document.getElementById('nmWhen').textContent = e.when + (t ? ' · ' + t : '');
+        document.getElementById('nmWhere').textContent = e.title + ' — ' + e.location;
+        var pill = document.getElementById('nmSeats');
+        pill.hidden = false;
+        if (e.left > 0){ pill.textContent = e.left + ' of ' + e.capacity + ' seats left'; }
+        else { pill.textContent = 'Full · waitlist open'; pill.classList.add('full'); }
+        var go = document.getElementById('nmGo');
+        go.textContent = e.left > 0 ? 'Save my seat' : 'Join the waitlist';
+        go.href = 'rsvp.html?event=' + encodeURIComponent(e.id) + '&ref=members';
+      })
+      .catch(function(){ document.getElementById('nmWhen').textContent = 'Could not reach the calendar.'; });
+  }
+  boot();
+})();
+</script>
+
+<script>window.AIHC_PAGE = {deck: 'members'};</script>
+<script src="assets/config.js"></script>
+<script src="assets/club.js"></script>
+</body>
+</html>

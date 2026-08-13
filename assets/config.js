@@ -10,6 +10,7 @@ window.AIHC_CONFIG = (function(){
 
   /* The one nav. Order is display order; group headings render on change. */
   var DECKS = [
+    {id: 'members', title: 'The members&rsquo; room', desc: 'Your front door: chat, recipes, the next table.', group: 'The club'},
     {id: 'chat', title: 'The clubhouse', desc: 'Members&rsquo; chat and the bulletin board.', group: 'The club'},
     {id: 'waterville', title: 'Waterville', desc: 'Public meetup page: agendas, seats, QR.', group: 'The club'},
     {id: 'recipes', title: 'The recipe box', desc: 'Public prompt library, one steal at a time.', group: 'The club'},
@@ -25,7 +26,13 @@ window.AIHC_CONFIG = (function(){
   ];
 
   /* Root-level pages; everything else lives under deck/. 'feed' stays routable for old links. */
-  var ROOT_PAGES = {feed: 1, chat: 1, waterville: 1, recipes: 1};
+  var ROOT_PAGES = {feed: 1, chat: 1, waterville: 1, recipes: 1, members: 1, events: 1};
+
+  /* The circuit map: where each chapter sits on the hand-drawn Maine SVG
+     (viewBox 0 0 400 520 in events.html). One line per town as chapters open. */
+  var CITY_POINTS = {
+    waterville: {x: 190, y: 352, side: 'left', label: 'Waterville', page: 'waterville.html'}
+  };
 
   function deckHref(id){
     var local = location.protocol === 'file:' || SITE_HOSTS.indexOf(location.hostname) !== -1;
@@ -122,6 +129,7 @@ window.AIHC_CONFIG = (function(){
     SYNC_URL: API_BASE + '/notes',
     SITE_HOSTS: SITE_HOSTS,
     DECKS: DECKS,
+    CITY_POINTS: CITY_POINTS,
     LOGO: LOGO,
     deckHref: deckHref,
     buildDeckPane: buildDeckPane,

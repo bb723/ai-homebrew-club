@@ -16,6 +16,7 @@ Zero-build GitHub Pages site at **aihomebrewclub.com** (see `CNAME`). Plain HTML
 |---|---|
 | `index.html` | The invitation. Fills its meetup card live from the calendar — no dates in static HTML |
 | `rsvp.html` | Seat reservation; where every QR and shared link lands. `?event=<id>` per meetup, bare URL resolves to the next upcoming one; `?cancel=<id>` from emails; `?ref=` tracks what fills seats |
+| `events.html` | The circuit: a hand-drawn Maine map with a pin per chapter town, plus a month calendar of every meetup (town positions live in `CITY_POINTS` in config.js) |
 | `waterville.html` | The chapter page: live agendas, seat counts, per-event QR, the record of past meetups |
 | `recipes.html` | Public prompt library, managed from the admin console |
 | `lend.html` | Venue offers — how new chapters start |
@@ -24,6 +25,7 @@ Zero-build GitHub Pages site at **aihomebrewclub.com** (see `CNAME`). Plain HTML
 
 | Page | Job |
 |---|---|
+| `members.html` | The members' hub: greets you by name, links the clubhouse, board, recipes, and the next meetup. The MEMBERS masthead pill lands here |
 | `chat.html` | The clubhouse: live chat (WebSocket w/ REST fallback), plus the bulletin-board feed |
 | `feed.html` | Redirect stub → `chat.html?room=~feed` (kept so old links work) |
 | `deck/admin.html` | Ops console: meetups, attendees, agendas, venues, chat rooms, recipes, printable QR |

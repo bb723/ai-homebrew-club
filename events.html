@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The circuit &middot; The AI Homebrew Club</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<meta name="description" content="Every AI Homebrew Club meetup on one map and one calendar. Free, one hour, coffee on.">
+<meta property="og:title" content="The circuit">
+<meta property="og:description" content="Every table we set, and where the next one is. Free, one hour, coffee on.">
+<meta property="og:image" content="https://aihomebrewclub.com/invite-card.png">
+<meta property="og:url" content="https://aihomebrewclub.com/events.html">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="assets/site.css">
+<style>
+  body{padding-bottom:60px; position:relative}
+  h1{font-weight:800; font-size:clamp(2.4rem,7.5vw,3.6rem); line-height:1.05; margin:18px 0 4px; letter-spacing:-.01em}
+  h1::after{content:""; display:block; width:126px; height:12px; margin-top:12px; background:var(--squig) no-repeat left center}
+  .kicker{font-family:var(--font-hand); font-weight:600; color:var(--ink-soft); font-size:1.4rem; margin:0 0 20px; transform:rotate(-.6deg)}
+  h2{font-weight:800; font-size:clamp(1.5rem,4vw,2rem); margin:36px 0 12px}
+
+  /* ---- the map ---- */
+  .mapcard{
+    background:var(--card); border:1px solid var(--edge); border-radius:20px;
+    box-shadow:var(--shadow); padding:14px; margin:16px 0;
+  }
+  .mapcard svg{display:block; width:min(420px,100%); margin:0 auto}
+  .pin{cursor:pointer}
+  .pin circle.spot{fill:var(--tangerine); stroke:var(--ink); stroke-width:3}
+  .pin.quiet circle.spot{fill:var(--ink-soft)}
+  @media (prefers-reduced-motion: no-preference){
+    .pin circle.halo{animation:halo 2.6s ease-out infinite; transform-origin:center; transform-box:fill-box}
+    @keyframes halo{0%{opacity:.55; transform:scale(.6)} 70%{opacity:0; transform:scale(1.6)} 100%{opacity:0}}
+  }
+  .pin text{font-family:var(--font-hand); font-size:21px; font-weight:600; fill:var(--ink)}
+  .pin text.seats{font-size:15px; fill:var(--ink-soft)}
+  .maine-label{font-family:var(--font-display); font-style:italic; font-weight:600; font-size:17px; fill:var(--ink-soft); letter-spacing:.14em}
+  .moretowns{color:var(--ink-soft); font-weight:700; font-size:.86rem; text-align:center; margin:6px 0 2px}
+  .moretowns .hand{font-family:var(--font-hand); font-size:1.2rem; color:var(--tangerine)}
+
+  /* ---- the calendar ---- */
+  .calcard{
+    background:var(--card); border:1px solid var(--edge); border-radius:20px;
+    box-shadow:var(--shadow); padding:18px 20px 14px; margin:16px 0;
+  }
+  .calhead{display:flex; align-items:center; gap:10px; margin-bottom:10px}
+  .calhead b{font-family:var(--font-display); font-weight:800; font-size:1.3rem; flex:1; text-align:center}
+  .calbtn{
+    border:1px solid var(--edge); background:var(--paper); color:var(--ink); cursor:pointer;
+    border-radius:999px; width:34px; height:34px; font-weight:800; font-size:1rem; flex:none;
+  }
+  .calbtn:hover{border-color:var(--teal)}
+  .calbtn:disabled{opacity:.35; cursor:default}
+  .calgrid{display:grid; grid-template-columns:repeat(7,1fr); gap:4px; text-align:center}
+  .dow{font-size:.68rem; font-weight:800; letter-spacing:.08em; color:var(--ink-soft); text-transform:uppercase; padding:4px 0}
+  .day{
+    aspect-ratio:1; display:grid; place-items:center; border-radius:12px;
+    font-weight:700; font-size:.92rem; color:var(--ink); position:relative;
+  }
+  .day.out{color:var(--edge)}
+  .day.today{outline:2px dashed var(--edge); outline-offset:-2px}
+  .day.has{background:var(--w-lemon); cursor:pointer}
+  .day.has:hover{background:var(--lemon)}
+  .day.has::after{
+    content:""; position:absolute; bottom:6px; left:50%; transform:translateX(-50%);
+    width:6px; height:6px; border-radius:50%; background:var(--tangerine);
+  }
+  .day.past-ev{background:var(--w-cream)}
+  .day.past-ev::after{background:var(--ink-soft)}
+
+  /* ---- event cards (waterville's .meetup, trimmed) ---- */
+  .meetup{
+    background:var(--card); border:1px solid var(--edge); border-radius:20px;
+    box-shadow:var(--shadow); padding:22px 24px; margin:16px 0; scroll-margin-top:16px;
+  }
+  .mhead{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap}
+  .mwhen{font-family:var(--font-display); font-weight:800; font-size:clamp(1.3rem,3.4vw,1.7rem)}
+  .mtitle{color:var(--ink-soft); font-weight:800; margin:2px 0 0}
+  .mwhere{margin:6px 0 0}
+  .mtown{font-size:.76rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--teal-deep)}
+  .mfoot{display:flex; gap:20px; align-items:center; margin-top:16px; flex-wrap:wrap}
+  .callink{font-weight:800; font-size:.85rem; color:var(--teal-deep)}
+  .past summary{cursor:pointer; font-weight:800; color:var(--teal-deep); font-size:.9rem; margin:8px 0}
+  .past .meetup{padding:14px 20px}
+  .empty{color:var(--ink-soft); font-weight:700}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <a href="index.html"><span class="logo" data-size="40"></span><span>The AI Homebrew Club</span></a>
+    <a class="evlink" href="events.html">Events</a>
+    <a class="members" href="members.html">Members</a>
+  </header>
+
+  <h1>The circuit.</h1>
+  <p class="kicker">Every table we set, and where the next one is.</p>
+
+  <div class="mapcard">
+    <svg id="maineMap" viewBox="0 0 400 520" role="img" aria-label="A hand-drawn map of Maine with a pin for each club town">
+      <!-- Maine, drawn the way you'd sketch it on a napkin: up the NH line from Kittery,
+           zigzag along Quebec to the top of Aroostook, down the New Brunswick border to
+           Calais, then the crumbling midcoast home -->
+      <path d="M150 505
+               Q140 490 138 476 L120 402 Q117 390 110 372 L98 338 Q94 326 100 314
+               L112 282 Q116 272 124 264 L134 254 Q142 246 144 234 L146 210
+               Q148 198 158 188 L172 174 Q180 166 182 154 L186 118
+               Q188 106 196 94 L206 62 Q211 48 220 46 Q230 44 236 58 L248 88
+               Q253 100 256 114 L268 176 Q271 192 271 208 L270 262 Q270 276 274 288
+               L282 310 Q286 322 280 330 L272 338 Q264 346 254 348
+               Q248 360 238 358 Q234 368 224 366 Q222 378 210 376 Q200 374 198 384
+               Q188 382 186 392 Q176 390 172 400 Q162 398 162 408 Q152 410 150 420
+               Q144 432 148 446 L152 474 Q154 492 150 505 Z"
+            fill="var(--paper)" stroke="var(--ink)" stroke-width="4.5"
+            stroke-linejoin="round" stroke-linecap="round"/>
+      <text class="maine-label" x="238" y="428">M A I N E</text>
+      <g id="mapPins"></g>
+    </svg>
+    <p class="moretowns" id="moreTowns" hidden></p>
+    <p class="moretowns"><span class="hand">Your town could be next</span> &middot; <a href="lend.html?ref=circuit">lend us a room</a></p>
+  </div>
+
+  <h2>The calendar.</h2>
+  <div class="calcard">
+    <div class="calhead">
+      <button class="calbtn" id="calPrev" type="button" aria-label="Earlier month">&#8249;</button>
+      <b id="calTitle">&hellip;</b>
+      <button class="calbtn" id="calNext" type="button" aria-label="Later month">&#8250;</button>
+    </div>
+    <div class="calgrid" id="calGrid"></div>
+  </div>
+
+  <h2 id="upH" hidden>On the calendar.</h2>
+  <div id="upWrap"><p class="empty">Checking the calendar&hellip;</p></div>
+
+  <div class="past">
+    <details id="pastWrap" hidden>
+      <summary>The record: every table we've held</summary>
+      <div id="pastList"></div>
+    </details>
+  </div>
+
+  <footer>
+    Free, one hour, coffee on &middot; <a href="index.html">aihomebrewclub.com</a>
+  </footer>
+</div>
+
+<script src="assets/config.js"></script>
+<script src="assets/site.js"></script>
+<script>
+(function(){
+  'use strict';
+  var CFG = window.AIHC_CONFIG;
+  var $ = window.AIHC_UI.$;
+  var esc = window.AIHC_UI.esc;
+  var fmtTime = window.AIHC_UI.fmtTime;
+
+  var events = [];
+
+  function parseDay(iso){
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+    return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null;
+  }
+  function monthKey(d){ return d.getFullYear() * 12 + d.getMonth(); }
+
+  /* ---------- the map ---------- */
+  function drawPins(){
+    var g = $('mapPins');
+    g.innerHTML = '';
+    var towns = {};
+    events.forEach(function(e){
+      var t = towns[e.city] || (towns[e.city] = {city: e.city, upcoming: 0, left: 0});
+      if (e.status === 'upcoming'){ t.upcoming++; t.left += (e.left || 0); }
+    });
+    var missing = [];
+    Object.keys(towns).forEach(function(city){
+      var pt = CFG.CITY_POINTS[city];
+      var t = towns[city];
+      if (!pt){ missing.push(city); return; }
+      var live = t.upcoming > 0;
+      var pin = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      pin.setAttribute('class', 'pin' + (live ? '' : ' quiet'));
+      pin.setAttribute('tabindex', '0');
+      pin.setAttribute('role', 'link');
+      pin.setAttribute('aria-label', pt.label + (live ? ', meetup coming up' : ''));
+      var seatsNote = live ? (t.left > 0 ? t.left + ' seats open' : 'waitlist open') : '';
+      var lx = pt.side === 'left' ? pt.x - 16 : pt.x + 16;
+      var anchor = pt.side === 'left' ? ' text-anchor="end"' : '';
+      pin.innerHTML =
+        (live ? '<circle class="halo" cx="' + pt.x + '" cy="' + pt.y + '" r="16" fill="var(--tangerine)"/>' : '') +
+        '<circle class="spot" cx="' + pt.x + '" cy="' + pt.y + '" r="8"/>' +
+        '<text' + anchor + ' x="' + lx + '" y="' + (pt.y + 6) + '">' + esc(pt.label) + '</text>' +
+        (seatsNote ? '<text class="seats"' + anchor + ' x="' + lx + '" y="' + (pt.y + 24) + '">' + esc(seatsNote) + '</text>' : '');
+      function go(){
+        var card = document.querySelector('.meetup[data-city="' + city + '"]');
+        if (card){ card.scrollIntoView({behavior: 'smooth'}); }
+        else if (pt.page){ location.href = pt.page; }
+      }
+      pin.addEventListener('click', go);
+      pin.addEventListener('keydown', function(ev){ if (ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); go(); } });
+      g.appendChild(pin);
+    });
+    if (missing.length){
+      var mt = $('moreTowns');
+      mt.hidden = false;
+      mt.textContent = 'Also on the circuit: ' + missing.join(', ') + ' (pins coming soon)';
+    }
+  }
+
+  /* ---------- the calendar ---------- */
+  var months = [];      /* sorted unique month keys that have events, plus this month */
+  var monthIdx = 0;
+  var byDay = {};       /* 'YYYY-MM-DD' -> [events] */
+
+  function buildMonths(){
+    var keys = {};
+    var now = new Date();
+    keys[monthKey(now)] = true;
+    events.forEach(function(e){
+      var d = parseDay(e.sort_date);
+      if (d) keys[monthKey(d)] = true;
+      if (d) (byDay[e.sort_date] = byDay[e.sort_date] || []).push(e);
+    });
+    months = Object.keys(keys).map(Number).sort(function(a, b){ return a - b; });
+    /* open on the month of the next upcoming event, else this month */
+    var up = events.filter(function(e){ return e.status === 'upcoming'; })
+      .sort(function(a, b){ return a.sort_date < b.sort_date ? -1 : 1; });
+    var openKey = up.length && parseDay(up[0].sort_date) ? monthKey(parseDay(up[0].sort_date)) : monthKey(now);
+    monthIdx = Math.max(0, months.indexOf(openKey));
+  }
+
+  var MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  function renderCal(){
+    var key = months[monthIdx];
+    var y = Math.floor(key / 12), m = key % 12;
+    $('calTitle').textContent = MONTH_NAMES[m] + ' ' + y;
+    $('calPrev').disabled = monthIdx === 0;
+    $('calNext').disabled = monthIdx === months.length - 1;
+    var grid = $('calGrid');
+    grid.innerHTML = ['S','M','T','W','T','F','S'].map(function(d){ return '<span class="dow">' + d + '</span>'; }).join('');
+    var first = new Date(y, m, 1);
+    var days = new Date(y, m + 1, 0).getDate();
+    var today = new Date();
+    for (var i = 0; i < first.getDay(); i++) grid.insertAdjacentHTML('beforeend', '<span class="day out"></span>');
+    for (var d = 1; d <= days; d++){
+      var iso = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+      var evs = byDay[iso] || [];
+      var cls = 'day';
+      if (evs.length) cls += evs.some(function(e){ return e.status === 'upcoming'; }) ? ' has' : ' has past-ev';
+      if (y === today.getFullYear() && m === today.getMonth() && d === today.getDate()) cls += ' today';
+      var cell = document.createElement('span');
+      cell.className = cls;
+      cell.textContent = String(d);
+      if (evs.length){
+        cell.setAttribute('title', evs.map(function(e){ return e.title; }).join(' · '));
+        (function(id){
+          cell.addEventListener('click', function(){
+            var card = document.querySelector('.meetup[data-ev="' + id + '"]') ||
+                       document.querySelector('.past .meetup[data-ev="' + id + '"]');
+            if (!card) return;
+            var det = card.closest('details');
+            if (det) det.open = true;
+            card.scrollIntoView({behavior: 'smooth'});
+          });
+        })(evs[0].id);
+      }
+      grid.appendChild(cell);
+    }
+  }
+  $('calPrev').addEventListener('click', function(){ if (monthIdx > 0){ monthIdx--; renderCal(); } });
+  $('calNext').addEventListener('click', function(){ if (monthIdx < months.length - 1){ monthIdx++; renderCal(); } });
+
+  /* ---------- the cards ---------- */
+  function townTag(city){
+    var pt = CFG.CITY_POINTS[city];
+    var label = pt ? pt.label : city;
+    return pt && pt.page
+      ? '<a class="mtown" href="' + pt.page + '">' + esc(label) + '</a>'
+      : '<span class="mtown">' + esc(label) + '</span>';
+  }
+  function card(e){
+    var t = fmtTime(e.start_time);
+    var pill = e.status !== 'upcoming' ? '' : (e.left > 0
+      ? '<span class="seats">' + e.left + ' of ' + e.capacity + ' seats left</span>'
+      : '<span class="seats full">Full · waitlist open</span>');
+    return '<div class="meetup" data-ev="' + esc(e.id) + '" data-city="' + esc(e.city) + '">' +
+      townTag(e.city) +
+      '<div class="mhead"><span class="mwhen">' + esc(e.when) + (t ? ' · ' + t : '') + '</span>' + pill + '</div>' +
+      '<p class="mtitle">' + esc(e.title) + '</p>' +
+      '<p class="mwhere">' + esc(e.location) + '</p>' +
+      (e.status === 'upcoming'
+        ? '<div class="mfoot">' +
+            '<a class="gobtn" href="rsvp.html?event=' + encodeURIComponent(e.id) + '&ref=circuit">' +
+              (e.left > 0 ? 'Save my seat' : 'Join the waitlist') + '</a>' +
+            (e.gcal ? '<a class="callink" target="_blank" rel="noopener" href="' + esc(e.gcal) + '">Add to calendar</a>' : '') +
+          '</div>'
+        : '') +
+    '</div>';
+  }
+  function renderCards(){
+    var up = events.filter(function(e){ return e.status === 'upcoming'; })
+      .sort(function(a, b){ return a.sort_date < b.sort_date ? -1 : 1; });
+    var past = events.filter(function(e){ return e.status === 'past'; })
+      .sort(function(a, b){ return a.sort_date < b.sort_date ? 1 : -1; });
+    var uw = $('upWrap');
+    if (up.length){
+      $('upH').hidden = false;
+      uw.innerHTML = up.map(card).join('');
+    } else {
+      uw.innerHTML = '<p class="empty">Nothing on the calendar yet. The next date lands here first.</p>';
+    }
+    if (past.length){
+      $('pastWrap').hidden = false;
+      $('pastList').innerHTML = past.map(card).join('');
+    }
+  }
+
+  fetch(CFG.API_BASE + '/events')
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      events = (d && d.events) || [];
+      drawPins();
+      buildMonths();
+      renderCal();
+      renderCards();
+    })
+    .catch(function(){
+      $('upWrap').innerHTML = '<p class="empty">Could not reach the calendar. RSVP still works at <a href="rsvp.html">the RSVP page</a>.</p>';
+      buildMonths(); renderCal();
+    });
+})();
+</script>
+</body>
+</html>
