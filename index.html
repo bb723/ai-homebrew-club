@@ -12,257 +12,339 @@
 <meta property="og:url" content="https://aihomebrewclub.com/">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="assets/site.css">
+<link rel="stylesheet" href="assets/site.css?v=3">
 <style>
-  h1,h2,h3{text-wrap:balance}
-  h1{font-size:clamp(2.4rem,6vw,4.2rem); line-height:1.08; font-weight:800}
-  h2{font-size:clamp(1.7rem,3.6vw,2.6rem); line-height:1.14; font-weight:800}
-  h2::after{content:""; display:block; width:126px; height:12px; margin-top:12px; background:var(--squig) no-repeat left center}
-  p{margin:0}
+  /* ---- the hero: invitation on the left, the ticket on the right ---- */
+  .hero{display:grid; grid-template-columns:1fr 460px; gap:clamp(32px,5vw,72px); align-items:start; padding:clamp(40px,5vw,64px) 0 clamp(48px,6vw,72px)}
+  .hero .cta{display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+  .hero .kicker .by{font-size:15px; font-style:normal; font-family:var(--font-body); font-weight:500; color:var(--ink-3)}
 
-  .wrap{max-width:1020px; width:auto; padding:0 clamp(18px,4vw,40px)}
-  section{padding:clamp(44px,7vw,84px) 0}
-  header.site{padding:20px 0; border-bottom:1px solid var(--edge)}
-  header.site .wrap{display:flex; align-items:center; gap:14px}
-  header.site .name{font-family:var(--font-display); font-weight:800; font-size:1.15rem}
-  header.site .where{margin-left:auto; color:var(--ink-soft); font-weight:700; font-size:.88rem}
-  header.site .evlink, header.site .members{margin-left:0} /* .where already claims the flex gap */
+  .ticket{display:flex; flex-direction:column; overflow:hidden}
+  .ticket .top{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 22px; background:var(--tangerine); color:var(--on-tangerine)}
+  .ticket .top .folio{color:color-mix(in srgb, var(--on-tangerine) 85%, transparent)}
+  .ticket .top .folio b{color:var(--on-tangerine)}
+  .ticket .date{padding:22px 22px 6px; display:flex; flex-direction:column; gap:2px}
+  .ticket .date .big{font-family:var(--font-display); font-size:clamp(1.7rem,3vw,2.375rem); font-weight:800; letter-spacing:-.02em; line-height:1.05; text-wrap:balance}
+  .ticket .date .time{font-family:var(--font-mono); font-size:14px; color:var(--ink-2)}
+  .ticket .rows{display:flex; flex-direction:column; padding:8px 22px 6px}
+  .ticket .rows .r{display:grid; grid-template-columns:72px 1fr; gap:14px; padding:10px 0; border-top:1px dashed var(--rule-2); font-size:14px; line-height:1.45}
+  .ticket .rows .r .k{font-family:var(--font-mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); padding-top:3px}
+  .ticket .rows .r .seats{flex-wrap:wrap; width:auto}
+  .ticket .foot{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 22px 22px}
+  .ticket .foot .btn-primary{flex:1}
+  .ticket .foot .btn-ghost[hidden]{display:none}
 
-  .hero .wrap{display:grid; grid-template-columns:1.4fr 1fr; gap:clamp(24px,4vw,64px); align-items:center}
-  .motto{font-family:var(--font-display); font-style:italic; font-weight:600; font-size:clamp(1.15rem,2vw,1.5rem); color:var(--tangerine)}
-  .lede{font-size:clamp(1.05rem,1.6vw,1.25rem); max-width:60ch}
-  .quiet{color:var(--ink-soft)}
-  .kicker{font-family:var(--font-display); font-style:italic; font-weight:600; font-size:clamp(1.15rem,2vw,1.5rem); max-width:56ch; line-height:1.3}
-  .kicker .hl{color:var(--tangerine)}
-  .fig{text-align:center}
+  /* ---- the hour: a four-step timeline ---- */
+  .timeline{display:grid; grid-template-columns:repeat(4,1fr); position:relative; margin-top:8px}
+  .timeline::before{content:""; position:absolute; left:0; right:0; top:0; height:2px; background:var(--ink)}
+  .timeline .step{position:relative; padding:22px 24px 0 0; display:flex; flex-direction:column; gap:8px}
+  .timeline .step::before{content:""; position:absolute; left:0; top:-4px; width:10px; height:10px; border-radius:50%; background:var(--tangerine); border:2px solid var(--paper)}
+  .band.alt .timeline .step::before{border-color:var(--paper-2)}
+  .timeline .t{font-family:var(--font-mono); font-size:13px; font-weight:600; color:var(--tangerine)}
+  .timeline .ti{font-family:var(--font-display); font-size:22px; font-weight:700; letter-spacing:-.01em}
+  .timeline .d{color:var(--ink-2); font-size:14.5px; line-height:1.5; max-width:30ch}
+  .sec-h .kicker.r{max-width:34ch; text-align:right}
 
-  .invite{
-    margin-top:22px; background:var(--card); border:1px solid var(--edge); border-radius:18px;
-    border-top:8px solid var(--tangerine); box-shadow:var(--shadow); padding:clamp(16px,2.4vw,26px);
-    display:flex; flex-direction:column; gap:6px; max-width:560px;
+  /* ---- the six recipes ---- */
+  .recipes{display:grid; grid-template-columns:repeat(3,1fr); gap:20px}
+  .rc{display:flex; flex-direction:column; gap:10px; padding:20px 20px 18px}
+  .rc .num{font-family:var(--font-mono); font-size:11px; color:var(--ink-3); letter-spacing:.12em}
+  .rc h3{font-family:var(--font-body); font-size:17px; font-weight:700; letter-spacing:0; line-height:1.3}
+  .rc .body{font-size:14px}
+  .rc .index-card{margin-top:auto; font-size:19px}
+  .rc .cp{display:flex; justify-content:flex-end; margin-top:-4px}
+
+  /* ---- why we meet: the two stats ---- */
+  .eq{display:grid; grid-template-columns:1fr 1fr; gap:clamp(32px,5vw,64px); align-items:start}
+  .stats{display:grid; grid-template-columns:1fr 1fr; gap:24px; max-width:640px}
+  .stat{padding:22px 24px; display:flex; flex-direction:column; gap:6px}
+  .stat .n{font-family:var(--font-display); font-size:clamp(2.4rem,4vw,3.25rem); font-weight:800; line-height:1; letter-spacing:-.03em}
+  .stat .l{font-size:14px; color:var(--ink-2); max-width:26ch; line-height:1.4}
+  .stat .n.tang{color:var(--tangerine)} .stat .n.teal{color:var(--teal)}
+  .statsrc a{color:inherit; text-decoration:underline; text-underline-offset:3px; text-decoration-color:var(--rule-2); font-weight:500}
+  .statsrc a:hover{color:var(--tangerine)}
+
+  /* ---- the ladder ---- */
+  .ladder{display:grid; grid-template-columns:repeat(3,1fr); gap:0; border:1px solid var(--rule); border-radius:var(--r-2); overflow:hidden; background:var(--card)}
+  .rung{padding:26px 26px 28px; display:flex; flex-direction:column; gap:10px; border-right:1px solid var(--rule); position:relative}
+  .rung:last-child{border-right:0}
+  .rung .lv{font-family:var(--font-display); font-size:44px; font-weight:800; letter-spacing:-.03em; line-height:1}
+  .rung .lv.a{color:var(--teal)} .rung .lv.b{color:var(--tangerine)} .rung .lv.c{color:var(--berry)}
+  .rung .bring{font-family:var(--font-mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3)}
+  .rung h3{font-family:var(--font-body); font-size:18px; letter-spacing:0; margin-top:6px}
+  .rung .body{font-size:14px}
+
+  /* ---- house rules ---- */
+  .rules{display:grid; grid-template-columns:1fr 1fr; grid-template-rows:repeat(3,auto); grid-auto-flow:column; gap:0 48px; max-width:900px; margin:0; padding:0; list-style:none}
+  .rules .ru{display:grid; grid-template-columns:36px 1fr; gap:12px; padding:14px 0; border-bottom:1px solid var(--rule); font-size:15.5px; align-items:baseline}
+  .rules .ru .n{font-family:var(--font-mono); font-size:12px; color:var(--tangerine); font-weight:600}
+  .rules .ru em{font-family:var(--font-display); font-style:italic; font-weight:500}
+  .rules .ru.blank{border-bottom:0}
+
+  footer.foot .body{color:var(--ink-2)}
+
+  @media (max-width:900px){
+    .hero{grid-template-columns:1fr; gap:36px}
+    .timeline{grid-template-columns:1fr 1fr; gap:0 24px}
+    .timeline::before{display:none}
+    .timeline .step{border-top:2px solid var(--ink); margin-bottom:12px}
+    .recipes,.ladder{grid-template-columns:1fr 1fr}
+    .rung:nth-child(2){border-right:0}
+    .rung{border-bottom:1px solid var(--rule)}
+    .rung:last-child{border-bottom:0}
+    .eq{grid-template-columns:1fr}
+    .sec-h .kicker.r{text-align:left; max-width:none}
   }
-  .invite b{font-weight:800}
-  .invite .when{font-family:var(--font-display); font-weight:800; font-size:1.25rem}
-
-  .statrow{display:flex; gap:clamp(14px,2vw,22px); flex-wrap:wrap; margin-top:22px}
-  .stat{background:var(--card); border:1px solid var(--edge); border-radius:18px; padding:16px 24px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:2px; min-width:180px}
-  .stat .n{font-family:var(--font-display); font-weight:800; font-size:clamp(1.9rem,3.4vw,2.6rem); line-height:1.1}
-  .stat .l{color:var(--ink-soft); font-weight:700; font-size:.88rem; max-width:24ch}
-  .stat.a-tangerine .n{color:var(--tangerine)} .stat.a-teal .n{color:var(--teal)}
-  .statsrc{font-size:.78rem; color:var(--ink-soft); font-weight:700; margin-top:10px}
-
-  .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(12px,1.8vw,20px); margin-top:26px}
-  .card{
-    background:var(--card); border:1px solid var(--edge); border-radius:18px;
-    border-top:8px solid var(--teal); padding:clamp(16px,2.2vw,24px);
-    box-shadow:var(--shadow); display:flex; flex-direction:column; gap:8px;
-  }
-  .card h3{font-size:1.2rem; font-family:var(--font-body); font-weight:800}
-  .card.a-teal{border-top-color:var(--teal)} .card.a-teal h3{color:var(--teal-deep)}
-  .card.a-sky{border-top-color:var(--sky)} .card.a-sky h3{color:var(--sky-deep)}
-  .card.a-berry{border-top-color:var(--berry)} .card.a-berry h3{color:var(--berry-deep)}
-  .card.a-tangerine{border-top-color:var(--tangerine)} .card.a-tangerine h3{color:var(--tangerine-deep)}
-  .card.a-lemon{border-top-color:var(--lemon)} .card.a-lemon h3{color:var(--lemon-deep)}
-  .card p{font-size:.98rem}
-  .steal{
-    margin-top:auto; font-family:var(--font-hand); font-weight:600; font-size:1.3rem; line-height:27px;
-    border:1px solid var(--edge); border-radius:6px; padding:10px 14px;
-    background-color:var(--card);
-    background-image:repeating-linear-gradient(transparent 0 26px, var(--edge) 26px 27px);
-  }
-  .steal b{display:block; font-family:var(--font-body); font-size:.7rem; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:3px}
-
-  .lvl{text-align:center; align-items:center}
-  .lvl .tag{font-weight:800; font-size:.76rem; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-soft)}
-
-  .agenda{max-width:720px; background:var(--card); border:1px solid var(--edge); border-radius:18px; box-shadow:var(--shadow); overflow:hidden; margin-top:26px}
-  .agenda > div{display:flex; gap:18px; padding:15px 22px; border-bottom:2px dashed var(--edge); align-items:baseline}
-  .agenda > div:last-child{border-bottom:none}
-  .agenda .t{font-family:var(--font-display); font-weight:800; color:var(--tangerine); flex:none; width:56px}
-  .agenda b{font-weight:800}
-  .agenda .d{color:var(--ink-soft)}
-
-  .rules{list-style:none; margin:26px 0 0; padding:0; max-width:680px; display:flex; flex-direction:column; gap:10px}
-  .rules li{background:var(--card); border:1px solid var(--edge); border-radius:14px; padding:11px 18px 11px 44px; box-shadow:var(--shadow); position:relative; font-size:1.02rem}
-  .rules li::before{content:""; position:absolute; left:17px; top:50%; transform:translateY(-50%); width:12px; height:12px; border-radius:50%}
-  .rules li:nth-child(5n+1)::before{background:var(--teal)}
-  .rules li:nth-child(5n+2)::before{background:var(--tangerine)}
-  .rules li:nth-child(5n+3)::before{background:var(--lemon)}
-  .rules li:nth-child(5n+4)::before{background:var(--sky)}
-  .rules li:nth-child(5n+5)::before{background:var(--berry)}
-  .rules em{font-style:italic}
-
-  .alt{background:var(--card); border-top:1px solid var(--edge); border-bottom:1px solid var(--edge)}
-  @media (prefers-color-scheme: dark){ .alt{background:#312619} }
-
-  footer{padding:56px 0 84px; text-align:center; color:var(--ink-soft); font-weight:700}
-  footer .big{font-family:var(--font-display); font-weight:800; font-size:clamp(1.6rem,3.4vw,2.4rem); color:var(--ink); margin-bottom:8px}
-
-  @media (max-width:860px){
-    .hero .wrap{grid-template-columns:1fr}
-    .hero .fig{order:-1}
-    .hero .fig svg{width:130px; height:130px}
-    .grid{grid-template-columns:1fr}
+  @media (max-width:700px){
+    .timeline,.recipes,.ladder,.stats{grid-template-columns:1fr}
+    .rung{border-right:0}
+    .rules{grid-template-columns:1fr; grid-auto-flow:row; grid-template-rows:none}
+    .rules .ru.blank{display:none}
+    .rules .ru:nth-last-child(2){border-bottom:0}
+    .ticket .foot{flex-direction:column; align-items:stretch}
   }
 </style>
 </head>
 <body>
-
-<header class="site">
-  <div class="wrap">
-    <span class="logo" data-size="44" aria-hidden="true"></span>
-    <span class="name">The AI Homebrew Club</span>
-    <span class="where">Central Maine &middot; est. 2026, after 1975</span>
-    <a class="evlink" href="events.html">Events</a>
-    <a class="members" href="members.html">Members</a>
-  </div>
+<div class="frame">
+<div class="runner"></div>
+<header class="masthead">
+  <a class="brand" href="index.html"><span class="logo" data-size="32" aria-hidden="true"></span><span>The AI Homebrew Club</span></a>
+  <span class="est">Central Maine &middot; est. 2026, after 1975</span>
+  <nav>
+    <a href="events.html">The circuit</a>
+    <a href="waterville.html">Waterville</a>
+    <a href="recipes.html">The recipe box</a>
+    <a href="lend.html">Lend a room</a>
+    <a class="members" href="members.html">Members&rsquo; room</a>
+  </nav>
+  <button class="menu" type="button" aria-label="Menu">&#9776;</button>
 </header>
 
-<section class="hero">
-  <div class="wrap">
-    <div>
-      <h1>You&rsquo;re invited. One hour, and one problem off your plate.</h1>
-      <p class="motto" style="margin-top:16px">&ldquo;Give to help others.&rdquo;</p>
-      <div class="invite">
-        <span class="when" id="invTitle">The next AI Brown Bag</span>
-        <span id="invWhere"><b>Where:</b> posted on <a href="waterville.html">the Waterville page</a> the moment it's set</span>
-        <span id="invWhen"><b>When:</b> the next date lands on <a href="waterville.html">the Waterville page</a> first</span>
-        <span><b>Bring:</b> a laptop or just your phone, and one real task that is eating your week.</span>
-        <span><b>Cost:</b> free. No tickets, no vendors, nobody selling you anything.</span>
-        <span id="invSeats"><b>Seats:</b> first come, first served. <a href="rsvp.html?ref=home" id="invRsvp">RSVP here</a> so we can save yours.</span>
-        <span><b>Agenda:</b> posted on <a href="waterville.html">the Waterville page</a> &middot; every meetup, mapped, on <a href="events.html">the circuit</a>.</span>
+<main class="wrap">
+  <section class="hero">
+    <div class="fx col gap24">
+      <p class="folio"><b>&#8470; 01</b> &middot; The invitation &middot; Waterville, Maine</p>
+      <h1 class="display-xl">You&rsquo;re invited. One hour, and one problem off your plate.</h1>
+      <p class="lede">Neighbors teaching neighbors to put AI to work. Bring one real task that is eating your week; somebody sits with you until it&rsquo;s done. Free, no tickets, no vendors, coffee on.</p>
+      <p class="kicker">&ldquo;Give to help others.&rdquo; <span class="by">&mdash; the Homebrew Computer Club, 1975</span></p>
+      <div class="cta">
+        <a class="btn btn-secondary btn-lg" href="#the-hour">How the hour runs</a>
+        <a class="link" href="events.html">Every meetup, mapped &rarr;</a>
       </div>
     </div>
-    <div class="fig">
-      <span class="logo" data-size="200"></span>
+
+    <aside class="card-raised ticket" aria-label="The next meetup">
+      <div class="top">
+        <span class="folio"><b id="invTitle">The next AI Brown Bag</b></span>
+        <span class="folio">Waterville</span>
+      </div>
+      <div class="date">
+        <span class="big" id="invWhen">The next date lands on <a href="waterville.html">the Waterville page</a> first</span>
+        <span class="time" id="invTime">Agenda posted there too &middot; every meetup, mapped, on <a href="events.html">the circuit</a></span>
+      </div>
+      <div class="rows">
+        <div class="r"><span class="k">Where</span><span id="invWhere">Posted on <a href="waterville.html">the Waterville page</a> the moment it&rsquo;s set</span></div>
+        <div class="r"><span class="k">Bring</span><span>A laptop or just your phone, and one real task that is eating your week.</span></div>
+        <div class="r"><span class="k">Cost</span><span>Free. No tickets, no vendors, nobody selling you anything.</span></div>
+        <div class="r"><span class="k">Seats</span><span id="invSeats">First come, first served. RSVP so we can save yours.</span></div>
+      </div>
+      <div class="foot">
+        <a class="btn btn-primary btn-lg" href="rsvp.html?ref=home" id="invRsvp">Save my seat</a>
+        <a class="btn btn-ghost" id="invCal" href="events.html" target="_blank" rel="noopener" hidden>Add to calendar</a>
+      </div>
+    </aside>
+  </section>
+</main>
+
+<section class="band alt" id="the-hour">
+  <div class="wrap">
+    <div class="sec-h">
+      <div class="l">
+        <p class="folio"><b>&#8470; 02</b> &middot; The hour</p>
+        <h2 class="display-l">One hour. Six problems. Zero lectures.</h2>
+      </div>
+      <p class="kicker r">Nobody leaves with homework. <span class="hl">You leave with one problem already gone.</span></p>
+    </div>
+    <div class="timeline">
+      <div class="step"><span class="t">0:00</span><span class="ti">The six things, live.</span><span class="d">Quick real demos, from shops like yours.</span></div>
+      <div class="step"><span class="t">0:15</span><span class="ti">Pick yours.</span><span class="d">Everyone names the one eating their week.</span></div>
+      <div class="step"><span class="t">0:20</span><span class="ti">Do it, together.</span><span class="d">Pull out your real task. Someone sits with you until it is done.</span></div>
+      <div class="step"><span class="t">0:55</span><span class="ti">The close.</span><span class="d">Everyone answers one question: what would you actually try?</span></div>
     </div>
   </div>
 </section>
 
-<section class="alt">
+<section class="band">
   <div class="wrap">
-    <h2>One hour. Six problems. Zero lectures.</h2>
-    <div class="agenda">
-      <div><span class="t">0:00</span><span><b>The six things, live.</b> <span class="d">Quick real demos, from shops like yours.</span></span></div>
-      <div><span class="t">0:15</span><span><b>Pick yours.</b> <span class="d">Everyone names the one eating their week.</span></span></div>
-      <div><span class="t">0:20</span><span><b>Do it, together.</b> <span class="d">Pull out your real task. Someone sits with you until it is done.</span></span></div>
-      <div><span class="t">0:55</span><span><b>The close.</b> <span class="d">Everyone answers one question: what would you actually try?</span></span></div>
+    <div class="sec-h">
+      <div class="l">
+        <p class="folio"><b>&#8470; 03</b> &middot; Six things AI can do for you this week</p>
+        <h2 class="display-l">Real tasks from real shops.</h2>
+        <p class="lede">Each takes about ten minutes to try, and every card ends with a prompt you can steal.</p>
+      </div>
+      <a class="btn btn-secondary" href="recipes.html">Open the recipe box</a>
     </div>
-    <p class="kicker" style="margin-top:22px">Nobody leaves with homework. <span class="hl">You leave with one problem already gone.</span></p>
-  </div>
-</section>
-
-<section>
-  <div class="wrap">
-    <h2>Six things AI can do for you this week.</h2>
-    <p class="lede quiet" style="margin-top:14px">Real tasks from real shops. Each takes about ten minutes to try, and every card ends with a prompt you can steal.</p>
-    <div class="grid">
-      <div class="card a-teal">
+    <div class="recipes">
+      <div class="card rc">
+        <span class="num">01 / 06</span>
         <h3>Write the thing you keep putting off</h3>
-        <p>Estimates, listings, the friendly&#8209;but&#8209;firm payment reminder, the apology that keeps a customer.</p>
-        <div class="steal"><b>Steal this prompt</b>&ldquo;Rewrite this message so it is friendly but firm, and shorter: [paste it]&rdquo;</div>
+        <p class="body">Estimates, listings, the friendly&#8209;but&#8209;firm payment reminder, the apology that keeps a customer.</p>
+        <div class="index-card"><span class="lbl">Steal this prompt</span><span class="pr">&ldquo;Rewrite this message so it is friendly but firm, and shorter: [paste it]&rdquo;</span></div>
+        <div class="cp"><button class="btn btn-ghost btn-sm copyprompt" type="button">Copy the prompt</button></div>
       </div>
-      <div class="card a-sky">
+      <div class="card rc">
+        <span class="num">02 / 06</span>
         <h3>Answer every customer</h3>
-        <p>Replies to reviews and inquiries, quotes turned around the same day, a FAQ built from the questions you answer every week.</p>
-        <div class="steal"><b>Steal this prompt</b>&ldquo;Here is a one&#8209;star review. Draft a calm reply that owns the mistake and offers a fix: [paste it]&rdquo;</div>
+        <p class="body">Replies to reviews and inquiries, quotes turned around the same day, a FAQ built from the questions you answer every week.</p>
+        <div class="index-card"><span class="lbl">Steal this prompt</span><span class="pr">&ldquo;Here is a one&#8209;star review. Draft a calm reply that owns the mistake and offers a fix: [paste it]&rdquo;</span></div>
+        <div class="cp"><button class="btn btn-ghost btn-sm copyprompt" type="button">Copy the prompt</button></div>
       </div>
-      <div class="card a-berry">
+      <div class="card rc">
+        <span class="num">03 / 06</span>
         <h3>Do a month of marketing in an hour</h3>
-        <p>Social posts that sound like you, flyer copy, and your Google profile finally filled out.</p>
-        <div class="steal"><b>Steal this prompt</b>&ldquo;Write 8 Facebook posts for a [your business] in [your town]. Plain local voice, no hashtag soup.&rdquo;</div>
+        <p class="body">Social posts that sound like you, flyer copy, and your Google profile finally filled out.</p>
+        <div class="index-card"><span class="lbl">Steal this prompt</span><span class="pr">&ldquo;Write 8 Facebook posts for a [your business] in [your town]. Plain local voice, no hashtag soup.&rdquo;</span></div>
+        <div class="cp"><button class="btn btn-ghost btn-sm copyprompt" type="button">Copy the prompt</button></div>
       </div>
-      <div class="card a-tangerine">
+      <div class="card rc">
+        <span class="num">04 / 06</span>
         <h3>Shrink the paperwork pile</h3>
-        <p>Photograph a stack of receipts and get a tidy list. Summarize a lease. First&#8209;draft an invoice.</p>
-        <div class="steal"><b>Steal this prompt</b>&ldquo;Turn these receipt photos into a list with date, vendor, amount, and category.&rdquo;</div>
+        <p class="body">Photograph a stack of receipts and get a tidy list. Summarize a lease. First&#8209;draft an invoice.</p>
+        <div class="index-card"><span class="lbl">Steal this prompt</span><span class="pr">&ldquo;Turn these receipt photos into a list with date, vendor, amount, and category.&rdquo;</span></div>
+        <div class="cp"><button class="btn btn-ghost btn-sm copyprompt" type="button">Copy the prompt</button></div>
       </div>
-      <div class="card a-lemon">
+      <div class="card rc">
+        <span class="num">05 / 06</span>
         <h3>Read the fine print for you</h3>
-        <p>Contracts in plain English. Three insurance quotes in one table. What that new rule actually means for your shop.</p>
-        <div class="steal"><b>Steal this prompt</b>&ldquo;Compare these two quotes in a table and tell me what questions to ask before I sign.&rdquo;</div>
+        <p class="body">Contracts in plain English. Three insurance quotes in one table. What that new rule actually means for your shop.</p>
+        <div class="index-card"><span class="lbl">Steal this prompt</span><span class="pr">&ldquo;Compare these two quotes in a table and tell me what questions to ask before I sign.&rdquo;</span></div>
+        <div class="cp"><button class="btn btn-ghost btn-sm copyprompt" type="button">Copy the prompt</button></div>
       </div>
-      <div class="card a-teal">
+      <div class="card rc">
+        <span class="num">06 / 06</span>
         <h3>Take back your evenings</h3>
-        <p>Dinner plans a kid will actually eat, the trip itinerary, homework help, the gift idea.</p>
-        <div class="steal"><b>Steal this prompt</b>&ldquo;Plan five weeknight dinners a picky ten&#8209;year&#8209;old will eat, with one grocery list.&rdquo;</div>
+        <p class="body">Dinner plans a kid will actually eat, the trip itinerary, homework help, the gift idea.</p>
+        <div class="index-card"><span class="lbl">Steal this prompt</span><span class="pr">&ldquo;Plan five weeknight dinners a picky ten&#8209;year&#8209;old will eat, with one grocery list.&rdquo;</span></div>
+        <div class="cp"><button class="btn btn-ghost btn-sm copyprompt" type="button">Copy the prompt</button></div>
       </div>
     </div>
   </div>
 </section>
 
-<section class="alt">
-  <div class="wrap">
-    <h2>AI is the great equalizer.</h2>
-    <p class="lede" style="margin-top:18px">The greatest way to redistribute wealth is to increase participation in capitalism. Big companies win because they can afford a back office: schedulers, bookkeepers, marketers, collectors. AI hands that same back office to anyone with a truck, a storefront, or a license.</p>
-    <div class="statrow">
-      <div class="stat a-teal"><span class="n">2x</span><span class="l">small&#8209;business AI use has more than doubled since 2023</span></div>
-      <div class="stat a-tangerine"><span class="n">1 in 4</span><span class="l">owners using AI say it shortened their workday</span></div>
+<section class="band alt">
+  <div class="wrap eq">
+    <div class="fx col gap16">
+      <p class="folio"><b>&#8470; 04</b> &middot; Why we meet</p>
+      <h2 class="display-l">AI is the great equalizer.</h2>
+      <p class="lede">The greatest way to redistribute wealth is to increase participation in capitalism. Big companies win because they can afford a back office: schedulers, bookkeepers, marketers, collectors. AI hands that same back office to anyone with a truck, a storefront, or a license.</p>
+      <p class="kicker" style="margin-top:8px">Same wrenches. Same trucks. <span class="hl">Big&#8209;company margins,</span> with your name still on the door.</p>
     </div>
-    <p class="statsrc"><a href="https://www.uschamber.com/technology/empowering-small-business-the-impact-of-technology-on-u-s-small-business">U.S. Chamber of Commerce</a>, <a href="https://www.uschamberfoundation.org/workforce/what-small-business-owners-say-ai-is-actually-doing-at-work">U.S. Chamber Foundation/Ipsos</a>, and <a href="https://quickbooks.intuit.com/r/small-business-data/ai-impact-report/">Intuit QuickBooks</a> owner surveys, 2024 to 2026</p>
-    <p class="kicker" style="margin-top:22px">Same wrenches. Same trucks. <span class="hl">Big&#8209;company margins,</span> with your name still on the door.</p>
-  </div>
-</section>
-
-<section>
-  <div class="wrap">
-    <h2>Find your seat.</h2>
-    <p class="lede quiet" style="margin-top:14px">Two tracks run through everything: working with agents, and staying human. Free at every rung.</p>
-    <div class="grid">
-      <div class="card a-teal lvl">
-        <span class="lvlicon" data-level="1"></span>
-        <p class="tag">101 &middot; bring your lunch</p>
-        <h3>Use AI tonight</h3>
-        <p>No jargon, no setup. Bring one real task from your week and leave with it done. This is where everyone starts.</p>
+    <div class="fx col gap12">
+      <div class="stats">
+        <div class="card stat"><span class="n teal">2x</span><span class="l">Small&#8209;business AI use has more than doubled since 2023.</span></div>
+        <div class="card stat"><span class="n tang">1 in 4</span><span class="l">Owners using AI say it shortened their workday.</span></div>
       </div>
-      <div class="card a-tangerine lvl">
-        <span class="lvlicon" data-level="2"></span>
-        <p class="tag">201 &middot; bring extra</p>
-        <h3>Build with AI</h3>
-        <p>Agents that do whole jobs. Your first workflows, your first harness, your first GitHub repo.</p>
-      </div>
-      <div class="card a-berry lvl">
-        <span class="lvlicon" data-level="3"></span>
-        <p class="tag">301 &middot; run the lunch counter</p>
-        <h3>Run on AI</h3>
-        <p>Wire agents into a real business: quoting, books, marketing, dispatch. You review the work like a manager.</p>
-      </div>
+      <p class="small statsrc"><a href="https://www.uschamber.com/technology/empowering-small-business-the-impact-of-technology-on-u-s-small-business">U.S. Chamber of Commerce</a>, <a href="https://www.uschamberfoundation.org/workforce/what-small-business-owners-say-ai-is-actually-doing-at-work">U.S. Chamber Foundation/Ipsos</a>, and <a href="https://quickbooks.intuit.com/r/small-business-data/ai-impact-report/">Intuit QuickBooks</a> owner surveys, 2024 to 2026</p>
     </div>
   </div>
 </section>
 
-<section class="alt">
+<section class="band">
   <div class="wrap">
-    <h2>Free at the door. Always.</h2>
+    <div class="sec-h">
+      <div class="l">
+        <p class="folio"><b>&#8470; 05</b> &middot; Find your seat</p>
+        <h2 class="display-l">Three rungs. Free at every one.</h2>
+        <p class="lede">Two tracks run through everything: working with agents, and staying human. Free at every rung.</p>
+      </div>
+    </div>
+    <div class="ladder">
+      <div class="rung"><span class="lv a">101</span><span class="bring">Bring your lunch</span><h3>Use AI tonight</h3><p class="body">No jargon, no setup. Bring one real task from your week and leave with it done. This is where everyone starts.</p></div>
+      <div class="rung"><span class="lv b">201</span><span class="bring">Bring extra</span><h3>Build with AI</h3><p class="body">Agents that do whole jobs. Your first workflows, your first harness, your first GitHub repo.</p></div>
+      <div class="rung"><span class="lv c">301</span><span class="bring">Run the lunch counter</span><h3>Run on AI</h3><p class="body">Wire agents into a real business: quoting, books, marketing, dispatch. You review the work like a manager.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="band alt">
+  <div class="wrap">
+    <div class="sec-h">
+      <div class="l">
+        <p class="folio"><b>&#8470; 06</b> &middot; House rules</p>
+        <h2 class="display-l">Free at the door. Always.</h2>
+      </div>
+      <p class="kicker r">Commerce grows out of community, not the reverse.</p>
+    </div>
     <ul class="rules">
-      <li>No tiers, no tickets, no gate.</li>
-      <li>Demo slots are earned, never sold.</li>
-      <li>No vendors pitching from the podium.</li>
-      <li>Every demo answers: <em>&ldquo;What did this change for you?&rdquo;</em></li>
-      <li>Every class ends with: <em>&ldquo;What would you actually try?&rdquo;</em></li>
+      <li class="ru"><span class="n">i.</span><span>No tiers, no tickets, no gate.</span></li>
+      <li class="ru"><span class="n">ii.</span><span>Demo slots are earned, never sold.</span></li>
+      <li class="ru"><span class="n">iii.</span><span>No vendors pitching from the podium.</span></li>
+      <li class="ru"><span class="n">iv.</span><span>Every demo answers: <em>&ldquo;What did this change for you?&rdquo;</em></span></li>
+      <li class="ru"><span class="n">v.</span><span>Every class ends with: <em>&ldquo;What would you actually try?&rdquo;</em></span></li>
+      <li class="ru blank" aria-hidden="true"><span class="n"></span><span></span></li>
     </ul>
-    <p class="kicker" style="margin-top:22px">Commerce grows out of community, not the reverse.</p>
   </div>
 </section>
 
-<footer>
+<footer class="foot">
   <div class="wrap">
-    <p class="big">Come to the first AI Brown Bag. Bring a neighbor.</p>
-    <p>Bricks Coworking &amp; Innovation Space &middot; Hathaway Creative Center &middot; 10 Water St, Waterville</p>
-    <p style="margin-top:6px"><a href="recipes.html">The recipes are free.</a> They always will be.</p>
-    <p style="margin-top:6px">Got a room and a coffee pot? <a href="lend.html?ref=home">Lend it to the club.</a></p>
-    <p style="margin-top:6px">Been to a meetup? <a href="members.html">The members' room</a> is open.</p>
+    <div class="cols">
+      <div class="fx col gap12">
+        <h2 class="display-m">Come to the first AI Brown Bag. Bring a neighbor.</h2>
+        <p class="body">Bricks Coworking &amp; Innovation Space &middot; Hathaway Creative Center &middot; 10 Water St, Waterville</p>
+        <div class="fx gap12 fwrap" style="margin-top:6px"><a class="btn btn-primary" href="rsvp.html?ref=home" id="footRsvp">Save my seat</a><a class="btn btn-secondary" href="lend.html?ref=home">Lend a room</a></div>
+      </div>
+      <div class="flist"><h4>The club</h4><a href="events.html">The circuit</a><a href="waterville.html">Waterville</a><a href="recipes.html">The recipe box</a><a href="members.html">Members&rsquo; room</a></div>
+      <div class="flist"><h4>Start a chapter</h4><a href="lend.html?ref=home">Got a room and a coffee pot? Lend it to the club.</a><a href="events.html">Every meetup, mapped.</a></div>
+      <div class="flist"><h4>Always</h4><a href="recipes.html">The recipes are free. They always will be.</a><a href="#the-hour">No tickets, no vendors.</a><a href="members.html">Been to a meetup? The members&rsquo; room is open.</a></div>
+    </div>
+    <div class="bot">
+      <span class="folio">aihomebrewclub.com &middot; a modern revival of the Homebrew Computer Club, 1975 &ndash; 1986</span>
+      <span class="folio">Give to help others.</span>
+    </div>
   </div>
 </footer>
+</div>
 
-<script src="assets/config.js"></script>
-<script src="assets/site.js"></script>
+<script src="assets/config.js?v=3"></script>
+<script src="assets/site.js?v=3"></script>
 <script>
 (function(){
   'use strict';
-  /* the invite card fills itself from the live calendar, so the date can never go stale */
-  var esc = window.AIHC_UI.esc;
-  var fmtTime = window.AIHC_UI.fmtTime;
+  var UI = window.AIHC_UI;
+  var esc = UI.esc, fmtTime = UI.fmtTime, $ = UI.$;
+
+  /* the recipe cards: copy the prompt off the index card */
+  document.querySelectorAll('.copyprompt').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var card = btn.closest('.rc');
+      var pr = card && card.querySelector('.index-card .pr');
+      var text = pr ? pr.textContent.trim().replace(/^[“"]|[”"]$/g, '') : '';
+      if (!text || !navigator.clipboard){ UI.toast('Select the prompt and copy it by hand.'); return; }
+      navigator.clipboard.writeText(text)
+        .then(function(){ UI.toast('Copied.'); })
+        .catch(function(){ UI.toast('Select the prompt and copy it by hand.'); });
+    });
+  });
+
+  /* the seat meter: one square per chair at the table */
+  function seatMeter(e){
+    var cap = parseInt(e.capacity, 10) || 0;
+    var left = Math.max(0, parseInt(e.left, 10) || 0);
+    var taken = Math.max(0, cap - left);
+    var full = cap > 0 && left <= 0;
+    var sq = '';
+    for (var i = 0; i < Math.min(cap, 40); i++) sq += '<span class="s' + (i < taken ? '' : ' open') + '"></span>';
+    var n = full
+      ? 'all spoken for, but the waitlist works'
+      : (cap > 0 ? esc(String(left)) + ' of ' + esc(String(cap)) + ' left · first come, first served' : 'first come, first served');
+    return '<span class="seats' + (full ? ' full' : '') + '">' +
+      (sq ? '<span class="row">' + sq + '</span>' : '') +
+      '<span class="n">' + n + '</span></span>';
+  }
+
+  /* the invite ticket fills itself from the live calendar, so the date can never go stale */
   fetch(window.AIHC_CONFIG.API_BASE + '/events')
     .then(function(r){ return r.json(); })
     .then(function(d){
@@ -270,18 +352,23 @@
         .sort(function(a, b){ return a.sort_date < b.sort_date ? -1 : 1; });
       if (!up.length) return;
       var e = up[0];
-      if (e.title) document.getElementById('invTitle').textContent = e.title;
-      if (e.location) document.getElementById('invWhere').innerHTML = '<b>Where:</b> ' + esc(e.location);
+      if (e.title) $('invTitle').textContent = e.title;
+      if (e.location) $('invWhere').textContent = e.location;
       if (e.when){
         var t = fmtTime(e.start_time);
-        document.getElementById('invWhen').innerHTML = '<b>When:</b> ' + esc(e.when) + (t ? ', ' + t : '') + '. Coffee on.';
+        $('invWhen').textContent = e.when;
+        $('invTime').textContent = t ? t + ' · coffee on' : 'Coffee on';
       }
-      var seatBit = e.left > 0
-        ? esc(String(e.capacity)) + ', first come, first served — ' + esc(String(e.left)) + ' left.'
-        : 'all spoken for, but the waitlist works.';
-      document.getElementById('invSeats').innerHTML = '<b>Seats:</b> ' + seatBit +
-        ' <a href="rsvp.html?event=' + encodeURIComponent(e.id) + '&ref=home">' +
-        (e.left > 0 ? 'RSVP here' : 'Join the waitlist') + '</a>' + (e.left > 0 ? ' so we can save yours.' : '.');
+      $('invSeats').innerHTML = seatMeter(e);
+      var full = !(e.left > 0);
+      var href = 'rsvp.html?event=' + encodeURIComponent(e.id) + '&ref=home';
+      var rsvp = $('invRsvp');
+      rsvp.href = href;
+      rsvp.textContent = full ? 'Join the waitlist' : 'Save my seat';
+      var foot = $('footRsvp');
+      if (foot){ foot.href = href; foot.textContent = rsvp.textContent; }
+      var cal = $('invCal');
+      if (e.gcal){ cal.href = e.gcal; cal.hidden = false; }
     })
     .catch(function(){ /* the static fallback copy stands */ });
 })();

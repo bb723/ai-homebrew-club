@@ -11,71 +11,93 @@
 <meta property="og:url" content="https://aihomebrewclub.com/waterville.html">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="assets/site.css">
+<link rel="stylesheet" href="assets/site.css?v=3">
 <style>
-  body{padding-bottom:60px; position:relative}
-  h1{font-weight:800; font-size:clamp(2.6rem,8vw,4rem); line-height:1.05; margin:18px 0 4px; letter-spacing:-.01em}
-  h1::after{content:""; display:block; width:126px; height:12px; margin-top:12px; background:var(--squig) no-repeat left center}
-  .kicker{font-family:var(--font-display); font-style:italic; font-weight:600; color:var(--ink-soft); font-size:1.1rem; margin:0 0 22px}
-  h2{font-weight:800; font-size:clamp(1.5rem,4vw,2rem); margin:36px 0 12px}
+  /* Chapter 01 - Waterville: the next meetup as one raised card, the QR beside it, the record below. */
+  .page-head .hand{max-width:24ch; text-align:right}
+  main.wrap{padding-bottom:64px}
+  .sec{margin:0 0 12px}
 
-  .meetup{
-    background:var(--card); border:1px solid var(--edge); border-radius:20px;
-    box-shadow:var(--shadow); padding:22px 24px; margin:16px 0;
+  /* ---- the next meetup ---- */
+  .next{display:grid; grid-template-columns:1fr 340px; overflow:hidden; margin-bottom:28px}
+  .next .l{padding:26px 30px 28px; display:flex; flex-direction:column; gap:14px; min-width:0}
+  .next .top{display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap}
+  .next .when{font-family:var(--font-display); font-size:clamp(1.5rem,2.4vw,1.9rem); font-weight:800; letter-spacing:-.02em; line-height:1.1}
+  .next .meta{display:flex; align-items:baseline; gap:14px; font-size:14px; color:var(--ink-2); flex-wrap:wrap}
+  .next .meta b{color:var(--ink)}
+  .next .cta{display:flex; gap:10px; margin-top:6px; flex-wrap:wrap}
+  .next .r{border-left:1px solid var(--rule); background:var(--paper-2); padding:26px; display:flex; flex-direction:column; align-items:center; gap:14px; text-align:center}
+  .qr{width:200px; height:200px; border-radius:8px; background:var(--card); border:1px solid var(--rule); padding:12px; display:flex; align-items:center; justify-content:center; line-height:0}
+  .qr svg{width:100%; height:100%; display:block}
+  .qr .none{font-family:var(--font-mono); font-size:11px; color:var(--ink-3); line-height:1.5}
+  .agenda-empty{font-style:italic; color:var(--ink-3); font-size:14px}
+  .empty{color:var(--ink-3); font-style:italic; font-size:14px}
+
+  /* ---- the record ---- */
+  .past .p{display:grid; grid-template-columns:150px 1fr auto; gap:20px; padding:16px 20px; align-items:baseline; border-top:1px solid var(--rule)}
+  .past .p:first-child{border-top:0}
+  .past .p .w{font-family:var(--font-display); font-weight:700; font-size:16px}
+  .past .p .t{font-size:14px; color:var(--ink-2)}
+  .past .p .t b{color:var(--ink)}
+  .past details{grid-column:3; text-align:right}
+  .past details[open]{grid-column:1 / -1; text-align:left}
+  .past details summary{font-size:13px; font-weight:600; color:var(--teal-deep); cursor:pointer; list-style:none; text-decoration:underline; text-underline-offset:3px; text-decoration-color:rgba(85,124,75,.4)}
+  .past details summary::-webkit-details-marker{display:none}
+  .past details summary:hover{color:var(--tangerine)}
+  .past details .callsheet{margin-top:8px}
+
+  @media (max-width:900px){
+    .page-head .hand{text-align:left}
+    .next{grid-template-columns:1fr}
+    .next .r{border-left:0; border-top:1px solid var(--rule)}
   }
-  .mhead{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap}
-  .mwhen{font-family:var(--font-display); font-weight:800; font-size:clamp(1.3rem,3.4vw,1.7rem)}
-  .mtitle{color:var(--ink-soft); font-weight:800; margin:2px 0 0}
-  .mwhere{margin:6px 0 0}
-  .ag{margin:16px 0 0; border-top:2px dashed var(--edge)}
-  .ag > div{display:flex; gap:16px; padding:10px 2px; border-bottom:2px dashed var(--edge); align-items:baseline}
-  .ag .t{font-family:var(--font-display); font-weight:800; color:var(--tangerine); flex:none; width:52px; font-size:.98rem}
-  .ag b{font-weight:800}
-  .ag .d{color:var(--ink-soft); display:block; font-size:.92rem}
-  .aglabel{font-size:.76rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); margin:16px 0 0}
-  .mfoot{display:flex; gap:20px; align-items:center; margin-top:18px; flex-wrap:wrap}
-  .qrbox{background:#F8F1E3; border:1px solid var(--edge); border-radius:14px; padding:8px; line-height:0}
-  .qrbox svg{width:118px; height:118px; display:block}
-  .qrcap{font-size:.78rem; color:var(--ink-soft); font-weight:700; max-width:130px}
-  .callink{font-weight:800; font-size:.85rem; color:var(--teal-deep)}
-  .past .meetup{padding:16px 20px}
-  .past summary{cursor:pointer; font-weight:800; color:var(--teal-deep); font-size:.9rem; margin-top:8px}
-  .empty{color:var(--ink-soft); font-weight:700}
-  @media (max-width:560px){ .mfoot{gap:14px} .qrbox svg{width:100px;height:100px} }
+  @media (max-width:640px){
+    .next .l{padding:20px 18px 22px}
+    .past .p{grid-template-columns:1fr; gap:6px}
+  }
 </style>
 </head>
 <body>
+<div class="frame">
+<div class="runner"></div>
+<header class="masthead">
+  <a class="brand" href="index.html"><span class="logo" data-size="32" aria-hidden="true"></span><span>The AI Homebrew Club</span></a>
+  <span class="est">Central Maine &middot; est. 2026, after 1975</span>
+  <nav>
+    <a href="events.html">The circuit</a>
+    <a class="here" href="waterville.html">Waterville</a>
+    <a href="recipes.html">The recipe box</a>
+    <a href="lend.html">Lend a room</a>
+    <a class="members" href="members.html">Members&rsquo; room</a>
+  </nav>
+  <button class="menu" type="button" aria-label="Menu">&#9776;</button>
+</header>
 
-<div class="wrap">
-  <header class="top">
-    <a href="index.html"><span class="logo" data-size="40"></span><span>The AI Homebrew Club</span></a>
-    <a class="evlink" href="events.html">Events</a>
-    <a class="members" href="members.html">Members</a>
-  </header>
+<main class="wrap">
+  <div class="page-head">
+    <div class="fx col gap12">
+      <p class="folio"><b>Chapter 01</b> &middot; Waterville, Maine</p>
+      <h1 class="display-xl">Waterville.</h1>
+      <p class="lede">Neighbors teaching neighbors to put AI to work. Free, and it always will be.</p>
+    </div>
+    <p class="hand">Scan to RSVP, or screenshot this and text a neighbor.</p>
+  </div>
 
-  <h1>Waterville.</h1>
-  <p class="kicker">Neighbors teaching neighbors to put AI to work. Free, and it always will be.</p>
-
-  <h2 id="nextH">The next meetup.</h2>
+  <p class="folio sec" id="nextH"><b>The next meetup</b></p>
   <div id="nextWrap"><p class="empty">Checking the calendar&hellip;</p></div>
 
   <div class="past">
-    <h2 id="pastH" hidden>The record.</h2>
+    <p class="folio sec" id="pastH" hidden><b>The record</b> &middot; every table we&rsquo;ve held here</p>
     <div id="pastWrap"></div>
   </div>
+</main>
 
-  <footer>
-    The recipes are free. They always will be.<br>
-    Got a room and a coffee pot? <a href="lend.html?ref=town">Lend it to the club.</a><br>
-    Been to a meetup? <a href="members.html">The members' room</a> is open.<br>
-    Every table, mapped: <a href="events.html">the circuit</a>.<br>
-    <a href="index.html">aihomebrewclub.com</a>
-  </footer>
+<footer class="slim"><span class="folio">Free, one hour, coffee on</span><span class="folio"><a href="recipes.html">The recipes</a> &middot; <a href="lend.html?ref=town">Lend a room</a> &middot; <a href="events.html">The circuit</a></span></footer>
 </div>
 
 <script src="assets/qrlib.js"></script>
-<script src="assets/config.js"></script>
-<script src="assets/site.js"></script>
+<script src="assets/config.js?v=3"></script>
+<script src="assets/site.js?v=3"></script>
 <script>
 (function(){
   'use strict';
@@ -91,16 +113,41 @@
       qr.make();
       return qr.createSvgTag({cellSize: 4, margin: 0, scalable: true})
         .replace(/#000000|black/gi, '#3B3227')
-        .replace(/#ffffff|white/gi, '#F8F1E3');
+        .replace(/#ffffff|white/gi, '#FFFDF7');
     } catch(e){ return ''; }
   }
 
+  /* "9:00" -> minutes past midnight, or null */
+  function mins(t){
+    var m = /^(\d{1,2}):(\d{2})$/.exec(String(t || '').trim());
+    return m ? (+m[1]) * 60 + (+m[2]) : null;
+  }
+  function agendaLabel(items){
+    var a = mins(items[0].t), b = mins(items[items.length - 1].t);
+    var n = (a != null && b != null && b > a) ? b - a : 0;
+    return 'The agenda' + (n ? ' · ' + n + ' minutes' : '');
+  }
   function agendaHtml(items){
-    if (!items || !items.length) return '<p class="aglabel">Agenda coming soon. It always fits in one hour.</p>';
-    return '<p class="aglabel">The agenda</p><div class="ag">' + items.map(function(a){
-      return '<div><span class="t">' + esc(a.t) + '</span><span><b>' + esc(a.title) + '</b>' +
-        (a.detail ? '<span class="d">' + esc(a.detail) + '</span>' : '') + '</span></div>';
+    if (!items || !items.length) return '<p class="agenda-empty">Agenda coming soon. It always fits in one hour.</p>';
+    return '<span class="folio">' + agendaLabel(items) + '</span><div class="callsheet">' + items.map(function(a){
+      return '<div class="row"><span class="t">' + esc(a.t) + '</span><span><span class="ti">' + esc(a.title) + '</span>' +
+        (a.detail ? ' <span class="d">' + esc(a.detail) + '</span>' : '') + '</span></div>';
     }).join('') + '</div>';
+  }
+
+  /* the seat meter: one square per chair, filled as they go; extra squares for the waitlist */
+  function seatMeter(e){
+    var cap = Math.max(0, +e.capacity || 0);
+    var left = Math.max(0, +e.left || 0);
+    var taken = e.taken != null ? +e.taken : cap - left;
+    var filled = Math.min(cap, Math.max(0, taken));
+    var wait = Math.min(8, Math.max(0, taken - cap));
+    var sq = '';
+    for (var i = 0; i < filled; i++) sq += '<span class="s"></span>';
+    for (var j = filled; j < cap; j++) sq += '<span class="s open"></span>';
+    for (var k = 0; k < wait; k++) sq += '<span class="s wait"></span>';
+    var n = left > 0 ? left + ' of ' + cap + ' left' : 'Full · waitlist open';
+    return '<span class="seats' + (left > 0 ? '' : ' full') + '"><span class="row">' + sq + '</span><span class="n">' + n + '</span></span>';
   }
 
   function render(events){
@@ -113,36 +160,45 @@
     } else {
       nw.innerHTML = up.map(function(e){
         var rsvpUrl = 'https://aihomebrewclub.com/rsvp.html?event=' + encodeURIComponent(e.id) + '&ref=qr';
-        var pill = e.left > 0
-          ? '<span class="seats">' + e.left + ' of ' + e.capacity + ' seats left</span>'
-          : '<span class="seats full">Full · waitlist open</span>';
         var timeBit = e.start_time ? ' · ' + fmtTime(e.start_time) : '';
-        return '<div class="meetup">' +
-          '<div class="mhead"><span class="mwhen">' + esc(e.when) + timeBit + '</span>' + pill + '</div>' +
-          '<p class="mtitle">' + esc(e.title) + '</p>' +
-          '<p class="mwhere">' + esc(e.location) + '</p>' +
-          agendaHtml(e.agenda) +
-          '<div class="mfoot">' +
-            '<a class="gobtn" href="rsvp.html?event=' + encodeURIComponent(e.id) + '&ref=town">' +
-              (e.left > 0 ? 'Save my seat' : 'Join the waitlist') + '</a>' +
-            (e.gcal ? '<a class="callink" target="_blank" rel="noopener" href="' + esc(e.gcal) + '">Add to calendar</a>' : '') +
-            '<span class="qrbox">' + qrSvg(rsvpUrl) + '</span>' +
-            '<span class="qrcap">Scan to RSVP, or screenshot this and text a neighbor.</span>' +
+        var qr = qrSvg(rsvpUrl);
+        return '<div class="card-raised next">' +
+          '<div class="l">' +
+            '<div class="top">' +
+              '<div class="fx col gap6">' +
+                '<span class="when">' + esc(e.when) + timeBit + '</span>' +
+                '<span class="meta"><b>' + esc(e.title) + '</b><span>' + esc(e.location) + '</span></span>' +
+              '</div>' +
+              seatMeter(e) +
+            '</div>' +
+            '<div class="hr"></div>' +
+            agendaHtml(e.agenda) +
+            '<div class="cta">' +
+              '<a class="btn btn-primary btn-lg" href="rsvp.html?event=' + encodeURIComponent(e.id) + '&ref=town">' +
+                (e.left > 0 ? 'Save my seat' : 'Join the waitlist') + '</a>' +
+              (e.gcal ? '<a class="btn btn-secondary btn-lg" target="_blank" rel="noopener" href="' + esc(e.gcal) + '">Add to calendar</a>' : '') +
+            '</div>' +
+          '</div>' +
+          '<div class="r">' +
+            '<span class="folio">RSVP · this meetup only</span>' +
+            '<div class="qr">' + (qr || '<span class="none">' + esc(rsvpUrl.replace(/^https?:\/\//, '')) + '</span>') + '</div>' +
+            '<span class="mono-s ink3">aihomebrewclub.com/rsvp</span>' +
+            '<span class="small">Scan to RSVP, or screenshot this and text a neighbor.</span>' +
           '</div>' +
         '</div>';
       }).join('');
     }
     if (past.length){
       document.getElementById('pastH').hidden = false;
-      document.getElementById('pastWrap').innerHTML = past.map(function(e){
-        return '<div class="meetup">' +
-          '<div class="mhead"><span class="mwhen">' + esc(e.when) + '</span></div>' +
-          '<p class="mtitle">' + esc(e.title) + ' &middot; ' + esc(e.location) + '</p>' +
+      document.getElementById('pastWrap').innerHTML = '<div class="card">' + past.map(function(e){
+        return '<div class="p">' +
+          '<span class="w">' + esc(e.when) + '</span>' +
+          '<span class="t"><b>' + esc(e.title) + '</b> &middot; ' + esc(e.location) + '</span>' +
           (e.agenda && e.agenda.length
-            ? '<details><summary>What we worked on</summary>' + agendaHtml(e.agenda) + '</details>'
-            : '') +
+            ? '<details><summary>What we worked on &#9662;</summary>' + agendaHtml(e.agenda) + '</details>'
+            : '<span></span>') +
         '</div>';
-      }).join('');
+      }).join('') + '</div>';
     }
   }
 

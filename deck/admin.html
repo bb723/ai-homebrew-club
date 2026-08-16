@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>The AI Homebrew Club &middot; Meetup Controls</title>
+<title>The AI Homebrew Club &middot; The back office</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
 <meta name="robots" content="noindex, nofollow">
-<link rel="stylesheet" href="../assets/club.css">
+<link rel="stylesheet" href="../assets/club.css?v=3">
 </head>
 <body>
 
@@ -14,8 +14,8 @@
 <div class="gate" id="gate">
   <div class="gate-card" id="gateCard">
     <span class="logo" data-size="90" aria-hidden="true"></span>
-    <h2>Friends only, for now</h2>
-    <p>The back office. Your name and the admin word, please.</p>
+    <h2>The back office</h2>
+    <p>Your name and the admin word, please.</p>
     <input id="gName" type="text" placeholder="Your name" autocomplete="off" aria-label="Your name">
     <input id="gPass" type="password" placeholder="Secret word" autocomplete="off" aria-label="Secret word">
     <p class="err" id="gErr" role="alert"></p>
@@ -23,330 +23,598 @@
   </div>
 </div>
 
-<div class="deck" id="deck">
+<!-- ===================== THE SHELL ===================== -->
+<div class="shell">
+  <aside class="sidebar" id="sideNav" aria-label="The club"></aside>
+  <section class="main">
+    <header class="topbar" id="topbar">
+      <button class="shellbtn" type="button" aria-label="Menu">&#9776;</button>
+      <span class="crumb" id="crumb">The back office <span>&rsaquo;</span> <b>Meetups</b></span>
+      <span class="status" id="liveStatus" style="margin-left:auto"><span class="dot dot-live" id="liveDot"></span> <span id="liveTxt">live</span></span>
+      <button class="btn btn-primary btn-sm" id="newMeetup" type="button">+ New meetup</button>
+    </header>
+
+    <div id="views">
+
+      <!-- ============ MEETUPS: master -> detail ============ -->
+      <section class="view" id="v-meetups">
+
+        <!-- the index: the calendar on the left, the form on the right -->
+        <div class="split" id="mtIndex">
+          <div class="list">
+            <div class="lh">
+              <span class="folio">On the calendar</span>
+              <span class="seg" id="evSeg" role="group" aria-label="Filter">
+                <button type="button" class="on" data-seg="upcoming">Upcoming</button>
+                <button type="button" data-seg="past">Past</button>
+                <button type="button" data-seg="all">All</button>
+              </span>
+            </div>
+            <div class="evs" id="evList"><span class="quiet">Loading&hellip;</span></div>
+            <div class="offer" id="evOffer" hidden></div>
+          </div>
+          <div class="form" id="formHost">
+            <div class="formwrap" id="evFormWrap">
+              <div class="fh"><h2 id="formTitle">New meetup</h2><span class="small">Changes go live on the Waterville and RSVP pages the moment you save.</span></div>
+              <form class="fgrid" id="evForm">
+                <label class="span">Title
+                  <input type="text" id="eTitle" placeholder="The September AI Brown Bag" maxlength="200">
+                </label>
+                <label>When <span class="opt">&middot; as people read it</span>
+                  <input type="text" id="eWhen" placeholder="Tuesday, September 15" maxlength="200">
+                </label>
+                <label>Date <span class="opt">&middot; for sorting</span>
+                  <input type="date" id="eSort" class="mono">
+                </label>
+                <label>Start time <span class="opt">&middot; unlocks reminders + calendar invites</span>
+                  <input type="time" id="eTime" class="mono">
+                </label>
+                <label>Seats
+                  <input type="number" id="eCap" class="mono" value="8" min="1" max="200">
+                </label>
+                <label class="span">Location
+                  <input type="text" id="eLoc" placeholder="the parlor at the rectory, Ticonic Commons, Waterville" maxlength="300">
+                </label>
+                <label>City <span class="opt">&middot; one page per city</span>
+                  <input type="text" id="eCity" value="waterville" maxlength="40">
+                </label>
+                <label>Status
+                  <select id="eStatus"><option value="upcoming">Upcoming</option><option value="past">Past</option></select>
+                </label>
+                <label class="span">Link id <span class="opt">&middot; auto from date + venue</span>
+                  <input type="text" id="eId" class="mono" placeholder="sep15-rectory" maxlength="60">
+                </label>
+                <label class="check span"><input type="checkbox" id="eAnnounce" checked> Announce it on the club feed</label>
+                <div class="fx ac gap10 fwrap span">
+                  <button class="btn btn-primary" id="eSave" type="submit">Save meetup</button>
+                  <button class="btn btn-ghost" id="eReset" type="button">Clear form</button>
+                  <span class="small msg" id="eMsg"></span>
+                </div>
+              </form>
+              <div id="qrOut"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- one meetup, full width -->
+        <div class="detail" id="mtDetail" hidden>
+          <div class="dh">
+            <div class="row1">
+              <div class="min0">
+                <h2 id="dhTitle"></h2>
+                <div class="sub" id="dhSub"></div>
+              </div>
+              <div class="acts">
+                <button class="btn btn-secondary btn-sm" id="dhQr" type="button">RSVP QR</button>
+                <a class="btn btn-secondary btn-sm" id="dhPublic" href="../waterville.html" target="_blank" rel="noopener">Open public page</a>
+                <button class="btn btn-ghost btn-sm" id="dhDel" type="button">Delete</button>
+              </div>
+            </div>
+            <div class="tabs" id="dhTabs">
+              <button class="tab on" type="button" data-tab="details">Details</button>
+              <button class="tab" type="button" data-tab="runsheet">Run sheet <span class="n" id="tabRunN"></span></button>
+              <button class="tab" type="button" data-tab="attendees">Attendees <span class="n" id="tabAttN"></span></button>
+            </div>
+          </div>
+
+          <div class="pane" id="tab-details">
+            <div class="form" id="detailFormHost"></div>
+          </div>
+
+          <div class="pane" id="tab-runsheet" hidden>
+            <div class="work" id="agPanel">
+              <div class="col shelf">
+                <div class="ch"><h3>The block shelf</h3><a class="btn btn-ghost btn-xs" href="#blocks">+ Block</a></div>
+                <input class="input search" id="agSearch" type="text" placeholder="Find a block&hellip;" aria-label="Find a block">
+                <div class="scroll" id="agShelf"></div>
+              </div>
+
+              <div class="col lineup">
+                <div class="ch"><h3 id="agTitle">The lineup</h3><span class="small">tap a block to add it</span></div>
+                <div class="clock" id="agClock">
+                  <span class="lbl" id="clockA">0:00</span>
+                  <span class="bar"><i id="clockFill" style="width:0%"></i><b style="left:25%"></b><b style="left:50%"></b><b style="left:75%"></b></span>
+                  <span class="lbl" id="clockB">1:00</span>
+                  <span class="tag tag-teal" id="agTotal" hidden></span>
+                </div>
+                <div class="scroll" id="agLineup"></div>
+
+                <div class="saved">
+                  <div class="ch"><h3 id="agSavedH">Saved run sheet</h3><span class="small">what is live on the public page right now</span></div>
+                  <div id="agList"></div>
+                  <form class="oneline" id="agForm">
+                    <span class="small lbl">Or one item at a time:</span>
+                    <input type="text" class="mono" id="aT" maxlength="40" placeholder="0:15" aria-label="Time, 0:00 style or 7:30">
+                    <input type="text" id="aTitle" maxlength="200" placeholder="Item" aria-label="Item">
+                    <input type="text" id="aDetail" maxlength="1000" placeholder="Detail &middot; optional" aria-label="Detail, optional">
+                    <button class="btn btn-secondary btn-sm" id="aSave" type="submit">Add item</button>
+                    <button class="btn btn-ghost btn-sm" id="aCancel" type="button" hidden>Cancel edit</button>
+                  </form>
+                </div>
+              </div>
+
+              <div class="col aside">
+                <div class="ch"><h3>The drafter</h3><span class="tag tag-plain model" id="agModel" hidden></span></div>
+                <div class="drafter" id="agBriefWrap" hidden>
+                  <div class="h"><b>Draft it for me</b><span class="small">reads the shelf + who RSVP&rsquo;d</span></div>
+                  <p>Proposes a lineup from your blocks, sized to the hour and to what the room asked for. It never writes anything itself &mdash; you edit, then write.</p>
+                  <label>Anything the drafter should know? <span class="opt">&middot; optional</span>
+                    <textarea id="agBrief" maxlength="500" placeholder="Spotlight the invoice recipe; two first-timers coming."></textarea>
+                  </label>
+                  <button class="btn btn-teal" id="agDraft" type="button" hidden>&#10024; Draft it for me</button>
+                </div>
+                <p class="small" id="agNoAi" hidden>The drafter is off &mdash; no AI key on the server yet. Build the hour from the shelf.</p>
+                <div class="foot">
+                  <label class="check" id="agShareWrap"><input type="checkbox" id="agShare" checked> <span id="agShareTxt">Post the run sheet to the clubhouse</span></label>
+                  <button class="btn btn-primary btn-lg" id="agWrite" type="button" disabled>Write this agenda</button>
+                  <span class="small" style="text-align:center">Replaces the saved run sheet in one go. Live on the Waterville page the moment it saves.</span>
+                  <button class="btn btn-ghost btn-sm" id="agClear" type="button" hidden>Clear the lineup</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pane" id="tab-attendees" hidden>
+            <div class="att" id="attPanel">
+              <h3 class="sr" id="attTitle">Attendees</h3>
+              <div class="sum" id="attCounts"></div>
+              <div id="attList"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ MEMBERS & KEYS ============ -->
+      <section class="view" id="v-members" hidden>
+        <div class="page">
+          <div class="ph">
+            <h2>Members &amp; keys</h2>
+            <p class="quiet">Every key to the clubhouse. Mark an rsvp attended and the invite emails itself; add plus-ones by hand. Revoking a key locks that person out everywhere, instantly.</p>
+          </div>
+          <div class="card rowlist" id="mbList"><div class="r one"><span class="quiet">Loading&hellip;</span></div></div>
+          <div class="card formcard">
+            <h3>Add a member</h3>
+            <form class="fgrid" id="mbForm">
+              <label>Name
+                <input type="text" id="mName" maxlength="80" placeholder="Pat from the hardware store">
+              </label>
+              <label>Email <span class="opt">&middot; the invite goes here</span>
+                <input type="text" id="mEmail" maxlength="160" inputmode="email">
+              </label>
+              <div class="span fx gap10">
+                <button class="btn btn-primary" id="mSave" type="submit">Add member &middot; send invite</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ ROOMS OFFERED ============ -->
+      <section class="view" id="v-venues" hidden>
+        <div class="page">
+          <div class="ph">
+            <h2>Rooms offered</h2>
+            <p class="quiet">Neighbors lending spaces via <a href="../lend.html">aihomebrewclub.com/lend.html</a>. Schedule a meetup in one, or mark it passed.</p>
+          </div>
+          <div class="card rowlist" id="vnList"><div class="r one"><span class="quiet">Loading&hellip;</span></div></div>
+        </div>
+      </section>
+
+      <!-- ============ CLUBHOUSE ROOMS ============ -->
+      <section class="view" id="v-channels" hidden>
+        <div class="page">
+          <div class="ph">
+            <h2>Clubhouse rooms</h2>
+            <p class="quiet">Chat rooms live at <a href="../chat.html">aihomebrewclub.com/chat.html</a>. Rooms with history are archived instead of deleted, so nothing said is lost.</p>
+          </div>
+          <div class="card rowlist" id="chList"><div class="r one"><span class="quiet">Loading&hellip;</span></div></div>
+          <div class="card formcard">
+            <h3 id="chFormH">Add a room</h3>
+            <form class="fgrid" id="chForm">
+              <label>Room name
+                <input type="text" id="cName" maxlength="60" placeholder="gear">
+              </label>
+              <label>Order <span class="opt">&middot; low numbers sit higher</span>
+                <input type="number" id="cPos" class="mono" value="0" min="0" max="99">
+              </label>
+              <label class="span">Topic <span class="opt">&middot; one line under the room name</span>
+                <input type="text" id="cTopic" maxlength="200" placeholder="Hardware, laptops, and what to run it all on.">
+              </label>
+              <label>Who can see it
+                <select id="cVis">
+                  <option value="members">Every member</option>
+                  <option value="admins">Admins only</option>
+                </select>
+              </label>
+              <label class="check span"><input type="checkbox" id="cAnnounce" checked> Announce the new room on the club feed</label>
+              <div class="span fx gap10 ac">
+                <button class="btn btn-primary" id="cSave" type="submit">Add room</button>
+                <button class="btn btn-ghost" id="cCancel" type="button" hidden>Cancel edit</button>
+              </div>
+            </form>
+          </div>
+          <div class="card modbox" id="modBox" hidden>
+            <div class="ch"><h3 id="modTitle">Recent messages</h3><span class="small">the last 60, newest first</span></div>
+            <div class="rowlist" id="modList"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ RECIPE BOX ============ -->
+      <section class="view" id="v-recipes" hidden>
+        <div class="page">
+          <div class="ph">
+            <h2>The recipe box</h2>
+            <p class="quiet">Recipes are public at <a href="../recipes.html">aihomebrewclub.com/recipes.html</a>. Add the good ones from every meetup.</p>
+          </div>
+          <div class="card rowlist" id="rcList"><div class="r one"><span class="quiet">Loading&hellip;</span></div></div>
+          <div class="card drafter" id="rcDraftWrap" hidden>
+            <div class="h"><b>The recipe drafter</b><span class="small">it already reads who RSVP&rsquo;d and what they asked for</span></div>
+            <label>What should the drafter aim for? <span class="opt">&middot; optional</span>
+              <input type="text" id="rcBrief" maxlength="500" placeholder="Something for the landscapers and the bakery folks.">
+            </label>
+            <div class="fx gap10">
+              <button class="btn btn-teal" id="rcDraftBtn" type="button">&#10024; Draft recipes for the room</button>
+            </div>
+            <div class="rowlist drafts" id="rcDraft"></div>
+          </div>
+          <div class="card formcard">
+            <h3 id="rcFormH">Add a recipe</h3>
+            <form class="fgrid" id="rcForm">
+              <label>Title
+                <input type="text" id="rTitle" maxlength="200" placeholder="The late-payment reminder">
+              </label>
+              <label>Category
+                <input type="text" id="rCat" maxlength="80" placeholder="Money in the door" list="rcCats">
+                <datalist id="rcCats"></datalist>
+              </label>
+              <label class="span">The problem it solves <span class="opt">&middot; one sentence</span>
+                <input type="text" id="rProblem" maxlength="500" placeholder="An invoice is 30 days past due and the email feels awkward.">
+              </label>
+              <label class="span">The prompt <span class="opt">&middot; what people paste into Claude or ChatGPT</span>
+                <textarea id="rPrompt" maxlength="4000"></textarea>
+              </label>
+              <label class="span">Notes <span class="opt">&middot; optional tips</span>
+                <input type="text" id="rNotes" maxlength="1000">
+              </label>
+              <label>From <span class="opt">&middot; credit, optional</span>
+                <input type="text" id="rName" maxlength="80" placeholder="Brett">
+              </label>
+              <div class="span fx gap10 ac">
+                <button class="btn btn-primary" id="rSave" type="submit">Add recipe</button>
+                <button class="btn btn-ghost" id="rCancel" type="button" hidden>Cancel edit</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ THE BLOCK SHELF ============ -->
+      <section class="view" id="v-blocks" hidden>
+        <div class="page">
+          <div class="ph">
+            <h2>The block shelf</h2>
+            <p class="quiet">Reusable run-sheet blocks &mdash; demos, talks, worked tasks, housekeeping. Open any meetup&rsquo;s run sheet and build the hour from these.</p>
+          </div>
+          <div class="card rowlist" id="bkList"><div class="r one"><span class="quiet">Loading&hellip;</span></div></div>
+          <div class="card formcard">
+            <h3 id="bkFormH">Add a block</h3>
+            <form class="fgrid" id="bkForm">
+              <label>Title
+                <input type="text" id="bTitle" maxlength="200" placeholder="The demo">
+              </label>
+              <label>Kind
+                <select id="bKind">
+                  <option value="demo">Demo</option>
+                  <option value="talk">Talk</option>
+                  <option value="task">Worked task</option>
+                  <option value="admin">Housekeeping</option>
+                </select>
+              </label>
+              <label>Minutes
+                <input type="number" id="bMin" class="mono" value="10" min="1" max="120">
+              </label>
+              <label>Links <span class="opt">&middot; optional, comma-separated</span>
+                <input type="text" id="bLinks" maxlength="500">
+              </label>
+              <label class="span">The prompt or script <span class="opt">&middot; what actually runs on stage</span>
+                <textarea id="bPrompt" maxlength="4000"></textarea>
+              </label>
+              <label class="span">Presenter notes <span class="opt">&middot; the first line doubles as the public agenda detail</span>
+                <input type="text" id="bNotes" maxlength="2000">
+              </label>
+              <div class="span fx gap10 ac">
+                <button class="btn btn-primary" id="bSave" type="submit">Add block</button>
+                <button class="btn btn-ghost" id="bCancel" type="button" hidden>Cancel edit</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ THE ADMIN WORD ============ -->
+      <section class="view" id="v-word" hidden>
+        <div class="page narrow">
+          <div class="ph">
+            <h2>The admin word</h2>
+            <p class="quiet">Saving changes the word for every admin on the spot &mdash; tell the other founder first. You stay signed in here.</p>
+          </div>
+          <div class="card formcard">
+            <form class="fgrid" id="awForm">
+              <label>New word <span class="opt">&middot; 8+ characters</span>
+                <input type="password" id="aw1" autocomplete="new-password">
+              </label>
+              <label>Same again
+                <input type="password" id="aw2" autocomplete="new-password">
+              </label>
+              <div class="span fx gap10">
+                <button class="btn btn-primary" id="awGo" type="submit">Change the word</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+    </div><!-- /views -->
+  </section>
+</div><!-- /shell -->
+
 <style>
-  /* admin-only styles: this block ships only with admin.html */
+  /* the back office: written against club.css / site.css tokens; must stay after the club.css link */
   html{scroll-snap-type:none}
-  /* a form console has no slides: no rail, no arrow hints, no notes pane */
-  .rail,.hint,.notesbtn,.clickhint{display:none!important}
-  .sidepane{display:none!important}
-  body.pane-open .deck{margin-right:0}
-  .slide{min-height:100svh; display:block; padding:4px clamp(12px,3vw,20px) 80px; background:var(--w-cream)}
-  .sheet{width:min(720px,100%); margin:0 auto; gap:0}
-  #s1 .sheet{padding-top:clamp(56px,8vh,88px)}
-  .panel{
-    background:var(--card); border:1px solid var(--edge); border-radius:18px;
-    box-shadow:var(--shadow); padding:18px 20px; margin:14px 0;
+  .rail,.hint,.notesbtn,.clickhint,.sidepane{display:none!important}
+  .main{min-height:100svh}
+  .topbar .btn{flex:none}
+  .crumb a{color:var(--teal-deep); font-weight:600}
+  .crumb a:hover{color:var(--tangerine)}
+  .status .dot-off{background:var(--ink-3)}
+  #views{display:flex; flex-direction:column; flex:1; min-width:0}
+  .view{display:flex; flex-direction:column; flex:1; min-width:0}
+  .min0{min-width:0}
+  .sr{position:absolute; left:-5000px}
+  .quiet{color:var(--ink-3); font-size:13.5px}
+  .empty-row{padding:18px 16px; color:var(--ink-3); font-size:13.5px}
+
+  /* plain pages: members, rooms offered, clubhouse rooms, recipes, blocks, the word */
+  .page{width:min(960px,100%); padding:26px 28px 56px; display:flex; flex-direction:column; gap:18px}
+  .page.narrow{width:min(620px,100%)}
+  .page .ph{display:flex; flex-direction:column; gap:6px}
+  .page .ph h2{font-size:24px; font-weight:800; letter-spacing:-.02em}
+  .page .ph .quiet{font-size:14px; color:var(--ink-2); max-width:70ch}
+  .formcard{padding:18px 20px 20px; display:flex; flex-direction:column; gap:14px}
+  .formcard h3{font-size:16px; font-family:var(--font-body); font-weight:700; letter-spacing:0}
+  .fgrid{display:grid; grid-template-columns:1fr 1fr; gap:14px 18px}
+  .fgrid .span{grid-column:1 / -1}
+  .fgrid label.check{flex-direction:row}
+  textarea{min-height:88px}
+  .rowlist > .r{grid-template-columns:1fr auto; font-size:13.5px}
+  .rowlist > .r.mb{grid-template-columns:auto 1fr auto}
+  .rowlist > .r.one{grid-template-columns:1fr}
+  .rowlist > .r .who{display:flex; flex-direction:column; min-width:0; gap:2px}
+  .rowlist > .r .who .nm{display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-weight:600; font-size:14px}
+  .rowlist > .r .who .m{font-size:12.5px; color:var(--ink-3); overflow-wrap:anywhere}
+  .rowlist > .r .who .m2{font-size:12.5px; color:var(--ink-2)}
+  .rowlist > .r .hash{font-family:var(--font-mono); font-size:13.5px; font-weight:600}
+  .rowlist > .r .stamp{font-family:var(--font-mono); font-size:11.5px; color:var(--ink-3)}
+  .rowlist > .r .body{font-size:13.5px; white-space:pre-wrap; overflow-wrap:anywhere}
+  .rowlist.drafts > .r{grid-template-columns:1fr auto; padding-left:0; padding-right:0}
+  .rowlist.drafts > .r:hover{background:none}
+  .modbox{padding:0}
+  .modbox .ch{display:flex; align-items:baseline; justify-content:space-between; gap:12px; padding:14px 16px 8px}
+  .modbox .ch h3{font-size:14px; font-family:var(--font-body); font-weight:700}
+  .drafter{padding:14px 16px; display:flex; flex-direction:column; gap:10px}
+  .drafter .h{display:flex; align-items:baseline; justify-content:space-between; gap:8px; flex-wrap:wrap}
+  .drafter .h b{font-size:13.5px; white-space:nowrap}
+  .drafter p{font-size:12.5px; color:var(--ink-2); line-height:1.45}
+  .drafter textarea{min-height:88px; font-size:13px}
+  .drafter .btn{align-self:flex-start}
+  .drafter label{display:flex; flex-direction:column; gap:6px; font-size:12.5px; font-weight:600; color:var(--ink)}
+
+  /* ---- meetups: the index ---- */
+  .split{display:grid; grid-template-columns:360px 1fr; flex:1; min-height:0}
+  .list{border-right:1px solid var(--rule); display:flex; flex-direction:column; min-height:0}
+  .list .lh{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 16px 10px}
+  .seg{display:inline-flex; border:1px solid var(--rule-2); border-radius:6px; overflow:hidden}
+  .seg button{padding:4px 10px; font-size:12px; font-weight:600; color:var(--ink-3); background:none; border:0; cursor:pointer; line-height:1.4}
+  .seg button.on{background:var(--ink); color:var(--paper)}
+  .evs{display:flex; flex-direction:column}
+  .ev{display:grid; grid-template-columns:44px 1fr; gap:12px; padding:12px 16px; border-bottom:1px solid var(--rule); cursor:pointer; text-align:left; background:none; border-left:0; border-right:0; border-top:0; width:100%; color:inherit; font:inherit}
+  .ev:hover{background:rgba(43,36,25,.03)}
+  .ev.on{background:var(--card); box-shadow:inset 3px 0 0 var(--tangerine)}
+  .ev .d{display:flex; flex-direction:column; align-items:center; line-height:1; padding-top:2px}
+  .ev .d .m{font-family:var(--font-mono); font-size:10px; letter-spacing:.1em; color:var(--tangerine); text-transform:uppercase}
+  .ev .d .n{font-family:var(--font-display); font-size:22px; font-weight:800; margin-top:3px}
+  .ev .ti{font-weight:600; font-size:13.5px; line-height:1.3; display:block}
+  .ev .meta{display:flex; align-items:center; gap:8px; margin-top:5px; font-size:12px; color:var(--ink-3); flex-wrap:wrap}
+  .ev.past{opacity:.6}
+  .ev.past:hover,.ev.past.on{opacity:1}
+  .offer{padding:14px 16px; margin-top:auto; border-top:1px solid var(--rule); font-size:13px; color:var(--ink-3); line-height:1.5}
+  .offer b{color:var(--ink)}
+  .offer a{white-space:nowrap}
+  .form{padding:22px 28px 40px; display:flex; flex-direction:column; gap:16px; min-width:0}
+  .formwrap{display:flex; flex-direction:column; gap:16px}
+  .form .fh{display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap}
+  .form .fh h2{font-size:22px; font-weight:800; letter-spacing:-.015em}
+  .form .msg{margin-left:auto; color:var(--tangerine); font-weight:600}
+  .qr{display:grid; grid-template-columns:132px 1fr; gap:16px; align-items:center; padding:14px 16px}
+  .qr .pic{width:132px; height:132px; border-radius:6px; background:var(--card); border:1px solid var(--rule); padding:6px; line-height:0}
+  .qr .pic svg{width:100%; height:100%; display:block}
+  .qr b{font-size:14px}
+  .qr .small{line-height:1.45}
+  #qrOut:not(:empty){padding-top:16px; border-top:1px solid var(--rule)}
+  .detail #eReset{display:none}
+
+  /* ---- meetups: one meetup, full width ---- */
+  .detail{display:flex; flex-direction:column; min-width:0; flex:1}
+  .dh{padding:20px 28px 0; display:flex; flex-direction:column; gap:14px}
+  .dh .row1{display:flex; align-items:flex-start; justify-content:space-between; gap:20px; flex-wrap:wrap}
+  .dh h2{font-size:26px; font-weight:800; letter-spacing:-.02em; line-height:1.15}
+  .dh .sub{display:flex; align-items:center; gap:14px; margin-top:6px; font-size:13.5px; color:var(--ink-2); flex-wrap:wrap}
+  .dh .tabs .tab{font-family:inherit}
+  .pane{display:flex; flex-direction:column; flex:1; min-height:0}
+  .work{flex:1; min-height:0; display:grid; grid-template-columns:264px 1fr 312px}
+  .col{display:flex; flex-direction:column; min-height:0; min-width:0}
+  .col .ch{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 18px 10px}
+  .col .ch h3{font-size:12px; font-family:var(--font-mono); letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); font-weight:500}
+  .shelf{border-right:1px solid var(--rule); background:var(--paper-2)}
+  .shelf .search{margin:0 14px 10px; width:auto; height:32px; font-size:13px}
+  .shelf .scroll{overflow:auto; max-height:70svh; padding-bottom:12px}
+  .shelf .kind{font-family:var(--font-mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3); padding:12px 18px 6px}
+  .shelf .quiet{padding:8px 18px; display:block}
+  .blk{display:grid; grid-template-columns:1fr auto; gap:6px 10px; padding:9px 12px; margin:0 10px 6px; width:calc(100% - 20px); background:var(--card); border:1px solid var(--rule); border-radius:8px; cursor:pointer; align-items:center; text-align:left; font:inherit; color:inherit}
+  .blk:hover{border-color:var(--ink)}
+  .blk .t{font-size:13px; font-weight:600; line-height:1.3}
+  .blk .m{font-family:var(--font-mono); font-size:11px; color:var(--ink-3)}
+  .blk.dim{opacity:.45}
+  .lineup{padding:0 24px}
+  .lineup .ch{padding-left:0; padding-right:0}
+  .clock{display:flex; align-items:center; gap:14px; padding:12px 0 8px}
+  .clock .bar{flex:1; height:8px; border-radius:4px; background:var(--paper-2); position:relative; overflow:hidden}
+  .clock .bar i{position:absolute; left:0; top:0; bottom:0; width:0; background:var(--teal); border-radius:4px; transition:width .2s}
+  .clock .bar i.over{background:var(--tangerine)}
+  .clock .bar b{position:absolute; top:-3px; bottom:-3px; width:1px; background:var(--rule-2)}
+  .clock .lbl{font-family:var(--font-mono); font-size:12px; color:var(--ink-2)}
+  .li{display:grid; grid-template-columns:64px 1fr 64px 112px; gap:14px; align-items:center; padding:12px 8px; border-bottom:1px dashed var(--rule-2)}
+  .li:hover{background:rgba(43,36,25,.03)}
+  .li .t{font-family:var(--font-mono); font-size:13px; font-weight:600; color:var(--tangerine)}
+  .li .ti{font-weight:700; font-size:14px; line-height:1.3; display:block}
+  .li .d{color:var(--ink-2); font-size:12.5px; margin-top:2px; line-height:1.4; display:block}
+  .li .min{display:inline-flex; align-items:center; gap:4px; font-family:var(--font-mono); font-size:12px}
+  .li .min input{width:44px; height:28px; padding:0; text-align:center; border:1px solid var(--rule-2); border-radius:5px; background:var(--card); font-family:var(--font-mono); font-size:12.5px}
+  .li .ctl{display:flex; gap:2px; justify-content:flex-end}
+  .li .ctl button{width:26px; height:26px; display:inline-flex; align-items:center; justify-content:center; border-radius:5px; color:var(--ink-3); font-size:13px; cursor:pointer; background:none; border:0; padding:0; font-family:inherit}
+  .li .ctl button:hover{background:var(--paper-2); color:var(--ink)}
+  .li .ctl button.warn:hover{color:var(--tangerine)}
+  .li.saved{grid-template-columns:64px 1fr 112px}
+  .li.drop{border:1px dashed var(--teal); background:var(--teal-wash); border-radius:8px; justify-items:center; grid-template-columns:1fr; padding:14px; color:var(--teal-deep); font-size:13px; font-weight:600; margin-top:8px; text-align:center}
+  .li.drop.full{border-color:var(--tangerine); background:var(--tangerine-wash); color:var(--tangerine-deep)}
+  .saved{margin-top:18px; padding-top:6px; border-top:1px solid var(--rule)}
+  .saved .quiet{display:block; padding:10px 8px}
+  .oneline{display:flex; flex-direction:row; align-items:center; gap:8px; padding:12px 0 16px; border-top:1px solid var(--rule); margin-top:8px; flex-wrap:wrap}
+  .oneline .lbl{white-space:nowrap}
+  .oneline input{height:32px; font-size:13px}
+  .oneline #aT{width:84px; flex:none}
+  .oneline #aTitle{flex:1; min-width:140px; width:auto}
+  .oneline #aDetail{flex:1.4; min-width:160px; width:auto}
+  .aside{border-left:1px solid var(--rule); padding:0 18px 18px; gap:14px}
+  .aside .ch{padding-left:0; padding-right:0}
+  .aside .drafter{border:1px solid var(--rule); border-radius:10px; background:var(--card); padding:14px}
+  .aside .drafter .btn{align-self:stretch}
+  .aside .foot{margin-top:auto; display:flex; flex-direction:column; gap:10px; padding-top:14px; border-top:1px solid var(--rule)}
+  .aside .foot .btn-lg{width:100%}
+  .aside .foot .btn-ghost{align-self:center}
+  .aside .check{font-size:13px}
+  .model{text-transform:none; letter-spacing:0}
+
+  /* ---- attendees ---- */
+  .att{padding:18px 28px 32px; display:flex; flex-direction:column; gap:18px; position:relative}
+  .att .sum{display:grid; grid-template-columns:repeat(4,1fr); gap:14px}
+  .att .sum .c{padding:14px 16px; display:flex; flex-direction:column; gap:4px}
+  .att .sum .c .n{font-family:var(--font-display); font-size:28px; font-weight:800; line-height:1}
+  .att .sum .c .n small{font-size:16px; font-weight:600; color:var(--ink-3); font-family:var(--font-display)}
+  .att .sum .c .l{font-size:12px; color:var(--ink-3)}
+  .att .sum .c .via{display:flex; gap:6px; flex-wrap:wrap; margin-top:4px}
+  .att .grp{display:flex; flex-direction:column}
+  .att .grp .gh{display:flex; align-items:center; gap:10px; padding:0 0 8px}
+  .att .grp .gh h3{font-size:14px; font-family:var(--font-body); font-weight:700; letter-spacing:0}
+  .att .grp .gh .n{font-family:var(--font-mono); font-size:11.5px; color:var(--ink-3)}
+  .att .grp + .grp{margin-top:6px}
+  .rowlist > .r.pr{grid-template-columns:30px 1.1fr 1.4fr 1fr 190px}
+  .pr .who b{font-size:13.5px; display:block}
+  .pr .who span{font-size:12px; color:var(--ink-3)}
+  .pr .task{font-size:12.5px; color:var(--ink-2); font-style:italic; line-height:1.4}
+  .pr .ct{font-size:12.5px; color:var(--ink-2); line-height:1.4; min-width:0}
+  .pr .ct span{display:block; overflow-wrap:anywhere}
+  .pr.gone{opacity:.6}
+  .ok{display:inline-flex; align-items:center; gap:6px; color:var(--teal-deep); font-size:12.5px; font-weight:600}
+
+  @media (max-width:1180px){
+    .work{grid-template-columns:240px 1fr 280px}
+    .rowlist > .r.pr{grid-template-columns:30px 1fr 1fr 170px}
+    .pr .task{display:none}
   }
-  .panel h2{font-size:1.35rem; margin-bottom:10px}
-  .panel h2::after{display:none}
-  .evrow{
-    display:flex; gap:10px; align-items:baseline; flex-wrap:wrap;
-    border-bottom:2px dashed var(--edge); padding:10px 2px;
+  @media (max-width:1000px){
+    .split{grid-template-columns:1fr}
+    .list{border-right:0; border-bottom:1px solid var(--rule)}
+    .offer{margin-top:0}
+    .work{grid-template-columns:1fr}
+    .shelf{border-right:0; border-bottom:1px solid var(--rule)}
+    .shelf .scroll{max-height:40svh}
+    .aside{border-left:0; border-top:1px solid var(--rule); padding-top:4px}
+    .aside .foot{margin-top:6px}
+    .att .sum{grid-template-columns:1fr 1fr}
+    .rowlist > .r.pr{grid-template-columns:30px 1fr auto}
+    .pr .ct{display:none}
   }
-  .evrow:last-child{border-bottom:none}
-  .evrow b{font-size:1rem}
-  .evrow .meta{color:var(--ink-soft); font-size:.82rem; font-weight:700}
-  .evrow .spacer{margin-left:auto}
-  .abtn{
-    background:none; border:1.5px solid var(--edge); border-radius:999px; cursor:pointer;
-    font-family:var(--font-body); font-weight:800; font-size:.76rem; color:var(--ink);
-    padding:3px 12px;
+  @media (max-width:640px){
+    .fgrid{grid-template-columns:1fr}
+    .fgrid .span{grid-column:auto}
+    .dh,.form,.att,.page{padding-left:16px; padding-right:16px}
+    .lineup{padding:0 12px}
+    .li{grid-template-columns:52px 1fr; gap:8px 12px}
+    .li .min,.li .ctl{grid-column:2; justify-self:start}
+    .li .ctl{justify-content:flex-start}
+    .att .sum{grid-template-columns:1fr}
+    .rowlist > .r{grid-template-columns:auto 1fr; gap:10px 12px}
+    .rowlist > .r .acts{grid-column:1 / -1; justify-content:flex-start}
+    .topbar .crumb{font-size:12px}
+    #newMeetup{display:none}
   }
-  .abtn:hover{border-color:var(--teal); color:var(--teal-deep)}
-  .abtn.warn:hover{border-color:var(--tangerine); color:var(--tangerine)}
-  .stag{font-size:.7rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase; border-radius:999px; padding:2px 10px}
-  .stag.upcoming{background:var(--lemon); color:#3B3227}
-  .stag.past{background:var(--paper); color:var(--ink-soft); border:1px solid var(--edge)}
-  .stag.offered{background:var(--lemon); color:#3B3227}
-  .stag.scheduled{background:var(--teal); color:#FFFCF4}
-  .stag.passed{background:var(--paper); color:var(--ink-soft); border:1px solid var(--edge)}
-  form.grid{display:grid; grid-template-columns:1fr 1fr; gap:10px}
-  form.grid .full{grid-column:1 / -1}
-  label{font-weight:800; font-size:.8rem; display:flex; flex-direction:column; gap:3px}
-  label .hint{color:var(--ink-soft); font-weight:700}
-  input[type=text], input[type=number], input[type=date], select, textarea{
-    border:1px solid var(--edge); border-radius:10px; background:var(--paper); color:var(--ink);
-    font-family:var(--font-body); font-size:.92rem; padding:8px 10px; width:100%;
-  }
-  input:focus, select:focus, textarea:focus{outline:2px solid var(--teal)}
-  .rowbtns{display:flex; gap:10px; align-items:center; margin-top:4px}
-  .gobtn{
-    background:var(--teal); color:var(--paper); border:none; border-radius:999px;
-    padding:9px 24px; font-family:var(--font-body); font-weight:800; font-size:.88rem;
-    letter-spacing:.04em; text-transform:uppercase; cursor:pointer;
-  }
-  .gobtn:disabled{opacity:.5}
-  .quietbtn{background:none; border:none; color:var(--ink-soft); font-weight:800; cursor:pointer; font-size:.82rem}
-  .chk{flex-direction:row; align-items:center; gap:8px; font-size:.85rem}
-  .chk input{width:auto}
-  .agrow{display:flex; gap:8px; align-items:baseline; border-bottom:2px dashed var(--edge); padding:8px 0}
-  .agrow .t{font-family:var(--font-display); font-weight:800; color:var(--tangerine); flex:none; width:48px}
-  .agrow .d{color:var(--ink-soft); font-size:.85rem; display:block}
-  .agrow .grow{flex:1; min-width:0}
-  /* the agenda builder: shelf chips + the timed lineup */
-  .shelfrow{display:flex; flex-wrap:wrap; gap:6px; margin-top:4px}
-  .shelfchip{
-    background:var(--paper); border:1.5px solid var(--edge); border-radius:999px; cursor:pointer;
-    font-family:var(--font-body); font-weight:800; font-size:.8rem; color:var(--ink); padding:5px 12px;
-  }
-  .shelfchip:hover{border-color:var(--teal); color:var(--teal-deep)}
-  .lurow{display:flex; gap:8px; align-items:baseline; border-bottom:2px dashed var(--edge); padding:6px 0}
-  .lurow .t{font-family:var(--font-display); font-weight:800; color:var(--tangerine); flex:none; width:64px}
-  .lurow .grow{flex:1; min-width:0}
-  .lurow .d{color:var(--ink-soft); font-size:.85rem; display:block}
-  .lurow input.min{width:56px; flex:none; text-align:right; padding:3px 6px; font-weight:800}
-  .qrbox{background:#F8F1E3; border:1px solid var(--edge); border-radius:12px; padding:6px; display:inline-block; line-height:0; margin-top:8px}
-  .qrbox svg{width:104px; height:104px; display:block}
 </style>
-
-<section class="slide" id="s1" data-title="Meetup controls">
-  <div class="sheet">
-    <div class="panel">
-      <h2>Meetup controls</h2>
-      <p class="quiet" style="font-size:.9rem">Create meetups at any venue, edit agendas, open the doors. Changes go live on the Waterville page and RSVP page the moment you save.</p>
-      <div id="evList" style="margin-top:8px"><span class="quiet">Loading&hellip;</span></div>
-    </div>
-
-    <div class="panel">
-      <h2 id="formTitle">New meetup</h2>
-      <form class="grid" id="evForm">
-        <label class="full">Title
-          <input type="text" id="eTitle" placeholder="The September AI Brown Bag" maxlength="200">
-        </label>
-        <label>When (as people read it)
-          <input type="text" id="eWhen" placeholder="Tuesday, September 15" maxlength="200">
-        </label>
-        <label>Date (for sorting)
-          <input type="date" id="eSort">
-        </label>
-        <label>Start time <span class="hint">unlocks reminders + calendar invites</span>
-          <input type="time" id="eTime">
-        </label>
-        <label class="full">Location
-          <input type="text" id="eLoc" placeholder="the parlor at the rectory, Ticonic Commons, Waterville" maxlength="300">
-        </label>
-        <label>Seats
-          <input type="number" id="eCap" value="8" min="1" max="200">
-        </label>
-        <label>City <span class="hint">one page per city</span>
-          <input type="text" id="eCity" value="waterville" maxlength="40">
-        </label>
-        <label>Status
-          <select id="eStatus"><option value="upcoming">Upcoming</option><option value="past">Past</option></select>
-        </label>
-        <label>Link id <span class="hint">auto from date + venue</span>
-          <input type="text" id="eId" placeholder="sep15-rectory" maxlength="60">
-        </label>
-        <label class="chk full"><input type="checkbox" id="eAnnounce" checked> Announce it on the club feed</label>
-        <div class="rowbtns full">
-          <button class="gobtn" id="eSave" type="submit">Save meetup</button>
-          <button class="quietbtn" id="eReset" type="button">Clear form</button>
-          <span class="quiet" id="eMsg" style="font-size:.82rem"></span>
-        </div>
-      </form>
-      <div id="qrOut"></div>
-    </div>
-
-    <div class="panel" id="attPanel" hidden>
-      <h2 id="attTitle">Attendees</h2>
-      <p class="quiet" id="attCounts" style="font-size:.88rem; white-space:pre-line"></p>
-      <div id="attList"></div>
-    </div>
-
-    <div class="panel" id="agPanel" hidden>
-      <h2 id="agTitle">Agenda</h2>
-      <div id="agList"></div>
-
-      <p class="quiet" style="font-weight:800; font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; margin:16px 0 0">Build it from the shelf</p>
-      <div id="agShelf" class="shelfrow"></div>
-      <div id="agLineup" style="margin-top:8px"></div>
-      <p class="quiet" id="agTotal" style="font-size:.85rem; margin:6px 0 0"></p>
-      <label id="agBriefWrap" hidden style="margin-top:10px">Anything the drafter should know? <span class="hint">optional</span>
-        <input type="text" id="agBrief" maxlength="500" placeholder="Spotlight the invoice recipe; two first-timers coming.">
-      </label>
-      <label class="chk" id="agShareWrap" style="margin-top:8px"><input type="checkbox" id="agShare" checked> Post the run sheet to the clubhouse so folks can see it</label>
-      <div class="rowbtns" style="margin-top:10px">
-        <button class="gobtn" id="agWrite" type="button" disabled>Write this agenda</button>
-        <button class="quietbtn" id="agDraft" type="button" hidden>&#10024; Draft it for me</button>
-        <button class="quietbtn" id="agClear" type="button" hidden>Clear</button>
-      </div>
-
-      <p class="quiet" style="font-weight:800; font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; margin:16px 0 0">Or one item at a time</p>
-      <form class="grid" id="agForm" style="margin-top:12px">
-        <label>Time <span class="hint">0:00 style or 7:30</span>
-          <input type="text" id="aT" maxlength="40" placeholder="0:15">
-        </label>
-        <label class="full" style="grid-column:2">Item
-          <input type="text" id="aTitle" maxlength="200" placeholder="Tasks, worked live">
-        </label>
-        <label class="full">Detail <span class="hint">optional</span>
-          <input type="text" id="aDetail" maxlength="1000" placeholder="Real tasks from the room, done together.">
-        </label>
-        <div class="rowbtns full">
-          <button class="gobtn" id="aSave" type="submit">Add item</button>
-          <button class="quietbtn" id="aCancel" type="button" hidden>Cancel edit</button>
-        </div>
-      </form>
-    </div>
-
-    <div class="panel">
-      <h2>Members</h2>
-      <p class="quiet" style="font-size:.9rem">Every key to the clubhouse. Mark an rsvp attended and the invite emails itself; add plus-ones by hand. Revoking a key locks that person out everywhere, instantly.</p>
-      <div id="mbList" style="margin-top:8px"><span class="quiet">Loading&hellip;</span></div>
-      <form class="grid" id="mbForm" style="margin-top:12px">
-        <label>Name
-          <input type="text" id="mName" maxlength="80" placeholder="Pat from the hardware store">
-        </label>
-        <label>Email <span class="hint">the invite goes here</span>
-          <input type="text" id="mEmail" maxlength="160" inputmode="email">
-        </label>
-        <div class="rowbtns full">
-          <button class="gobtn" id="mSave" type="submit">Add member &middot; send invite</button>
-        </div>
-      </form>
-    </div>
-
-    <div class="panel">
-      <h2>Rooms offered</h2>
-      <p class="quiet" style="font-size:.9rem">Neighbors lending spaces via <a href="../lend.html">aihomebrewclub.com/lend.html</a>. Schedule a meetup in one, or mark it passed.</p>
-      <div id="vnList" style="margin-top:8px"><span class="quiet">Loading&hellip;</span></div>
-    </div>
-
-    <div class="panel">
-      <h2>The clubhouse</h2>
-      <p class="quiet" style="font-size:.9rem">Chat rooms live at <a href="../chat.html">aihomebrewclub.com/chat.html</a>. Rooms with history are archived instead of deleted, so nothing said is lost.</p>
-      <div id="chList" style="margin-top:8px"><span class="quiet">Loading&hellip;</span></div>
-      <form class="grid" id="chForm" style="margin-top:12px">
-        <label>Room name
-          <input type="text" id="cName" maxlength="60" placeholder="gear">
-        </label>
-        <label>Order <span class="hint">low numbers sit higher</span>
-          <input type="number" id="cPos" value="0" min="0" max="99">
-        </label>
-        <label class="full">Topic <span class="hint">one line under the room name</span>
-          <input type="text" id="cTopic" maxlength="200" placeholder="Hardware, laptops, and what to run it all on.">
-        </label>
-        <label>Who can see it
-          <select id="cVis">
-            <option value="members">Every member</option>
-            <option value="admins">Admins only</option>
-          </select>
-        </label>
-        <label class="chk full"><input type="checkbox" id="cAnnounce" checked> Announce the new room on the club feed</label>
-        <div class="rowbtns full">
-          <button class="gobtn" id="cSave" type="submit">Add room</button>
-          <button class="quietbtn" id="cCancel" type="button" hidden>Cancel edit</button>
-        </div>
-      </form>
-      <div id="modBox" hidden style="margin-top:12px">
-        <p class="quiet" style="font-weight:800; font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; margin:0 0 2px" id="modTitle">Recent messages</p>
-        <div id="modList"></div>
-      </div>
-    </div>
-
-    <div class="panel">
-      <h2>The recipe box</h2>
-      <p class="quiet" style="font-size:.9rem">Recipes are public at <a href="../recipes.html">aihomebrewclub.com/recipes.html</a>. Add the good ones from every meetup.</p>
-      <div id="rcList" style="margin-top:8px"><span class="quiet">Loading&hellip;</span></div>
-      <div id="rcDraftWrap" hidden style="margin-top:12px; border-top:2px dashed var(--edge); padding-top:10px">
-        <label>What should the drafter aim for? <span class="hint">optional &mdash; it already reads who RSVP&rsquo;d and what they asked for</span>
-          <input type="text" id="rcBrief" maxlength="500" placeholder="Something for the landscapers and the bakery folks.">
-        </label>
-        <div class="rowbtns" style="margin-top:8px">
-          <button class="quietbtn" id="rcDraftBtn" type="button">&#10024; Draft recipes for the room</button>
-        </div>
-        <div id="rcDraft"></div>
-      </div>
-      <form class="grid" id="rcForm" style="margin-top:12px">
-        <label>Title
-          <input type="text" id="rTitle" maxlength="200" placeholder="The late-payment reminder">
-        </label>
-        <label>Category
-          <input type="text" id="rCat" maxlength="80" placeholder="Money in the door" list="rcCats">
-          <datalist id="rcCats"></datalist>
-        </label>
-        <label class="full">The problem it solves <span class="hint">one sentence</span>
-          <input type="text" id="rProblem" maxlength="500" placeholder="An invoice is 30 days past due and the email feels awkward.">
-        </label>
-        <label class="full">The prompt <span class="hint">what people paste into Claude or ChatGPT</span>
-          <textarea id="rPrompt" maxlength="4000" style="min-height:80px"></textarea>
-        </label>
-        <label class="full">Notes <span class="hint">optional tips</span>
-          <input type="text" id="rNotes" maxlength="1000">
-        </label>
-        <label>From <span class="hint">credit, optional</span>
-          <input type="text" id="rName" maxlength="80" placeholder="Brett">
-        </label>
-        <div class="rowbtns full">
-          <button class="gobtn" id="rSave" type="submit">Add recipe</button>
-          <button class="quietbtn" id="rCancel" type="button" hidden>Cancel edit</button>
-        </div>
-      </form>
-    </div>
-
-    <div class="panel">
-      <h2>The block shelf</h2>
-      <p class="quiet" style="font-size:.9rem">Reusable run-sheet blocks &mdash; demos, talks, worked tasks, housekeeping. Open any meetup&rsquo;s Agenda and build the hour from these.</p>
-      <div id="bkList" style="margin-top:8px"><span class="quiet">Loading&hellip;</span></div>
-      <form class="grid" id="bkForm" style="margin-top:12px">
-        <label>Title
-          <input type="text" id="bTitle" maxlength="200" placeholder="The demo">
-        </label>
-        <label>Kind
-          <select id="bKind">
-            <option value="demo">Demo</option>
-            <option value="talk">Talk</option>
-            <option value="task">Worked task</option>
-            <option value="admin">Housekeeping</option>
-          </select>
-        </label>
-        <label>Minutes
-          <input type="number" id="bMin" value="10" min="1" max="120">
-        </label>
-        <label>Links <span class="hint">optional, comma-separated</span>
-          <input type="text" id="bLinks" maxlength="500">
-        </label>
-        <label class="full">The prompt or script <span class="hint">what actually runs on stage</span>
-          <textarea id="bPrompt" maxlength="4000" style="min-height:80px"></textarea>
-        </label>
-        <label class="full">Presenter notes <span class="hint">the first line doubles as the public agenda detail</span>
-          <input type="text" id="bNotes" maxlength="2000">
-        </label>
-        <div class="rowbtns full">
-          <button class="gobtn" id="bSave" type="submit">Add block</button>
-          <button class="quietbtn" id="bCancel" type="button" hidden>Cancel edit</button>
-        </div>
-      </form>
-    </div>
-
-    <div class="panel">
-      <h2>The admin word</h2>
-      <p class="quiet" style="font-size:.9rem">Saving changes the word for every admin on the spot &mdash; tell the other founder first. You stay signed in here.</p>
-      <form class="grid" id="awForm" style="margin-top:12px">
-        <label>New word <span class="hint">8+ characters</span>
-          <input type="password" id="aw1" autocomplete="new-password">
-        </label>
-        <label>Same again
-          <input type="password" id="aw2" autocomplete="new-password">
-        </label>
-        <div class="rowbtns full">
-          <button class="gobtn" id="awGo" type="submit">Change the word</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</section>
 
 <script src="../assets/qrlib.js"></script>
 <script>
 (function(){
   'use strict';
+  /* ---- the sidebar bridge: club.js repaints the nav on unlock; these keep the
+     console group's counts and .here mark in step (called from AIHC_PAGE.onSideNav) ---- */
+  var NAV = { view: 'meetups', counts: {} };
+  (function(){ var v = (location.hash || '').replace(/^#/, '').split('/')[0]; if (/^(meetups|members|venues|channels|recipes|blocks|word)$/.test(v)) NAV.view = v; })();
+  function markHere(){
+    var el = document.getElementById('sideNav');
+    if (!el) return;
+    el.querySelectorAll('#consoleGrp .navi').forEach(function(a){
+      a.classList.toggle('here', a.getAttribute('data-nav') === NAV.view);
+    });
+    /* the console is the page: the deck-level "Meetup controls" link would double up */
+    var d = el.querySelector('.navi[data-nav="admin"]'); if (d) d.classList.remove('here');
+  }
+  function refreshSideCounts(){
+    var el = document.getElementById('sideNav');
+    if (!el) return;
+    Object.keys(NAV.counts).forEach(function(k){
+      var s = el.querySelector('#consoleGrp .navi[data-nav="' + k + '"] .k');
+      if (s) s.textContent = NAV.counts[k] == null ? '' : String(NAV.counts[k]);
+    });
+  }
+  window.AIHC_ADMIN = { markHere: markHere, refreshSideCounts: refreshSideCounts };
+
   function boot(){
     /* wait for the gate: the admin-only loads need a credential, and on a fresh
        login none exists until the door opens */
     if (!window.AIHC || !window.AIHC.cred || !window.AIHC.cred()){ setTimeout(boot, 300); return; }
     var A = window.AIHC;
+    var CFG = window.AIHC_CONFIG || {};
     var BASE = String(A.sync || '').replace(/\/notes\b.*$/, '');
     function $(id){ return document.getElementById(id); }
     function post(path, body){
@@ -354,70 +622,196 @@
       return fetch(BASE + path, {method: 'POST', headers: {'Content-Type': 'text/plain'}, body: JSON.stringify(body)})
         .then(function(r){ return r.json(); });
     }
+    /* every read goes through here so the topbar dot can say live / offline */
+    function get(path){
+      return fetch(BASE + path).then(function(r){ return r.json(); })
+        .then(function(d){ setLive(true); return d; }, function(err){ setLive(false); throw err; });
+    }
+    function setLive(ok){
+      var dot = $('liveDot'), txt = $('liveTxt');
+      if (!dot) return;
+      dot.classList.toggle('dot-live', ok);
+      dot.classList.toggle('dot-off', !ok);
+      txt.textContent = ok ? 'live' : 'offline';
+    }
     function esc(s){ var d = document.createElement('div'); d.textContent = String(s); return d.innerHTML; }
+    function setCount(k, n){ NAV.counts[k] = n; refreshSideCounts(); }
 
     var events = [];
     var editingEvent = null;   /* event id when editing, null = creating */
-    var agEvent = null;        /* event id whose agenda is open */
+    var agEvent = null;        /* event id whose detail (run sheet) is open */
     var editingItem = null;
+    var evFilter = 'upcoming';
+    var curTab = 'details';
+    var attStats = null;       /* {seats, waits} for the open meetup's tab count */
+    var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
     function load(){
-      fetch(BASE + '/events').then(function(r){ return r.json(); }).then(function(d){
+      get('/events').then(function(d){
         events = (d && d.events) || [];
+        setCount('meetups', events.filter(function(e){ return e.status === 'upcoming'; }).length);
         paintList();
-        if (agEvent) paintAgenda();
+        if (agEvent){ paintAgenda(); paintDetail(); }
+        route();
       });
     }
 
-    function paintList(){
-      $('evList').innerHTML = events.length ? events.map(function(e){
-        return '<div class="evrow">' +
-          '<b>' + esc(e.when) + '</b>' +
-          '<span class="stag ' + e.status + '">' + e.status + '</span>' +
-          '<span class="meta">' + esc(e.title) + ' Â· ' + esc(e.city) + ' Â· ' + e.taken + '/' + e.capacity + ' seats taken</span>' +
-          '<span class="spacer"></span>' +
-          '<button class="abtn" data-act="edit" data-id="' + esc(e.id) + '" type="button">Edit</button>' +
-          '<button class="abtn" data-act="agenda" data-id="' + esc(e.id) + '" type="button">Agenda</button>' +
-          '<button class="abtn" data-act="att" data-id="' + esc(e.id) + '" type="button">Attendees</button>' +
-          '<button class="abtn warn" data-act="del" data-id="' + esc(e.id) + '" type="button">Delete</button>' +
-        '</div>';
-      }).join('') : '<span class="quiet">No meetups yet.</span>';
+    /* ---------- the router: one view at a time, the hash is the state ---------- */
+    var VIEWS = {meetups: 'Meetups', members: 'Members & keys', venues: 'Rooms offered', channels: 'Clubhouse rooms', recipes: 'Recipe box', blocks: 'The block shelf', word: 'The admin word'};
+    function parseHash(){
+      var h = (location.hash || '#meetups').replace(/^#/, '');
+      var p = h.split('/');
+      var view = VIEWS[p[0]] ? p[0] : 'meetups';
+      return { view: view, id: view === 'meetups' && p[1] ? decodeURIComponent(p[1]) : '', tab: p[2] || '' };
     }
+    function crumb(html){ $('crumb').innerHTML = 'The back office <span>&rsaquo;</span> ' + html; }
+    function route(){
+      var r = parseHash();
+      NAV.view = r.view;
+      document.body.classList.remove('deck-open');
+      Object.keys(VIEWS).forEach(function(v){ $('v-' + v).hidden = (v !== r.view); });
+      $('newMeetup').hidden = (r.view !== 'meetups');
+      markHere();
+      if (r.view !== 'meetups'){ crumb('<b>' + esc(VIEWS[r.view]) + '</b>'); return; }
+      var e = r.id ? events.find(function(x){ return x.id === r.id; }) : null;
+      if (r.id && !e){
+        if (!events.length) return;                 /* not loaded yet: load() calls route() again */
+        location.hash = '#meetups'; return;
+      }
+      if (e){
+        if (agEvent !== e.id || editingEvent !== e.id) openEvent(e);
+        showDetail(true);
+        setTab(r.tab === 'runsheet' || r.tab === 'attendees' ? r.tab : 'details');
+        crumb('<a href="#meetups">Meetups</a> <span>&rsaquo;</span> <b>' + esc(e.when) + '</b>');
+      } else {
+        showDetail(false);
+        crumb('<b>Meetups</b>');
+      }
+      paintList();
+    }
+    window.addEventListener('hashchange', route);
 
-    $('evList').addEventListener('click', function(ev){
-      var b = ev.target.closest('button[data-act]');
+    /* the one form instance moves between the index and the meetup's Details tab */
+    function showDetail(on){
+      $('mtIndex').hidden = on;
+      $('mtDetail').hidden = !on;
+      var wrap = $('evFormWrap'), host = on ? $('detailFormHost') : $('formHost');
+      if (wrap.parentNode !== host) host.appendChild(wrap);
+    }
+    function setTab(name){
+      curTab = name;
+      ['details', 'runsheet', 'attendees'].forEach(function(t){ $('tab-' + t).hidden = (t !== name); });
+      $('dhTabs').querySelectorAll('.tab').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-tab') === name); });
+    }
+    $('dhTabs').addEventListener('click', function(ev){
+      var b = ev.target.closest('.tab[data-tab]');
+      if (!b || !agEvent) return;
+      location.hash = '#meetups/' + encodeURIComponent(agEvent) + '/' + b.getAttribute('data-tab');
+    });
+    $('newMeetup').addEventListener('click', function(){
+      resetForm();
+      if (parseHash().id) location.hash = '#meetups'; else showDetail(false);
+      paintList();
+      setTimeout(function(){ $('eTitle').focus(); }, 50);
+    });
+
+    /* ---------- the calendar list ---------- */
+    function dateBits(e){
+      var d = String(e.sort_date || '');
+      var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d);
+      if (!m) return {m: '—', n: '—'};
+      return {m: MONTHS[parseInt(m[2], 10) - 1] || '—', n: m[3]};
+    }
+    function seatMeter(taken, cap){
+      taken = parseInt(taken, 10) || 0; cap = parseInt(cap, 10) || 0;
+      var sq = '';
+      if (cap && cap <= 16){
+        for (var i = 0; i < cap; i++) sq += '<span class="s' + (i < taken ? '' : ' open') + '"></span>';
+      }
+      return '<span class="seats' + (cap && taken >= cap ? ' full' : '') + '">' +
+        (sq ? '<span class="row">' + sq + '</span>' : '') +
+        '<span class="n">' + taken + '/' + cap + '</span></span>';
+    }
+    function paintList(){
+      var on = $('mtDetail').hidden ? editingEvent : agEvent;
+      var rows = events.filter(function(e){
+        return evFilter === 'all' || (evFilter === 'past' ? e.status === 'past' : e.status !== 'past');
+      });
+      $('evList').innerHTML = rows.length ? rows.map(function(e){
+        var db = dateBits(e);
+        return '<button class="ev' + (e.id === on ? ' on' : '') + (e.status === 'past' ? ' past' : '') + '" type="button" data-open="' + esc(e.id) + '">' +
+          '<span class="d"><span class="m">' + db.m + '</span><span class="n">' + db.n + '</span></span>' +
+          '<span class="min0"><span class="ti">' + esc(e.title) + '</span>' +
+            '<span class="meta"><span class="tag tag-teal">' + esc(e.city) + '</span>' + seatMeter(e.taken, e.capacity) +
+              (e.status === 'past' ? '<span class="tag tag-plain">Past</span>' : '') + '</span></span>' +
+        '</button>';
+      }).join('') : '<div class="empty-row">' + (events.length
+        ? (evFilter === 'past' ? 'Nothing in the past yet.' : 'Nothing upcoming. Try All, or start a new meetup.')
+        : 'No meetups yet.') + '</div>';
+      $('evSeg').querySelectorAll('button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-seg') === evFilter); });
+    }
+    $('evSeg').addEventListener('click', function(ev){
+      var b = ev.target.closest('button[data-seg]');
       if (!b) return;
-      var id = b.getAttribute('data-id');
-      var e = events.find(function(x){ return x.id === id; });
+      evFilter = b.getAttribute('data-seg');
+      paintList();
+    });
+    $('evList').addEventListener('click', function(ev){
+      var b = ev.target.closest('[data-open]');
+      if (!b) return;
+      location.hash = '#meetups/' + encodeURIComponent(b.getAttribute('data-open'));
+    });
+
+    /* opening a meetup: fill the form, load its book and its run sheet */
+    function openEvent(e){
+      var fresh = agEvent !== e.id;
+      agEvent = e.id;
+      editingEvent = e.id;
+      $('formTitle').textContent = 'Edit meetup';
+      $('eTitle').value = e.title; $('eWhen').value = e.when; $('eSort').value = e.sort_date;
+      $('eTime').value = e.start_time || '';
+      $('eLoc').value = e.location; $('eCap').value = e.capacity; $('eCity').value = e.city;
+      $('eStatus').value = e.status; $('eId').value = e.id;
+      $('eAnnounce').checked = false;
+      $('eSave').textContent = 'Save changes';
+      $('eMsg').textContent = '';
+      showQr(e.id);
+      if (fresh){ lineup = []; cancelItem(); attStats = null; }
+      paintDetail();
+      paintAgenda();
+      paintBuilder();
+      showAttendees(e);
+    }
+    function paintDetail(){
+      var e = events.find(function(x){ return x.id === agEvent; });
       if (!e) return;
-      if (b.getAttribute('data-act') === 'edit'){
-        editingEvent = id;
-        $('formTitle').textContent = 'Edit meetup';
-        $('eTitle').value = e.title; $('eWhen').value = e.when; $('eSort').value = e.sort_date;
-        $('eTime').value = e.start_time || '';
-        $('eLoc').value = e.location; $('eCap').value = e.capacity; $('eCity').value = e.city;
-        $('eStatus').value = e.status; $('eId').value = e.id;
-        $('eAnnounce').checked = false;
-        $('eSave').textContent = 'Save changes';
-        showQr(id);
-        window.scrollTo({top: $('formTitle').offsetTop - 90, behavior: 'smooth'});
-      }
-      if (b.getAttribute('data-act') === 'agenda'){
-        agEvent = id; editingItem = null;
-        lineup = [];
-        $('agPanel').hidden = false;
-        paintAgenda();
-        paintBuilder();
-        window.scrollTo({top: $('agPanel').offsetTop - 90, behavior: 'smooth'});
-      }
-      if (b.getAttribute('data-act') === 'att'){
-        showAttendees(e);
-      }
-      if (b.getAttribute('data-act') === 'del'){
-        if (!window.confirm('Delete "' + e.title + '" and its agenda? RSVPs stay in the book.')) return;
-        post('/events', {action: 'delete', id: id}).then(function(){ A.toast('Meetup deleted.'); load(); });
-        if (agEvent === id){ agEvent = null; $('agPanel').hidden = true; }
-      }
+      $('dhTitle').textContent = e.title;
+      var pt = CFG.CITY_POINTS && CFG.CITY_POINTS[e.city];
+      $('dhPublic').href = '../' + ((pt && pt.page) || 'waterville.html');
+      $('dhSub').innerHTML =
+        '<span class="mono">' + esc(e.when) + (e.start_time ? ' · ' + esc(fmtT(0, e.start_time)) : '') + '</span>' +
+        '<span>' + esc(e.location) + '</span>' +
+        '<span class="tag tag-teal">' + esc(e.city) + '</span>' +
+        (e.status === 'past' ? '<span class="tag tag-plain">Past</span>' : '<span class="tag tag-tang">Upcoming</span>');
+      var items = agItems(), acc = 0;
+      lineup.forEach(function(it){ acc += it.minutes; });
+      $('tabRunN').textContent = lineup.length ? acc + ' min' : (items.length ? items.length + ' item' + (items.length === 1 ? '' : 's') : '');
+      $('tabAttN').textContent = attStats ? (attStats.seats + ' + ' + attStats.waits) : String(e.taken || 0);
+    }
+    $('dhQr').addEventListener('click', function(){
+      if (!agEvent) return;
+      location.hash = '#meetups';
+      setTimeout(function(){
+        var q = $('qrOut'); if (q) q.scrollIntoView({behavior: 'smooth', block: 'center'});
+      }, 60);
+    });
+    $('dhDel').addEventListener('click', function(){
+      var e = events.find(function(x){ return x.id === agEvent; });
+      if (!e) return;
+      if (!window.confirm('Delete "' + e.title + '" and its agenda? RSVPs stay in the book.')) return;
+      var id = e.id;
+      post('/events', {action: 'delete', id: id}).then(function(){ A.toast('Meetup deleted.'); load(); });
+      if (agEvent === id){ agEvent = null; resetForm(); location.hash = '#meetups'; }
     });
 
     function slugFrom(){
@@ -434,17 +828,59 @@
     });
     $('eId').addEventListener('input', function(){ $('eId').dataset.touched = '1'; });
 
+    /* the RSVP QR: on screen in the page's inks; the PNG in print black on cream */
+    var qrId = '';
+    function qrSvg(id, screen){
+      var qr = qrcode(0, 'M');
+      qr.addData('https://aihomebrewclub.com/rsvp.html?event=' + id);
+      qr.make();
+      var svg = qr.createSvgTag({cellSize: 4, margin: 0, scalable: true});
+      return screen
+        ? svg.replace(/#000000|black/gi, 'var(--ink)').replace(/#ffffff|white/gi, 'var(--card)')
+        : svg.replace(/#000000|black/gi, '#3B3227').replace(/#ffffff|white/gi, '#F8F1E3');
+    }
     function showQr(id){
       try{
-        var qr = qrcode(0, 'M');
-        qr.addData('https://aihomebrewclub.com/rsvp.html?event=' + id);
-        qr.make();
-        $('qrOut').innerHTML = '<span class="qrbox">' +
-          qr.createSvgTag({cellSize: 4, margin: 0, scalable: true})
-            .replace(/#000000|black/gi, '#3B3227').replace(/#ffffff|white/gi, '#F8F1E3') +
-          '</span><p class="quiet" style="font-size:.8rem">RSVP QR for this meetup. Screenshot it for flyers and texts. Link: rsvp.html?event=' + esc(id) + '</p>';
+        qrId = id;
+        $('qrOut').innerHTML = '<div class="card qr">' +
+          '<div class="pic">' + qrSvg(id, true) + '</div>' +
+          '<div class="fx col gap6 min0">' +
+            '<b>RSVP QR for this meetup</b>' +
+            '<span class="small">Screenshot it for flyers and texts. Every scan lands on the seat page for this date.</span>' +
+            '<span class="mono-s" style="margin-top:4px; overflow-wrap:anywhere">aihomebrewclub.com/rsvp.html?event=' + esc(id) + '</span>' +
+            '<div class="fx gap8 fwrap" style="margin-top:6px">' +
+              '<button class="btn btn-secondary btn-sm" type="button" data-qr="png">Download PNG</button>' +
+              '<button class="btn btn-ghost btn-sm" type="button" data-qr="copy">Copy the link</button>' +
+            '</div>' +
+          '</div></div>';
       } catch(e){ $('qrOut').innerHTML = ''; }
     }
+    $('qrOut').addEventListener('click', function(ev){
+      var b = ev.target.closest('button[data-qr]');
+      if (!b || !qrId) return;
+      var link = 'https://aihomebrewclub.com/rsvp.html?event=' + qrId;
+      if (b.getAttribute('data-qr') === 'copy'){
+        try { navigator.clipboard.writeText(link); A.toast('RSVP link copied.'); }
+        catch(e){ window.prompt('The RSVP link:', link); }
+        return;
+      }
+      /* svg -> canvas -> png, 8px per module for a crisp print */
+      try {
+        var svg = qrSvg(qrId, false).replace(/width="[^"]*"/, 'width="480"').replace(/height="[^"]*"/, 'height="480"');
+        var img = new Image();
+        img.onload = function(){
+          var c = document.createElement('canvas'); c.width = 560; c.height = 560;
+          var g = c.getContext('2d');
+          g.fillStyle = '#F8F1E3'; g.fillRect(0, 0, 560, 560);
+          g.drawImage(img, 40, 40, 480, 480);
+          var a = document.createElement('a');
+          a.href = c.toDataURL('image/png'); a.download = 'rsvp-' + qrId + '.png';
+          document.body.appendChild(a); a.click(); a.remove();
+        };
+        img.onerror = function(){ A.toast('Could not draw the PNG. Screenshot it instead.'); };
+        img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+      } catch(e){ A.toast('Could not draw the PNG. Screenshot it instead.'); }
+    });
 
     $('evForm').addEventListener('submit', function(ev){
       ev.preventDefault();
@@ -473,8 +909,14 @@
             ts: new Date().toISOString()
           }});
         }
-        resetForm(false);
-        load();
+        if (agEvent && editingEvent === agEvent){
+          /* editing from the Details tab: keep the meetup open, refresh its header */
+          $('eMsg').textContent = '';
+          load();
+        } else {
+          resetForm(false);
+          load();
+        }
       });
     });
     function resetForm(clearQr){
@@ -484,12 +926,12 @@
       $('evForm').reset();
       $('eCap').value = 8; $('eCity').value = 'waterville';
       delete $('eId').dataset.touched;
-      if (clearQr !== false) $('qrOut').innerHTML = '';
+      if (clearQr !== false){ $('qrOut').innerHTML = ''; qrId = ''; }
       $('eMsg').textContent = '';
     }
-    $('eReset').addEventListener('click', function(){ resetForm(); });
+    $('eReset').addEventListener('click', function(){ resetForm(); paintList(); });
 
-    /* agenda editor */
+    /* the saved run sheet: what is live on the public page, edited an item at a time */
     function agItems(){
       var e = events.find(function(x){ return x.id === agEvent; });
       return (e && e.agenda) || [];
@@ -497,18 +939,21 @@
     function paintAgenda(){
       var e = events.find(function(x){ return x.id === agEvent; });
       if (!e) return;
-      $('agTitle').textContent = 'Agenda Â· ' + e.when;
       var items = agItems();
+      $('agSavedH').textContent = 'Saved run sheet · ' + (items.length ? items.length + ' item' + (items.length === 1 ? '' : 's') : 'empty');
       $('agList').innerHTML = items.length ? items.map(function(a, i){
-        return '<div class="agrow">' +
+        return '<div class="li saved">' +
           '<span class="t">' + esc(a.t) + '</span>' +
-          '<span class="grow"><b>' + esc(a.title) + '</b>' + (a.detail ? '<span class="d">' + esc(a.detail) + '</span>' : '') + '</span>' +
-          '<button class="abtn" data-ag="up" data-i="' + i + '" type="button">&#8593;</button>' +
-          '<button class="abtn" data-ag="down" data-i="' + i + '" type="button">&#8595;</button>' +
-          '<button class="abtn" data-ag="edit" data-i="' + i + '" type="button">Edit</button>' +
-          '<button class="abtn warn" data-ag="del" data-i="' + i + '" type="button">&times;</button>' +
+          '<span class="min0"><span class="ti">' + esc(a.title) + '</span>' + (a.detail ? '<span class="d">' + esc(a.detail) + '</span>' : '') + '</span>' +
+          '<span class="ctl">' +
+            '<button data-ag="up" data-i="' + i + '" type="button" title="Move up" aria-label="Move up">&#8593;</button>' +
+            '<button data-ag="down" data-i="' + i + '" type="button" title="Move down" aria-label="Move down">&#8595;</button>' +
+            '<button data-ag="edit" data-i="' + i + '" type="button" title="Edit" aria-label="Edit">&#9998;</button>' +
+            '<button class="warn" data-ag="del" data-i="' + i + '" type="button" title="Remove" aria-label="Remove">&times;</button>' +
+          '</span>' +
         '</div>';
-      }).join('') : '<span class="quiet">No items yet. Add the first one below.</span>';
+      }).join('') : '<span class="quiet">No items saved yet. Write the lineup above, or add the first one below.</span>';
+      paintDetail();
     }
     $('agList').addEventListener('click', function(ev){
       var b = ev.target.closest('button[data-ag]');
@@ -522,6 +967,7 @@
         editingItem = a.id;
         $('aT').value = a.t; $('aTitle').value = a.title; $('aDetail').value = a.detail;
         $('aSave').textContent = 'Save item'; $('aCancel').hidden = false;
+        $('aTitle').focus();
       }
       if (act === 'del'){
         post('/agenda', {action: 'delete', id: a.id}).then(load);
@@ -563,15 +1009,17 @@
     $('aCancel').addEventListener('click', cancelItem);
 
     /* attendee list: full detail, admin eyes only */
+    var AVC = ['teal', 'tang', 'sky', 'berry', 'lemon'];
     function showAttendees(e){
       attEvent = e;
       $('attPanel').hidden = false;
-      $('attTitle').textContent = 'Attendees Â· ' + e.when;
-      $('attCounts').textContent = 'Loading the bookâ€¦';
+      $('attTitle').textContent = 'Attendees · ' + e.when;
+      $('attCounts').innerHTML = '<div class="card c"><span class="l">Loading the book…</span></div>';
       $('attList').innerHTML = '';
       fetch(BASE + '/rsvps?secret=' + encodeURIComponent(A.secret))
         .then(function(r){ return r.json(); })
         .then(function(d){
+          setLive(true);
           var rows = ((d && d.rsvps) || []).filter(function(r){ return r.event === e.id; });
           var seats = rows.filter(function(r){ return r.status === 'seat'; });
           var waits = rows.filter(function(r){ return r.status === 'waitlist'; });
@@ -586,32 +1034,42 @@
             tally[k] = (tally[k] || 0) + 1;
           });
           var tallyBits = Object.keys(tally).sort(function(a, b){ return tally[b] - tally[a]; })
-            .map(function(k){ return k + ' ' + tally[k]; }).join(' Â· ');
-          $('attCounts').textContent = seatSum(seats) + ' of ' + e.capacity + ' seats taken Â· ' +
-            seatSum(waits) + ' on the waitlist Â· ' + gone.length + ' cancelled' +
-            (tallyBits ? '\nCame via: ' + tallyBits : '');
-          function block(list, label){
+            .map(function(k){ return '<span class="tag tag-plain">' + esc(k) + ' · ' + tally[k] + '</span>'; }).join('');
+          attStats = {seats: seatSum(seats), waits: seatSum(waits)};
+          $('attCounts').innerHTML =
+            '<div class="card c"><span class="n">' + attStats.seats + ' <small>of ' + esc(e.capacity) + '</small></span><span class="l">seats taken</span></div>' +
+            '<div class="card c"><span class="n">' + attStats.waits + '</span><span class="l">on the waitlist</span></div>' +
+            '<div class="card c"><span class="n">' + gone.length + '</span><span class="l">cancelled</span></div>' +
+            '<div class="card c"><span class="l">Came via</span><span class="via">' + (tallyBits || '<span class="small">nobody yet</span>') + '</span></div>';
+          if (agEvent === e.id) paintDetail();
+          function block(list, label, sub, cls){
             if (!list.length) return '';
-            return '<p class="quiet" style="font-weight:800; font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; margin:12px 0 2px">' + label + '</p>' +
-              list.map(function(r){
-                return '<div class="evrow"><b>' + esc(r.name) + (r.guest_name ? ' + ' + esc(r.guest_name) : '') + '</b>' +
-                  '<span class="meta">' + esc(r.email || r.contact || '') +
-                  (r.phone ? ' Â· ' + esc(r.phone) : '') +
-                  (r.biz ? ' Â· ' + esc(r.biz) : '') +
-                  (r.ref ? ' Â· via ' + esc(r.ref) : '') + '</span>' +
-                  '<span class="spacer"></span>' +
+            return '<div class="grp"><div class="gh"><h3>' + label + '</h3><span class="n">' + sub + '</span></div>' +
+              '<div class="card rowlist">' +
+              list.map(function(r, i){
+                var contact = r.email || r.contact || '';
+                return '<div class="r pr' + (cls ? ' ' + cls : '') + '">' +
+                  '<span class="av av-' + AVC[i % AVC.length] + ' av-sm">' + esc((r.name || '?').trim().charAt(0).toUpperCase()) + '</span>' +
+                  '<span class="who"><b>' + esc(r.name) + (r.guest_name ? ' + ' + esc(r.guest_name) : '') + '</b>' +
+                    '<span>' + (r.biz ? esc(r.biz) : 'no business listed') + (r.ref ? ' · via ' + esc(r.ref) : '') + '</span></span>' +
+                  '<span class="ct">' + (contact ? '<span>' + esc(contact) + '</span>' : '<span class="ink3">no email — add by hand in Members</span>') +
+                    (r.phone ? '<span class="mono-s">' + esc(r.phone) + '</span>' : '') + '</span>' +
+                  '<span class="task">' + (r.note ? '“' + esc(r.note) + '”' : '') + '</span>' +
+                  '<span class="acts">' +
                   (r.attended
-                    ? '<span class="stag">âœ“ attended</span>'
-                    : '<button class="abtn" data-att="' + esc(r.id) + '" type="button">Attended Â· send invite</button>') +
-                  (r.note ? '<span class="meta" style="flex-basis:100%">task: ' + esc(r.note) + '</span>' : '') +
+                    ? '<span class="ok">✓ attended' + (r.email ? ' · invite sent' : '') + '</span>'
+                    : '<button class="btn btn-secondary btn-sm" data-att="' + esc(r.id) + '" type="button">' + (r.email ? 'Attended · send invite' : 'Attended') + '</button>') +
+                  '</span>' +
                 '</div>';
-              }).join('');
+              }).join('') + '</div></div>';
           }
           $('attList').innerHTML =
-            (block(seats, 'Seats') + block(waits, 'Waitlist') + block(gone, 'Cancelled')) ||
-            '<span class="quiet">Nobody on the books yet.</span>';
-        });
-      window.scrollTo({top: $('attPanel').offsetTop - 90, behavior: 'smooth'});
+            (block(seats, 'At the table', attStats.seats + ' of ' + esc(e.capacity)) +
+             block(waits, 'Waiting for a seat', attStats.waits + ' · in order') +
+             block(gone, 'Cancelled', String(gone.length), 'gone')) ||
+            '<div class="card"><div class="empty-row">Nobody on the books yet.</div></div>';
+        })
+        .catch(function(){ setLive(false); $('attCounts').innerHTML = '<div class="card c"><span class="l">Could not load the book.</span></div>'; });
     }
     var attEvent = null;
     $('attList').addEventListener('click', function(ev){
@@ -620,11 +1078,11 @@
       b.disabled = true;
       post('/rsvps', {action: 'attended', id: b.getAttribute('data-att'), attended: true}).then(function(d){
         if (!d.ok){ A.toast('Could not mark attended.'); b.disabled = false; return; }
-        if (d.invited && d.mailed){ A.toast('Marked attended â€” invite emailed to ' + (d.member ? d.member.email : 'them') + '.'); }
+        if (d.invited && d.mailed){ A.toast('Marked attended — invite emailed to ' + (d.member ? d.member.email : 'them') + '.'); }
         else if (d.member && d.invite){
-          A.toast('Marked attended. Mail is off â€” invite link copied instead.');
+          A.toast('Marked attended. Mail is off — invite link copied instead.');
           try { navigator.clipboard.writeText(d.invite); } catch(e){}
-        } else { A.toast('Marked attended. No email on the rsvp â€” add them by hand in Members.'); }
+        } else { A.toast('Marked attended. No email on the rsvp — add them by hand in Members.'); }
         if (attEvent) showAttendees(attEvent);
         loadMembers();
       });
@@ -634,17 +1092,17 @@
     var recipes = [];
     var editingRecipe = null;
     function loadRecipes(){
-      fetch(BASE + '/recipes').then(function(r){ return r.json(); }).then(function(d){
+      get('/recipes').then(function(d){
         recipes = (d && d.recipes) || [];
         $('rcList').innerHTML = recipes.length ? recipes.map(function(r){
-          return '<div class="evrow">' +
-            '<b>' + esc(r.title) + '</b>' +
-            '<span class="meta">' + esc(r.category) + (r.name ? ' Â· from ' + esc(r.name) : '') + '</span>' +
-            '<span class="spacer"></span>' +
-            '<button class="abtn" data-rc="edit" data-id="' + esc(r.id) + '" type="button">Edit</button>' +
-            '<button class="abtn warn" data-rc="del" data-id="' + esc(r.id) + '" type="button">Delete</button>' +
-          '</div>';
-        }).join('') : '<span class="quiet">The box is empty.</span>';
+          return '<div class="r">' +
+            '<span class="who"><span class="nm">' + esc(r.title) + '</span>' +
+            '<span class="m">' + esc(r.category) + (r.name ? ' · from ' + esc(r.name) : '') + '</span></span>' +
+            '<span class="acts">' +
+            '<button class="btn btn-secondary btn-sm" data-rc="edit" data-id="' + esc(r.id) + '" type="button">Edit</button>' +
+            '<button class="btn btn-ghost btn-sm" data-rc="del" data-id="' + esc(r.id) + '" type="button">Delete</button>' +
+            '</span></div>';
+        }).join('') : '<div class="empty-row">The box is empty.</div>';
         var cats = [];
         recipes.forEach(function(r){ if (cats.indexOf(r.category) === -1) cats.push(r.category); });
         $('rcCats').innerHTML = cats.map(function(c){ return '<option value="' + esc(c) + '">'; }).join('');
@@ -660,6 +1118,8 @@
         $('rTitle').value = r.title; $('rCat').value = r.category; $('rProblem').value = r.problem;
         $('rPrompt').value = r.prompt; $('rNotes').value = r.notes; $('rName').value = r.name;
         $('rSave').textContent = 'Save recipe'; $('rCancel').hidden = false;
+        $('rcFormH').textContent = 'Edit recipe';
+        $('rcForm').scrollIntoView({behavior: 'smooth', block: 'start'});
       }
       if (b.getAttribute('data-rc') === 'del'){
         if (!window.confirm('Delete "' + r.title + '" from the public box?')) return;
@@ -685,6 +1145,7 @@
       $('rcForm').reset();
       $('rSave').textContent = 'Add recipe';
       $('rCancel').hidden = true;
+      $('rcFormH').textContent = 'Add a recipe';
     }
     $('rCancel').addEventListener('click', cancelRecipe);
 
@@ -699,14 +1160,13 @@
         if (d && d.ok && d.draft && d.draft.recipes){
           recipeDrafts = d.draft.recipes;
           $('rcDraft').innerHTML = recipeDrafts.map(function(r, i){
-            return '<div class="evrow">' +
-              '<b>' + esc(r.title) + '</b>' +
-              '<span class="meta">' + esc(r.category) + '</span>' +
-              '<span class="spacer"></span>' +
-              '<button class="abtn" data-rd="add" data-i="' + i + '" type="button">Add to the box</button>' +
-              '<button class="abtn" data-rd="edit" data-i="' + i + '" type="button">Edit first</button>' +
-              '<span class="meta" style="flex-basis:100%">' + esc(r.problem) + '</span>' +
-            '</div>';
+            return '<div class="r">' +
+              '<span class="who"><span class="nm">' + esc(r.title) + ' <span class="tag tag-plain">' + esc(r.category) + '</span></span>' +
+              '<span class="m2">' + esc(r.problem) + '</span></span>' +
+              '<span class="acts">' +
+              '<button class="btn btn-secondary btn-sm" data-rd="add" data-i="' + i + '" type="button">Add to the box</button>' +
+              '<button class="btn btn-ghost btn-sm" data-rd="edit" data-i="' + i + '" type="button">Edit first</button>' +
+              '</span></div>';
           }).join('');
           A.toast('Drafted. Keep the good ones, skip the rest.');
         } else {
@@ -724,7 +1184,7 @@
           title: r.title, category: r.category || 'General', problem: r.problem,
           prompt: r.prompt, notes: r.notes, name: ''
         }}).then(function(d){
-          if (d && d.ok){ b.closest('.evrow').remove(); A.toast('In the box.'); loadRecipes(); }
+          if (d && d.ok){ b.closest('.r').remove(); A.toast('In the box.'); loadRecipes(); }
         });
       }
       if (b.getAttribute('data-rd') === 'edit'){
@@ -732,34 +1192,43 @@
         $('rTitle').value = r.title; $('rCat').value = r.category; $('rProblem').value = r.problem;
         $('rPrompt').value = r.prompt; $('rNotes').value = r.notes; $('rName').value = '';
         $('rSave').textContent = 'Add recipe'; $('rCancel').hidden = true;
-        window.scrollTo({top: $('rcForm').offsetTop - 90, behavior: 'smooth'});
+        $('rcFormH').textContent = 'Add a recipe';
+        $('rcForm').scrollIntoView({behavior: 'smooth', block: 'start'});
       }
     });
 
     /* ---- the block shelf: reusable run-sheet segments ---- */
     var blocks = [];
     var aiOn = false;
+    var aiModel = '';
     var editingBlock = null;
     var lineup = []; /* the builder's working order: [{block_id, title, minutes, detail}] */
+    var KINDS = ['demo', 'talk', 'task', 'admin'];
     function kindLabel(k){
       return {demo: 'Demo', talk: 'Talk', task: 'Worked task', admin: 'Housekeeping'}[k] || k;
     }
+    function kindPlural(k){
+      return {demo: 'Demos', talk: 'Talks', task: 'Worked tasks', admin: 'Housekeeping'}[k] || k;
+    }
     function loadBlocks(){
-      fetch(BASE + '/blocks?secret=' + encodeURIComponent(A.secret))
-        .then(function(r){ return r.json(); })
+      get('/blocks?secret=' + encodeURIComponent(A.secret))
         .then(function(d){
           blocks = (d && d.blocks) || [];
           aiOn = !!(d && d.ai);
+          aiModel = (d && typeof d.ai === 'string') ? d.ai : '';
+          setCount('blocks', blocks.length);
           $('bkList').innerHTML = blocks.length ? blocks.map(function(b){
-            return '<div class="evrow">' +
-              '<b>' + esc(b.title) + '</b>' +
-              '<span class="meta">' + esc(kindLabel(b.kind)) + ' &middot; ' + b.minutes + ' min</span>' +
-              '<span class="spacer"></span>' +
-              '<button class="abtn" data-bk="edit" data-id="' + esc(b.id) + '" type="button">Edit</button>' +
-              '<button class="abtn warn" data-bk="del" data-id="' + esc(b.id) + '" type="button">Delete</button>' +
-            '</div>';
-          }).join('') : '<span class="quiet">The shelf is empty. Add the first block below.</span>';
+            return '<div class="r">' +
+              '<span class="who"><span class="nm">' + esc(b.title) + '</span>' +
+              '<span class="m">' + esc(kindLabel(b.kind)) + ' · ' + esc(b.minutes) + ' min</span></span>' +
+              '<span class="acts">' +
+              '<button class="btn btn-secondary btn-sm" data-bk="edit" data-id="' + esc(b.id) + '" type="button">Edit</button>' +
+              '<button class="btn btn-ghost btn-sm" data-bk="del" data-id="' + esc(b.id) + '" type="button">Delete</button>' +
+              '</span></div>';
+          }).join('') : '<div class="empty-row">The shelf is empty. Add the first block below.</div>';
           $('rcDraftWrap').hidden = !aiOn;
+          $('agModel').hidden = !(aiOn && aiModel);
+          $('agModel').textContent = aiModel;
           paintBuilder();
         });
     }
@@ -773,6 +1242,8 @@
         $('bTitle').value = blk.title; $('bKind').value = blk.kind; $('bMin').value = blk.minutes;
         $('bPrompt').value = blk.prompt; $('bNotes').value = blk.notes; $('bLinks').value = blk.links;
         $('bSave').textContent = 'Save block'; $('bCancel').hidden = false;
+        $('bkFormH').textContent = 'Edit block';
+        $('bkForm').scrollIntoView({behavior: 'smooth', block: 'start'});
       }
       if (b.getAttribute('data-bk') === 'del'){
         if (!window.confirm('Take "' + blk.title + '" off the shelf?')) return;
@@ -798,10 +1269,11 @@
       $('bMin').value = 10;
       $('bSave').textContent = 'Add block';
       $('bCancel').hidden = true;
+      $('bkFormH').textContent = 'Add a block';
     }
     $('bCancel').addEventListener('click', cancelBlock);
 
-    /* ---- the agenda builder: shelf chips -> timed lineup -> /agenda replace ---- */
+    /* ---- the agenda builder: shelf -> timed lineup -> /agenda replace ---- */
     /* t labels: clock times when the meetup has a start_time, else 0:00-style offsets */
     function fmtT(minsFromStart, startTime){
       if (/^\d{1,2}:\d{2}$/.test(startTime || '')){
@@ -813,33 +1285,78 @@
       var h2 = Math.floor(minsFromStart / 60), m2 = minsFromStart % 60;
       return h2 + ':' + (m2 < 10 ? '0' : '') + m2;
     }
+    function shareTarget(city){
+      var open = function(id){ return chans.find(function(c){ return c.id === id && c.status === 'open'; }); };
+      return open(city || '') || open('general');
+    }
     function paintBuilder(){
-      if (!agEvent || $('agPanel').hidden) return;
+      if (!agEvent) return;
       var e = events.find(function(x){ return x.id === agEvent; }) || {};
-      $('agShelf').innerHTML = blocks.length ? blocks.map(function(b){
-        return '<button class="shelfchip" data-add="' + esc(b.id) + '" type="button">+ ' + esc(b.title) + ' &middot; ' + b.minutes + 'm</button>';
-      }).join('') : '<span class="quiet">Nothing on the shelf yet â€” add blocks in the panel below.</span>';
+      var hasStart = /^\d{1,2}:\d{2}$/.test(e.start_time || '');
+      $('agTitle').textContent = 'The lineup · ' + (hasStart ? 'clock times from ' + fmtT(0, e.start_time) : '0:00-style offsets');
+      $('clockA').textContent = fmtT(0, e.start_time);
+      $('clockB').textContent = fmtT(60, e.start_time);
+
+      /* the shelf, grouped by kind; dim what is already in the lineup */
+      var q = ($('agSearch').value || '').trim().toLowerCase();
+      var inUse = {};
+      lineup.forEach(function(it){ if (it.block_id) inUse[it.block_id] = 1; });
+      var shown = blocks.filter(function(b){ return !q || String(b.title).toLowerCase().indexOf(q) !== -1; });
+      var html = '';
+      KINDS.concat(blocks.map(function(b){ return b.kind; }).filter(function(k){ return KINDS.indexOf(k) === -1; }))
+        .filter(function(k, i, arr){ return arr.indexOf(k) === i; })
+        .forEach(function(k){
+          var grp = shown.filter(function(b){ return b.kind === k; });
+          if (!grp.length) return;
+          html += '<div class="kind">' + esc(kindPlural(k)) + '</div>' + grp.map(function(b){
+            return '<button class="blk' + (inUse[b.id] ? ' dim' : '') + '" data-add="' + esc(b.id) + '" type="button">' +
+              '<span class="t">' + esc(b.title) + '</span><span class="m">' + esc(b.minutes) + 'm</span></button>';
+          }).join('');
+        });
+      $('agShelf').innerHTML = html || (blocks.length
+        ? '<span class="quiet">Nothing on the shelf matches that.</span>'
+        : '<span class="quiet">Nothing on the shelf yet — add blocks under <a href="#blocks">The block shelf</a>.</span>');
+
+      /* the lineup and the clock */
       var acc = 0;
-      $('agLineup').innerHTML = lineup.length ? lineup.map(function(it, i){
+      var rows = lineup.map(function(it, i){
         var t = fmtT(acc, e.start_time);
         acc += it.minutes;
-        return '<div class="lurow">' +
+        return '<div class="li">' +
           '<span class="t">' + esc(t) + '</span>' +
-          '<span class="grow"><b>' + esc(it.title) + '</b>' + (it.detail ? '<span class="d">' + esc(it.detail) + '</span>' : '') + '</span>' +
-          '<input class="min" type="number" min="1" max="120" value="' + it.minutes + '" data-min="' + i + '" aria-label="Minutes">' +
-          '<button class="abtn" data-lu="up" data-i="' + i + '" type="button">&#8593;</button>' +
-          '<button class="abtn" data-lu="down" data-i="' + i + '" type="button">&#8595;</button>' +
-          '<button class="abtn warn" data-lu="del" data-i="' + i + '" type="button">&times;</button>' +
+          '<span class="min0"><span class="ti">' + esc(it.title) + '</span>' + (it.detail ? '<span class="d">' + esc(it.detail) + '</span>' : '') + '</span>' +
+          '<span class="min"><input type="number" min="1" max="120" value="' + it.minutes + '" data-min="' + i + '" aria-label="Minutes"> m</span>' +
+          '<span class="ctl">' +
+            '<button data-lu="up" data-i="' + i + '" type="button" title="Move up" aria-label="Move up">&#8593;</button>' +
+            '<button data-lu="down" data-i="' + i + '" type="button" title="Move down" aria-label="Move down">&#8595;</button>' +
+            '<button data-lu="edit" data-i="' + i + '" type="button" title="Edit the wording" aria-label="Edit">&#9998;</button>' +
+            '<button class="warn" data-lu="del" data-i="' + i + '" type="button" title="Take it out" aria-label="Remove">&times;</button>' +
+          '</span>' +
         '</div>';
-      }).join('') : '<span class="quiet">Tap blocks above to build the hour' + (aiOn ? ', or let the drafter take a swing' : '') + '.</span>';
-      $('agTotal').textContent = lineup.length
-        ? ('Runs ' + acc + ' minutes' + (acc > 60 ? ' â€” over the hour, trim something.' : ' of 60.'))
-        : '';
+      }).join('');
+      var left = 60 - acc;
+      rows += '<div class="li drop' + (left < 0 ? ' full' : '') + '">' + (lineup.length
+        ? (left > 0 ? 'Tap a block to add it · ' + left + ' minute' + (left === 1 ? '' : 's') + ' left in the hour'
+           : left === 0 ? 'The hour is full.' : 'Over the hour by ' + (-left) + ' minute' + (left === -1 ? '' : 's') + ' — trim something')
+        : 'Tap blocks on the shelf to build the hour' + (aiOn ? ', or let the drafter take a swing' : '') + '.') + '</div>';
+      $('agLineup').innerHTML = rows;
+      $('clockFill').style.width = Math.min(100, acc / 60 * 100) + '%';
+      $('clockFill').classList.toggle('over', acc > 60);
+      var tot = $('agTotal');
+      tot.hidden = !lineup.length;
+      tot.textContent = 'Runs ' + acc + ' of 60' + (acc > 60 ? ' — over the hour, trim something' : '');
+      tot.className = 'tag ' + (acc > 60 ? 'tag-tang' : 'tag-teal');
       $('agWrite').disabled = !lineup.length;
       $('agClear').hidden = !lineup.length;
       $('agDraft').hidden = !aiOn;
       $('agBriefWrap').hidden = !aiOn;
+      $('agNoAi').hidden = aiOn;
+      var tgt = shareTarget(e.city);
+      $('agShareTxt').innerHTML = tgt ? 'Post the run sheet to <b>#' + esc(tgt.id) + '</b>' : 'Post the run sheet to the clubhouse';
+      $('agShareWrap').style.opacity = tgt ? '' : '.5';
+      paintDetail();
     }
+    $('agSearch').addEventListener('input', paintBuilder);
     $('agShelf').addEventListener('click', function(ev){
       var b = ev.target.closest('button[data-add]');
       if (!b) return;
@@ -859,6 +1376,14 @@
       if (act === 'del') lineup.splice(i, 1);
       if (act === 'up' && i > 0){ var t = lineup[i - 1]; lineup[i - 1] = lineup[i]; lineup[i] = t; }
       if (act === 'down' && i < lineup.length - 1){ var t2 = lineup[i + 1]; lineup[i + 1] = lineup[i]; lineup[i] = t2; }
+      if (act === 'edit' && lineup[i]){
+        var nt = window.prompt('The item, as it reads on the run sheet:', lineup[i].title);
+        if (nt === null) return;
+        var nd = window.prompt('Detail · optional:', lineup[i].detail || '');
+        if (nd === null) return;
+        if (nt.trim()) lineup[i].title = nt.trim().slice(0, 200);
+        lineup[i].detail = nd.trim().slice(0, 1000);
+      }
       paintBuilder();
     });
     $('agLineup').addEventListener('change', function(ev){
@@ -884,8 +1409,7 @@
       post('/agenda', {action: 'replace', event: agEvent, items: items}).then(function(d){
         if (!(d && d.ok)){ A.toast('That did not save.'); return; }
         /* share to the clubhouse: the chapter's room (matches the event's city), else general */
-        var open = function(id){ return chans.find(function(c){ return c.id === id && c.status === 'open'; }); }
-        var share = $('agShare').checked && (open(e.city || '') || open('general'));
+        var share = $('agShare').checked && shareTarget(e.city);
         if (share){
           var lines = items.map(function(it){ return (it.t ? it.t + ' — ' : '') + it.title + (it.detail ? ' · ' + it.detail : ''); });
           var text = 'The run sheet for ' + (e.title || 'the next meetup') + ' (' + e.when + ') is up:\n\n' +
@@ -907,7 +1431,7 @@
     $('agDraft').addEventListener('click', function(){
       if (!agEvent) return;
       var btn = $('agDraft');
-      btn.disabled = true; btn.textContent = 'Thinkingâ€¦ give it a minute';
+      btn.disabled = true; btn.textContent = 'Thinking… give it a minute';
       function rearm(){ btn.disabled = false; btn.innerHTML = '&#10024; Draft it for me'; }
       post('/agenda-draft', {event: agEvent, brief: $('agBrief').value.trim()}).then(function(d){
         rearm();
@@ -954,29 +1478,30 @@
     /* members: the keyring */
     var members = [];
     function loadMembers(){
-      fetch(BASE + '/members?secret=' + encodeURIComponent(A.secret))
-        .then(function(r){ return r.json(); })
+      get('/members?secret=' + encodeURIComponent(A.secret))
         .then(function(d){
           members = (d && d.members) || [];
-          $('mbList').innerHTML = members.length ? members.map(function(m){
-            return '<div class="evrow">' +
-              '<b>' + esc(m.name) + '</b>' +
-              (m.role === 'admin' ? '<span class="stag">admin</span>' : '') +
-              (m.status === 'revoked' ? '<span class="stag past">revoked</span>' : '') +
-              '<span class="meta">' + esc(m.email || 'no email') + (m.source ? ' Â· ' + esc(m.source) : '') + '</span>' +
-              '<span class="spacer"></span>' +
+          setCount('members', members.length);
+          $('mbList').innerHTML = members.length ? members.map(function(m, i){
+            return '<div class="r mb">' +
+              '<span class="av av-' + (m.role === 'admin' ? 'ink' : AVC[i % AVC.length]) + '">' + esc((m.name || '?').trim().charAt(0).toUpperCase()) + '</span>' +
+              '<span class="who"><span class="nm">' + esc(m.name) +
+                (m.role === 'admin' ? '<span class="tag tag-ink">admin</span>' : '') +
+                (m.status === 'revoked' ? '<span class="tag tag-plain">revoked</span>' : '') + '</span>' +
+                '<span class="m">' + esc(m.email || 'no email') + (m.source ? ' · ' + esc(m.source) : '') + '</span></span>' +
+              '<span class="acts">' +
               (m.status === 'active' ? (
-                '<button class="abtn" data-mb="copy" data-id="' + esc(m.id) + '" type="button">Copy key</button>' +
-                (m.email ? '<button class="abtn" data-mb="resend" data-id="' + esc(m.id) + '" type="button">Resend</button>' : '') +
+                '<button class="btn btn-secondary btn-sm" data-mb="copy" data-id="' + esc(m.id) + '" type="button">Copy key</button>' +
+                (m.email ? '<button class="btn btn-secondary btn-sm" data-mb="resend" data-id="' + esc(m.id) + '" type="button">Resend</button>' : '') +
                 (m.role === 'admin'
-                  ? '<button class="abtn" data-mb="demote" data-id="' + esc(m.id) + '" type="button">Demote</button>'
-                  : '<button class="abtn" data-mb="promote" data-id="' + esc(m.id) + '" type="button">Make admin</button>') +
-                '<button class="abtn warn" data-mb="revoke" data-id="' + esc(m.id) + '" type="button">Revoke</button>'
+                  ? '<button class="btn btn-ghost btn-sm" data-mb="demote" data-id="' + esc(m.id) + '" type="button">Demote</button>'
+                  : '<button class="btn btn-ghost btn-sm" data-mb="promote" data-id="' + esc(m.id) + '" type="button">Make admin</button>') +
+                '<button class="btn btn-ghost btn-sm" data-mb="revoke" data-id="' + esc(m.id) + '" type="button">Revoke</button>'
               ) : '') +
-            '</div>';
-          }).join('') : '<span class="quiet">No keys cut yet. Mark somebody attended, or add them below.</span>';
+              '</span></div>';
+          }).join('') : '<div class="empty-row">No keys cut yet. Mark somebody attended, or add them below.</div>';
         })
-        .catch(function(){ $('mbList').innerHTML = '<span class="quiet">Could not load the keyring.</span>'; });
+        .catch(function(){ $('mbList').innerHTML = '<div class="empty-row">Could not load the keyring.</div>'; });
     }
     $('mbList').addEventListener('click', function(ev){
       var b = ev.target.closest('button[data-mb]');
@@ -1006,10 +1531,10 @@
       if (!name){ A.toast('A member needs a name.'); return; }
       post('/members', {action: 'add', name: name, email: email}).then(function(d){
         if (!d.ok){ A.toast('Could not add them.'); return; }
-        if (d.existed) A.toast(name + ' already has a key â€” use Resend or Copy key.');
+        if (d.existed) A.toast(name + ' already has a key — use Resend or Copy key.');
         else if (d.mailed) A.toast('Key cut and emailed to ' + email + '.');
         else {
-          A.toast(email ? 'Key cut; mail is off, link copied.' : 'Key cut â€” link copied, hand it to them.');
+          A.toast(email ? 'Key cut; mail is off, link copied.' : 'Key cut — link copied, hand it to them.');
           try { navigator.clipboard.writeText(d.invite); } catch(e){}
         }
         $('mbForm').reset();
@@ -1017,42 +1542,57 @@
       });
     });
 
+    function statusTag(s){
+      var cls = s === 'scheduled' ? 'tag-teal' : s === 'passed' ? 'tag-plain' : 'tag-lemon';
+      return '<span class="tag ' + cls + '">' + esc(s) + '</span>';
+    }
     function loadVenues(){
-      fetch(BASE + '/venues?secret=' + encodeURIComponent(A.secret))
-        .then(function(r){ return r.json(); })
+      get('/venues?secret=' + encodeURIComponent(A.secret))
         .then(function(d){
           venues = (d && d.venues) || [];
+          setCount('venues', venues.length);
           $('vnList').innerHTML = venues.length ? venues.map(function(v){
-            return '<div class="evrow">' +
-              '<b>' + esc(v.venue) + '</b>' +
-              '<span class="stag ' + esc(v.status) + '">' + esc(v.status) + '</span>' +
-              '<span class="meta">' + esc(v.town) + (v.seats ? ' Â· ~' + v.seats + ' seats' : '') +
-                ' Â· ' + esc(v.name) + ' Â· ' + esc(v.email) + (v.phone ? ' Â· ' + esc(v.phone) : '') + '</span>' +
-              (v.notes ? '<span class="meta" style="flex-basis:100%">' + esc(v.notes) + '</span>' : '') +
-              '<span class="spacer"></span>' +
-              '<button class="abtn" data-vn="sched" data-id="' + esc(v.id) + '" type="button">Schedule here</button>' +
-              (v.status !== 'scheduled' ? '<button class="abtn" data-vn="mark" data-id="' + esc(v.id) + '" type="button">Mark scheduled</button>' : '') +
-              (v.status !== 'passed' ? '<button class="abtn" data-vn="pass" data-id="' + esc(v.id) + '" type="button">Pass</button>' : '') +
-              '<button class="abtn warn" data-vn="del" data-id="' + esc(v.id) + '" type="button">Delete</button>' +
-            '</div>';
-          }).join('') : '<span class="quiet">No rooms offered yet. The lend page fills this.</span>';
+            return '<div class="r">' +
+              '<span class="who"><span class="nm">' + esc(v.venue) + statusTag(v.status) + '</span>' +
+              '<span class="m">' + esc(v.town) + (v.seats ? ' · ~' + esc(v.seats) + ' seats' : '') +
+                ' · ' + esc(v.name) + ' · ' + esc(v.email) + (v.phone ? ' · ' + esc(v.phone) : '') + '</span>' +
+              (v.notes ? '<span class="m2">' + esc(v.notes) + '</span>' : '') + '</span>' +
+              '<span class="acts">' +
+              '<button class="btn btn-secondary btn-sm" data-vn="sched" data-id="' + esc(v.id) + '" type="button">Schedule here</button>' +
+              (v.status !== 'scheduled' ? '<button class="btn btn-secondary btn-sm" data-vn="mark" data-id="' + esc(v.id) + '" type="button">Mark scheduled</button>' : '') +
+              (v.status !== 'passed' ? '<button class="btn btn-ghost btn-sm" data-vn="pass" data-id="' + esc(v.id) + '" type="button">Pass</button>' : '') +
+              '<button class="btn btn-ghost btn-sm" data-vn="del" data-id="' + esc(v.id) + '" type="button">Delete</button>' +
+              '</span></div>';
+          }).join('') : '<div class="empty-row">No rooms offered yet. The lend page fills this.</div>';
+          paintOffer();
         });
     }
-    $('vnList').addEventListener('click', function(ev){
-      var b = ev.target.closest('button[data-vn]');
+    /* the calendar's footnote: the first room still waiting on a date */
+    function paintOffer(){
+      var v = venues.find(function(x){ return x.status === 'offered'; }) || venues.find(function(x){ return x.status !== 'scheduled' && x.status !== 'passed'; });
+      var box = $('evOffer');
+      box.hidden = !v;
+      if (!v) return;
+      box.innerHTML = 'A room was offered: <b>' + esc(v.venue) + '</b>' + (v.seats ? ', ~' + esc(v.seats) + ' seats' : '') + '. ' +
+        '<a href="#meetups" data-vn="sched" data-id="' + esc(v.id) + '">Schedule here &rarr;</a>';
+    }
+    function schedFrom(v){
+      /* one step from offer to meetup: prefill the form and let Brett pick the date */
+      resetForm();
+      $('eLoc').value = v.venue + ', ' + v.town;
+      $('eCap').value = v.seats || 8;
+      $('eCity').value = v.town.toLowerCase().replace(/[^a-z0-9-]/g, '');
+      A.toast('Form filled from the offer. Pick a date and save.');
+      if (location.hash !== '#meetups') location.hash = '#meetups'; else route();
+      setTimeout(function(){ $('formTitle').scrollIntoView({behavior: 'smooth', block: 'start'}); $('eTitle').focus(); }, 60);
+    }
+    function onVenueAct(ev){
+      var b = ev.target.closest('[data-vn]');
       if (!b) return;
       var v = venues.find(function(x){ return x.id === b.getAttribute('data-id'); });
       if (!v) return;
       var act = b.getAttribute('data-vn');
-      if (act === 'sched'){
-        /* one step from offer to meetup: prefill the form and let Brett pick the date */
-        resetForm();
-        $('eLoc').value = v.venue + ', ' + v.town;
-        $('eCap').value = v.seats || 8;
-        $('eCity').value = v.town.toLowerCase().replace(/[^a-z0-9-]/g, '');
-        A.toast('Form filled from the offer. Pick a date and save.');
-        window.scrollTo({top: $('formTitle').offsetTop - 90, behavior: 'smooth'});
-      }
+      if (act === 'sched'){ ev.preventDefault(); schedFrom(v); }
       if (act === 'mark'){
         post('/venues', {action: 'update', id: v.id, status: 'scheduled'}).then(loadVenues);
       }
@@ -1063,31 +1603,33 @@
         if (!window.confirm('Delete the offer of "' + v.venue + '"? The contact goes with it.')) return;
         post('/venues', {action: 'delete', id: v.id}).then(function(){ A.toast('Offer deleted.'); loadVenues(); });
       }
-    });
+    }
+    $('vnList').addEventListener('click', onVenueAct);
+    $('evOffer').addEventListener('click', onVenueAct);
 
     /* the clubhouse: rooms and light moderation */
     var chans = [];
     var editingChan = null;
     var modChan = null;
     function loadChannels(){
-      fetch(BASE + '/channels?secret=' + encodeURIComponent(A.secret))
-        .then(function(r){ return r.json(); })
+      get('/channels?secret=' + encodeURIComponent(A.secret))
         .then(function(d){
           chans = (d && d.channels) || [];
           $('chList').innerHTML = chans.length ? chans.map(function(c){
-            return '<div class="evrow">' +
-              '<b>#' + esc(c.name) + '</b>' +
-              (c.status === 'archived' ? '<span class="stag past">archived</span>' : '') +
-              (c.visibility === 'admins' ? '<span class="stag">admins only</span>' : '') +
-              '<span class="meta">' + esc(c.topic || '') + '</span>' +
-              '<span class="spacer"></span>' +
-              '<button class="abtn" data-ch="edit" data-id="' + esc(c.id) + '" type="button">Edit</button>' +
-              '<button class="abtn" data-ch="mod" data-id="' + esc(c.id) + '" type="button">Messages</button>' +
+            return '<div class="r">' +
+              '<span class="who"><span class="nm"><span class="hash">#' + esc(c.name) + '</span>' +
+                (c.status === 'archived' ? '<span class="tag tag-plain">archived</span>' : '') +
+                (c.visibility === 'admins' ? '<span class="tag tag-ink">admins only</span>' : '') + '</span>' +
+                '<span class="m">' + esc(c.topic || '') + '</span></span>' +
+              '<span class="acts">' +
+              '<button class="btn btn-secondary btn-sm" data-ch="edit" data-id="' + esc(c.id) + '" type="button">Edit</button>' +
+              '<button class="btn btn-secondary btn-sm" data-ch="mod" data-id="' + esc(c.id) + '" type="button">Messages</button>' +
               (c.status === 'archived'
-                ? '<button class="abtn" data-ch="open" data-id="' + esc(c.id) + '" type="button">Reopen</button>'
-                : '<button class="abtn warn" data-ch="del" data-id="' + esc(c.id) + '" type="button">Close</button>') +
-            '</div>';
-          }).join('') : '<span class="quiet">No rooms yet.</span>';
+                ? '<button class="btn btn-ghost btn-sm" data-ch="open" data-id="' + esc(c.id) + '" type="button">Reopen</button>'
+                : '<button class="btn btn-ghost btn-sm" data-ch="del" data-id="' + esc(c.id) + '" type="button">Close</button>') +
+              '</span></div>';
+          }).join('') : '<div class="empty-row">No rooms yet.</div>';
+          if (agEvent) paintBuilder();
         });
     }
     $('chList').addEventListener('click', function(ev){
@@ -1102,6 +1644,8 @@
         $('cVis').value = c.visibility === 'admins' ? 'admins' : 'members';
         $('cAnnounce').checked = false;
         $('cSave').textContent = 'Save room'; $('cCancel').hidden = false;
+        $('chFormH').textContent = 'Edit #' + c.name;
+        $('chForm').scrollIntoView({behavior: 'smooth', block: 'start'});
       }
       if (act === 'mod'){ modChan = c.id; loadModeration(); }
       if (act === 'open'){
@@ -1138,30 +1682,28 @@
       $('cPos').value = 0;
       $('cSave').textContent = 'Add room';
       $('cCancel').hidden = true;
+      $('chFormH').textContent = 'Add a room';
     }
     $('cCancel').addEventListener('click', cancelChan);
     function loadModeration(){
       var c = chans.find(function(x){ return x.id === modChan; });
       if (!c) return;
       $('modBox').hidden = false;
-      $('modTitle').textContent = 'Recent messages Â· #' + c.name;
-      $('modList').innerHTML = '<span class="quiet">Loading&hellip;</span>';
-      fetch(BASE + '/chat?secret=' + encodeURIComponent(A.secret) + '&channel=' + encodeURIComponent(modChan))
-        .then(function(r){ return r.json(); })
+      $('modTitle').textContent = 'Recent messages · #' + c.name;
+      $('modList').innerHTML = '<div class="empty-row">Loading…</div>';
+      get('/chat?secret=' + encodeURIComponent(A.secret) + '&channel=' + encodeURIComponent(modChan))
         .then(function(d){
           var rows = ((d && d.messages) || []).slice(-60).reverse();
           $('modList').innerHTML = rows.length ? rows.map(function(m){
-            return '<div class="evrow">' +
-              '<b>' + esc(m.name) + '</b>' +
-              '<span class="meta">' + esc(String(m.ts).replace('T', ' ').slice(0, 16)) +
-                (m.parent ? ' Â· in a thread' : '') + '</span>' +
-              '<span class="meta" style="flex-basis:100%">' + esc(m.body) + '</span>' +
-              '<span class="spacer"></span>' +
-              '<button class="abtn warn" data-mod="del" data-id="' + esc(m.id) + '" type="button">Delete</button>' +
+            return '<div class="r">' +
+              '<span class="who"><span class="nm">' + esc(m.name) + ' <span class="stamp">' + esc(String(m.ts).replace('T', ' ').slice(0, 16)) +
+                (m.parent ? ' · in a thread' : '') + '</span></span>' +
+                '<span class="body">' + esc(m.body) + '</span></span>' +
+              '<span class="acts"><button class="btn btn-ghost btn-sm" data-mod="del" data-id="' + esc(m.id) + '" type="button">Delete</button></span>' +
             '</div>';
-          }).join('') : '<span class="quiet">Nothing said in here yet.</span>';
+          }).join('') : '<div class="empty-row">Nothing said in here yet.</div>';
         });
-      window.scrollTo({top: $('modBox').offsetTop - 90, behavior: 'smooth'});
+      $('modBox').scrollIntoView({behavior: 'smooth', block: 'start'});
     }
     $('modList').addEventListener('click', function(ev){
       var b = ev.target.closest('button[data-mod]');
@@ -1171,6 +1713,7 @@
         .then(function(){ A.toast('Message deleted.'); loadModeration(); });
     });
 
+    route();
     load();
     loadRecipes();
     loadMembers();
@@ -1182,12 +1725,27 @@
 })();
 </script>
 
-</div><!-- /deck -->
-
-
-
-<script>window.AIHC_PAGE = {deck: 'admin'};</script>
-<script src="../assets/config.js"></script>
-<script src="../assets/club.js?v=2"></script>
+<script>
+window.AIHC_PAGE = {
+  deck: 'admin',
+  sideExtras: [{
+    after: 'The back office', group: 'The console', id: 'consoleGrp',
+    items: [
+      {id: 'meetups',  title: 'Meetups',          href: '#meetups',  k: '', here: true},
+      {id: 'members',  title: 'Members &amp; keys', href: '#members',  k: ''},
+      {id: 'venues',   title: 'Rooms offered',    href: '#venues',   k: ''},
+      {id: 'channels', title: 'Clubhouse rooms',  href: '#channels'},
+      {id: 'recipes',  title: 'Recipe box',       href: '#recipes'},
+      {id: 'blocks',   title: 'The block shelf',  href: '#blocks',   k: ''},
+      {id: 'word',     title: 'The admin word',   href: '#word'}
+    ]
+  }],
+  onSideNav: function(){
+    if (window.AIHC_ADMIN){ window.AIHC_ADMIN.markHere(); window.AIHC_ADMIN.refreshSideCounts(); }
+  }
+};
+</script>
+<script src="../assets/config.js?v=3"></script>
+<script src="../assets/club.js?v=3"></script>
 </body>
 </html>

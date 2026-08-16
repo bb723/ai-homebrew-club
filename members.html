@@ -10,7 +10,7 @@
 <meta property="og:description" content="Your front door to the club: chat, recipes, the next table. Members only.">
 <meta property="og:image" content="https://aihomebrewclub.com/invite-card.png">
 <meta property="og:type" content="website">
-<link rel="stylesheet" href="assets/club.css">
+<link rel="stylesheet" href="assets/club.css?v=3">
 </head>
 <body>
 
@@ -18,7 +18,7 @@
 <div class="gate" id="gate">
   <div class="gate-card" id="gateCard">
     <span class="logo" data-size="90" aria-hidden="true"></span>
-    <h2>The members' room</h2>
+    <h2>Tell us who you are.</h2>
     <p>Members get in with the invite link from their email. Lost yours? It also pastes in below.</p>
     <input id="gName" type="text" placeholder="Your name" autocomplete="off" aria-label="Your name">
     <input id="gPass" type="password" placeholder="Secret word" autocomplete="off" aria-label="Secret word">
@@ -27,118 +27,129 @@
   </div>
 </div>
 
-<div class="deck" id="deck">
-<style>
-  /* members-hub styles: this block ships only with members.html, so bare overrides are safe */
-  html{scroll-snap-type:none}
-  .slide{min-height:100svh; display:block; padding:0 clamp(14px,3.5vw,24px) 80px; background:var(--w-cream)}
-  .rail,.hint,.notesbtn,.clickhint{display:none} /* one screen, nothing to pin notes on */
-  .sidepane{display:none!important}
-  body.pane-open .deck{margin-right:0}
+<!-- ===================== THE SHELL ===================== -->
+<div class="shell deck" id="deck">
+  <aside class="sidebar" id="sideNav" aria-label="The club"></aside>
+  <section class="main">
+    <header class="topbar">
+      <button class="shellbtn" type="button" aria-label="Menu">&#9776;</button>
+      <span class="crumb"><b>The members&rsquo; room</b></span>
+    </header>
 
-  .hub{width:min(880px,100%); margin:0 auto; padding-top:clamp(40px,7vh,72px)}
-  .hubhead{display:flex; align-items:center; gap:16px; margin-bottom:6px}
-  .hubhead h1{font-family:var(--font-display); font-weight:800; font-size:clamp(2rem,5.5vw,3rem); line-height:1.1; margin:0}
-  .hubsub{font-family:var(--font-hand); font-weight:600; font-size:1.45rem; color:var(--ink-soft); transform:rotate(-.6deg); margin:2px 0 26px}
-
-  .hubgrid{display:grid; grid-template-columns:repeat(2,1fr); gap:clamp(12px,2vw,18px)}
-  @media (max-width:640px){ .hubgrid{grid-template-columns:1fr} }
-  .hubcard{
-    display:flex; flex-direction:column; gap:6px; text-decoration:none; color:var(--ink);
-    background:var(--card); border:1px solid var(--edge); border-radius:18px;
-    border-top:8px solid var(--teal); box-shadow:var(--shadow); padding:18px 20px 16px;
-  }
-  .hubcard:hover{border-color:var(--teal); border-top-color:var(--teal)}
-  .hubcard:focus-visible{outline:3px solid var(--teal); outline-offset:2px}
-  .hubcard h2{font-family:var(--font-display); font-weight:800; font-size:1.25rem; margin:0}
-  .hubcard p{margin:0; font-size:.95rem; color:var(--ink-soft); font-weight:700}
-  .hubcard .tag{font-size:.68rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--teal-deep)}
-  .hubcard.a-tangerine{border-top-color:var(--tangerine)} .hubcard.a-tangerine .tag{color:var(--tangerine-deep)}
-  .hubcard.a-sky{border-top-color:var(--sky)} .hubcard.a-sky .tag{color:var(--sky-deep)}
-  .hubcard.a-lemon{border-top-color:var(--lemon)} .hubcard.a-lemon .tag{color:var(--lemon-deep)}
-  .hubcard.a-berry{border-top-color:var(--berry)} .hubcard.a-berry .tag{color:var(--berry-deep)}
-
-  .nextmeet{grid-column:1 / -1}
-  .seats{
-    display:inline-flex; align-items:center; gap:8px;
-    background:var(--lemon); color:#3B3227; border-radius:999px; padding:4px 14px;
-    font-weight:800; font-size:.76rem; letter-spacing:.06em; text-transform:uppercase;
-  }
-  .seats.full{background:var(--tangerine); color:#FFFCF4}
-  .nextmeet .row{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap}
-  .nextmeet .when{font-family:var(--font-display); font-weight:800; font-size:1.35rem}
-  .nextmeet .where{font-size:.95rem}
-  .nextmeet .go{
-    align-self:flex-start; display:inline-block; background:var(--tangerine); color:#FFFCF4;
-    text-decoration:none; border:none; border-radius:999px; padding:10px 24px;
-    font-family:var(--font-body); font-weight:800; font-size:.92rem; letter-spacing:.04em;
-    box-shadow:var(--shadow); margin-top:8px; cursor:pointer;
-  }
-  .nextmeet .go:hover{filter:brightness(1.08)}
-  /* the back office: quieter than the club doors, for the folks running the place */
-  .bo{margin-top:34px; border-top:2px dashed var(--edge); padding-top:18px}
-  .bo h2{font-family:var(--font-display); font-weight:800; font-size:1.15rem; margin:0 0 4px}
-  .bo h2::after{content:none}
-  .bo .bosub{font-family:var(--font-hand); font-weight:600; font-size:1.2rem; color:var(--ink-soft); margin:0 0 12px; transform:rotate(-.4deg)}
-  .bolinks{display:flex; flex-wrap:wrap; gap:8px}
-  .bolinks a{
-    text-decoration:none; color:var(--ink); background:var(--card);
-    border:1px solid var(--edge); border-radius:999px; padding:8px 16px;
-    font-weight:800; font-size:.85rem;
-  }
-  .bolinks a:hover{border-color:var(--teal); color:var(--teal-deep)}
-  .bolinks a:focus-visible{outline:3px solid var(--teal); outline-offset:2px}
-  .bolinks a.first{background:var(--ink); color:var(--paper); border-color:var(--ink)}
-  .bolinks a.first:hover{filter:brightness(1.2); color:var(--paper)}
-</style>
-
-<section class="slide" id="s1" data-title="The members' room">
-  <div class="hub">
-    <div class="hubhead">
-      <span class="logo" data-size="64" aria-hidden="true"></span>
-      <h1 id="hubHi">Come on in.</h1>
-    </div>
-    <p class="hubsub">Pour yourself a coffee â€” here's where everything lives.</p>
-
-    <div class="hubgrid">
-      <div class="hubcard nextmeet a-tangerine" id="nextCard">
-        <span class="tag">The next table</span>
-        <div class="row"><span class="when" id="nmWhen">Checking the calendar&hellip;</span><span class="seats" id="nmSeats" hidden></span></div>
-        <p class="where" id="nmWhere"></p>
-        <a class="go" id="nmGo" href="events.html">See the circuit</a>
+    <div class="room">
+      <div class="greet">
+        <p class="folio"><b>The members&rsquo; room</b> <span id="roomDate"></span></p>
+        <h1 class="display-l" id="hubHi">Come on in.</h1>
+        <p class="hand">Pour yourself a coffee &mdash; here&rsquo;s where everything lives.</p>
       </div>
 
-      <a class="hubcard" href="chat.html">
-        <span class="tag">Live now</span>
-        <h2>The clubhouse</h2>
-        <p>Members' chat. Pull up a chair, see who's around.</p>
-      </a>
-      <a class="hubcard a-sky" href="chat.html?room=~feed">
-        <span class="tag">Club news</span>
-        <h2>The bulletin board</h2>
-        <p>What happened, and who said yes. Post yours.</p>
-      </a>
-      <a class="hubcard a-lemon" href="recipes.html">
-        <span class="tag">Steal these</span>
-        <h2>The recipe box</h2>
-        <p>Every prompt we've written down, free forever.</p>
-      </a>
-      <a class="hubcard a-berry" href="events.html">
-        <span class="tag">The map</span>
-        <h2>The circuit</h2>
-        <p>Every table we set, on the map and the calendar.</p>
-      </a>
-    </div>
+      <div class="card-raised nt" id="nextCard">
+        <div class="l">
+          <span class="folio"><b>The next table</b><span id="nmCity"></span></span>
+          <span class="when" id="nmWhen">Checking the calendar&hellip;</span>
+          <span class="body" id="nmWhere"></span>
+          <span id="nmMeter"></span>
+          <div class="fx gap10 fwrap acts-row">
+            <a class="btn btn-primary" id="nmGo" href="events.html">See the circuit</a>
+            <a class="btn btn-secondary" href="waterville.html">The run sheet</a>
+            <a class="btn btn-ghost" id="nmCal" href="events.html" target="_blank" rel="noopener" hidden>Add to calendar</a>
+          </div>
+        </div>
+        <div class="r">
+          <span class="folio">The table</span>
+          <span class="tag tag-tang" id="nmSeats" hidden></span>
+          <span class="small">Save a seat and the confirmation lands in your email with a calendar invite and a cancel link.</span>
+          <span class="small" style="margin-top:auto">Every table on the circuit: <a class="link" href="events.html">the map and the calendar</a>.</span>
+        </div>
+      </div>
 
-    <div class="bo">
-      <h2>The back office</h2>
-      <p class="bosub">For the folks running the place â€” controls, the plan, and every pitch.</p>
-      <div class="bolinks" id="boLinks"></div>
-    </div>
-  </div>
-</section>
+      <div class="doors">
+        <a class="card door" href="chat.html">
+          <span class="tag tag-teal"><span class="dot dot-live"></span> live now</span>
+          <span class="t">The clubhouse</span>
+          <span class="d">Members&rsquo; chat. Pull up a chair, see who&rsquo;s around.</span>
+          <span class="go">Open the clubhouse &rarr;</span>
+        </a>
+        <a class="card door" id="boardDoor" href="chat.html?room=~feed">
+          <span class="tag tag-lemon">club news</span>
+          <span class="t">The bulletin board</span>
+          <span class="d">What happened, and who said yes. Post yours.</span>
+          <span class="go">Read the board &rarr;</span>
+        </a>
+        <a class="card door" href="recipes.html">
+          <span class="tag tag-tang">steal these</span>
+          <span class="t">The recipe box</span>
+          <span class="d">Every prompt we&rsquo;ve written down, free forever.</span>
+          <span class="go">Open the box &rarr;</span>
+        </a>
+        <a class="card door" href="events.html">
+          <span class="tag tag-sky">the map</span>
+          <span class="t">The circuit</span>
+          <span class="d">Every table we set, on the map and the calendar.</span>
+          <span class="go">See the circuit &rarr;</span>
+        </a>
+      </div>
 
-</div><!-- /deck -->
+      <div class="bo">
+        <div class="bo-h">
+          <h2 class="display-s">The back office</h2>
+          <span class="hand">For the folks running the place &mdash; controls, the plan, and every pitch.</span>
+        </div>
+        <div class="pills" id="boLinks"></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<style>
+  /* members-hub styles: this block ships only with members.html and stands on club.css */
+  .room{padding:36px 40px 48px; display:flex; flex-direction:column; gap:26px; width:100%; max-width:1180px}
+  .greet{display:flex; flex-direction:column; gap:8px}
+  .greet .hand{font-size:22px}
+
+  /* the next table */
+  .nt{display:grid; grid-template-columns:1fr 360px; overflow:hidden}
+  .nt .l{padding:22px 26px 24px; display:flex; flex-direction:column; gap:12px; min-width:0}
+  .nt .l .when{font-family:var(--font-display); font-size:28px; font-weight:800; letter-spacing:-.02em; line-height:1.1; text-wrap:balance}
+  .nt .l .body:empty,.nt .l #nmMeter:empty{display:none}
+  .nt .acts-row{margin-top:6px}
+  .nt [hidden]{display:none}
+  .nt .r{border-left:1px solid var(--rule); background:var(--paper-2); padding:22px 24px; display:flex; flex-direction:column; gap:10px}
+  .nt .r .tag{height:auto; padding:5px 10px; white-space:normal; line-height:1.3}
+  .nt .r .tag.full{background:var(--tangerine); color:var(--on-tangerine)}
+
+  /* the doors */
+  .doors{display:grid; grid-template-columns:repeat(4,1fr); gap:16px}
+  .door{padding:20px 20px 18px; display:flex; flex-direction:column; gap:8px; min-height:170px; color:var(--ink); font-weight:400}
+  .door:hover{border-color:var(--ink); color:var(--ink)}
+  .door .tag .dot{width:6px; height:6px; box-shadow:none}
+  .door .t{font-family:var(--font-display); font-size:20px; font-weight:800; letter-spacing:-.015em; line-height:1.2}
+  .door .d{font-size:13.5px; color:var(--ink-2); line-height:1.5}
+  .door .go{margin-top:auto; font-size:13px; font-weight:600; color:var(--teal-deep)}
+  .door:hover .go{color:var(--tangerine)}
+
+  /* the back office: quieter than the club doors, for the folks running the place */
+  .bo{display:flex; flex-direction:column; gap:12px; padding-top:22px; border-top:1px dashed var(--rule-2)}
+  .bo .bo-h{display:flex; align-items:baseline; justify-content:space-between; gap:16px; flex-wrap:wrap}
+  .bo .bo-h .hand{font-size:19px}
+  .bo .pills{display:flex; gap:8px; flex-wrap:wrap}
+  .bo .pills .btn-ink{background:var(--ink); color:var(--paper); border-color:var(--ink)}
+  .bo .pills .btn-ink:hover{background:var(--ink-2); border-color:var(--ink-2); color:var(--paper)}
+
+  @media (max-width:1100px){
+    .doors{grid-template-columns:1fr 1fr}
+  }
+  @media (max-width:900px){
+    .room{padding:24px 16px 40px; gap:22px}
+    .nt{grid-template-columns:1fr}
+    .nt .r{border-left:0; border-top:1px solid var(--rule)}
+    .nt .l .when{font-size:24px}
+  }
+  @media (max-width:560px){
+    .doors{grid-template-columns:1fr}
+    .door{min-height:0}
+  }
+</style>
 
 <script>
 (function(){
@@ -146,34 +157,54 @@
   function boot(){
     if (!window.AIHC || !window.AIHC.viewer || !window.AIHC.viewer()){ setTimeout(boot, 300); return; }
     var A = window.AIHC;
+    function $(id){ return document.getElementById(id); }
+    function esc(s){ var d = document.createElement('div'); d.textContent = String(s); return d.innerHTML; }
 
     /* the board and the back office belong to the folks running the place */
     var isAdmin = A.role && A.role() === 'admin';
     if (!isAdmin){
       var boSec = document.querySelector('.bo');
       if (boSec) boSec.style.display = 'none';
-      var board = document.querySelector('a.hubcard[href="chat.html?room=~feed"]');
+      var board = $('boardDoor');
       if (board) board.style.display = 'none';
     }
 
-    /* the back office builds itself from the one nav in config.js: admin first,
-       then everything filed under Internal and The pitches */
+    /* the back office builds itself from the one nav in config.js: the console first,
+       then everything flagged admin-only */
     var CFG = window.AIHC_CONFIG;
-    var bo = document.getElementById('boLinks');
-    CFG.DECKS.filter(function(d){ return d.group === 'Internal' || d.group === 'The pitches'; })
+    var bo = $('boLinks');
+    CFG.DECKS.filter(function(d){ return d.admin; })
       .sort(function(a, b){ return (a.id === 'admin' ? -1 : 0) - (b.id === 'admin' ? -1 : 0); })
       .forEach(function(d, i){
         var a = document.createElement('a');
         a.href = CFG.deckHref(d.id);
-        if (i === 0) a.className = 'first';
+        a.className = i === 0 ? 'btn btn-sm btn-ink' : 'btn btn-secondary btn-sm';
         a.innerHTML = d.title;
         bo.appendChild(a);
       });
 
     var name = (A.viewer() || {}).name || '';
-    var hour = new Date().getHours();
+    var now = new Date();
+    var hour = now.getHours();
     var greet = hour < 12 ? 'Morning' : (hour < 17 ? 'Afternoon' : 'Evening');
-    if (name) document.getElementById('hubHi').textContent = greet + ', ' + name + '.';
+    if (name) $('hubHi').textContent = greet + ', ' + name + '.';
+    $('roomDate').textContent = '\u00b7 ' + now.toLocaleDateString('en-US', {weekday: 'long', month: 'long', day: 'numeric'});
+
+    /* the seat meter: one square per chair at the table */
+    function seatMeter(e){
+      var cap = parseInt(e.capacity, 10) || 0;
+      var left = Math.max(0, parseInt(e.left, 10) || 0);
+      var taken = Math.max(0, cap - left);
+      var full = cap > 0 && left <= 0;
+      var sq = '';
+      for (var i = 0; i < Math.min(cap, 40); i++) sq += '<span class="s' + (i < taken ? '' : ' open') + '"></span>';
+      var n = full
+        ? 'all spoken for, but the waitlist works'
+        : (cap > 0 ? esc(String(left)) + ' of ' + esc(String(cap)) + ' left' : 'first come, first served');
+      return '<span class="seats' + (full ? ' full' : '') + '">' +
+        (sq ? '<span class="row">' + sq + '</span>' : '') +
+        '<span class="n">' + n + '</span></span>';
+    }
 
     var BASE = String(A.sync || '').replace(/\/notes\b.*$/, '');
     fetch(BASE + '/events')
@@ -182,7 +213,7 @@
         var up = ((d && d.events) || []).filter(function(e){ return e.status === 'upcoming'; })
           .sort(function(a, b){ return a.sort_date < b.sort_date ? -1 : 1; });
         if (!up.length){
-          document.getElementById('nmWhen').textContent = 'Nothing on the calendar yet.';
+          $('nmWhen').textContent = 'Nothing on the calendar yet.';
           return;
         }
         var e = up[0];
@@ -191,24 +222,28 @@
           var p = e.start_time.split(':'); var h = parseInt(p[0], 10);
           t = (h % 12 || 12) + ':' + p[1] + ' ' + (h >= 12 ? 'pm' : 'am');
         }
-        document.getElementById('nmWhen').textContent = e.when + (t ? ' Â· ' + t : '');
-        document.getElementById('nmWhere').textContent = e.title + ' â€” ' + e.location;
-        var pill = document.getElementById('nmSeats');
+        if (e.city) $('nmCity').textContent = ' \u00b7 ' + e.city;
+        $('nmWhen').textContent = e.when + (t ? ' \u00b7 ' + t : '');
+        $('nmWhere').textContent = e.title + ' \u2014 ' + e.location;
+        $('nmMeter').innerHTML = seatMeter(e);
+        var pill = $('nmSeats');
         pill.hidden = false;
         if (e.left > 0){ pill.textContent = e.left + ' of ' + e.capacity + ' seats left'; }
-        else { pill.textContent = 'Full Â· waitlist open'; pill.classList.add('full'); }
-        var go = document.getElementById('nmGo');
+        else { pill.textContent = 'Full \u00b7 waitlist open'; pill.classList.add('full'); }
+        var go = $('nmGo');
         go.textContent = e.left > 0 ? 'Save my seat' : 'Join the waitlist';
         go.href = 'rsvp.html?event=' + encodeURIComponent(e.id) + '&ref=members';
+        var cal = $('nmCal');
+        if (e.gcal){ cal.href = e.gcal; cal.hidden = false; }
       })
-      .catch(function(){ document.getElementById('nmWhen').textContent = 'Could not reach the calendar.'; });
+      .catch(function(){ $('nmWhen').textContent = 'Could not reach the calendar.'; });
   }
   boot();
 })();
 </script>
 
 <script>window.AIHC_PAGE = {deck: 'members', gate: 'member'};</script>
-<script src="assets/config.js"></script>
-<script src="assets/club.js?v=2"></script>
+<script src="assets/config.js?v=3"></script>
+<script src="assets/club.js?v=3"></script>
 </body>
 </html>

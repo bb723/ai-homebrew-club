@@ -11,69 +11,104 @@
 <meta property="og:url" content="https://aihomebrewclub.com/lend.html">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="assets/site.css">
+<link rel="stylesheet" href="assets/site.css?v=3">
 <style>
-  body{min-height:100svh; display:flex; flex-direction:column; align-items:center; padding:12px 16px 60px}
-  header.top{width:min(520px,100%); justify-content:center; padding:14px 0 0}
-  main{width:min(520px,100%); text-align:center; margin:auto 0; padding:14px 0}
-  h1{font-weight:800; font-size:clamp(2rem,7vw,2.7rem); line-height:1.1; margin:14px 0 6px}
-  .sub{color:var(--ink-soft); font-weight:700; margin:0 0 18px}
-  .foot{color:var(--ink-soft); font-weight:700; font-size:.85rem}
-  .foot a{color:var(--teal-deep)}
+  [hidden]{display:none !important}
+  .pg{display:grid; grid-template-columns:1fr 520px; gap:80px; padding:56px 0 80px; align-items:start}
+  .lead{display:flex; flex-direction:column; gap:22px; position:sticky; top:24px}
+
+  /* the info card: what a chapter is, what it costs, what a town gets */
+  .infoc .rows{padding:6px 22px 8px}
+  .infoc .r{display:grid; grid-template-columns:104px 1fr; gap:14px; padding:12px 0; border-bottom:1px dashed var(--rule-2); font-size:14px; color:var(--ink-2)}
+  .infoc .r:last-child{border-bottom:0}
+  .infoc .k{font-family:var(--font-mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); padding-top:3px}
+  .infoc .r b{color:var(--ink)}
+
+  /* the form card, and the thank-you that replaces it */
+  .formcard{padding:28px 30px 30px; display:flex; flex-direction:column; gap:16px}
+  .formcard h2{font-size:22px; font-weight:800; letter-spacing:-.015em}
+  .fg{display:grid; grid-template-columns:1fr 1fr; gap:14px 16px}
+  .fg .span{grid-column:1 / -1}
+  #lendForm{gap:16px}
+  .done{display:none}
+  .done > * + *{margin-top:14px}
+  .done h2{font-size:34px; font-weight:800; letter-spacing:-.02em; line-height:1.1}
+  .done .note{font-size:14px; color:var(--ink-2); line-height:1.55}
+  .done .hand{margin-top:4px}
+  .done .fine{margin-bottom:0}
+
+  @media (max-width:900px){
+    .pg{grid-template-columns:1fr; gap:36px; padding:28px 0 56px}
+    .lead{position:static; order:2}
+    .formcard{order:1; padding:22px 18px 24px}
+    .fg{grid-template-columns:1fr}
+    .infoc .r{grid-template-columns:88px 1fr}
+    .done h2{font-size:28px}
+  }
 </style>
 </head>
 <body>
-
-<header class="top">
-  <a href="index.html?ref=lend"><span class="logo" data-size="40"></span><span>The AI Homebrew Club</span></a>
+<div class="frame">
+<div class="runner"></div>
+<header class="masthead">
+  <a class="brand" href="index.html"><span class="logo" data-size="32" aria-hidden="true"></span><span>The AI Homebrew Club</span></a>
+  <span class="est">Central Maine &middot; est. 2026, after 1975</span>
+  <nav>
+    <a href="events.html">The circuit</a>
+    <a href="waterville.html">Waterville</a>
+    <a href="recipes.html">The recipe box</a>
+    <a class="here" href="lend.html">Lend a room</a>
+    <a class="members" href="members.html">Members&rsquo; room</a>
+  </nav>
+  <button class="menu" type="button" aria-label="Menu">&#9776;</button>
 </header>
 
-<main>
-  <h1>Got a room and a coffee pot?</h1>
-  <p class="sub">That's a chapter of the AI Homebrew Club.</p>
-  <div class="card">
-    <span>A meetup is a borrowed room, a printed kit, and one hour. Libraries, granges, adult ed classrooms, break rooms, coworking spaces, the back of the shop: they all count.</span>
-    <span><b>What it costs you:</b> nothing. We bring the coffee, run the hour, and leave the room the way we found it.</span>
-    <span><b>What your town gets:</b> a free standing class where neighbors teach neighbors to put AI to work.</span>
+<main class="wrap pg">
+  <div class="lead">
+    <p class="folio"><b>Start a chapter</b> &middot; lend a room</p>
+    <h1 class="display-xl">Got a room and a coffee pot?</h1>
+    <p class="lede">That&rsquo;s a chapter of the AI Homebrew Club.</p>
+    <div class="card infoc">
+      <div class="rows">
+        <div class="r"><span class="k">A meetup</span><span>A meetup is a borrowed room, a printed kit, and one hour. Libraries, granges, adult ed classrooms, break rooms, coworking spaces, the back of the shop: they all count.</span></div>
+        <div class="r"><span class="k">It costs you</span><span><b>What it costs you:</b> nothing. We bring the coffee, run the hour, and leave the room the way we found it.</span></div>
+        <div class="r"><span class="k">Your town</span><span><b>What your town gets:</b> a free standing class where neighbors teach neighbors to put AI to work.</span></div>
+      </div>
+    </div>
+    <p class="hand">We bring the coffee. You bring the chairs.</p>
   </div>
-  <div class="card">
+
+  <div class="card-raised formcard">
     <form id="lendForm">
-      <label>Your name
-        <input type="text" id="fName" maxlength="80" autocomplete="name">
-      </label>
-      <label>Email <span class="opt">&middot; so we can find a date</span>
-        <input type="text" id="fEmail" maxlength="160" autocomplete="email" inputmode="email">
-      </label>
-      <label>Phone <span class="opt">&middot; optional</span>
-        <input type="text" id="fPhone" maxlength="40" autocomplete="tel" inputmode="tel">
-      </label>
-      <label>The room <span class="opt">&middot; the building or business it belongs to</span>
-        <input type="text" id="fVenue" maxlength="200" placeholder="the meeting room at the town library">
-      </label>
-      <label>Town
-        <input type="text" id="fTown" maxlength="80">
-      </label>
-      <label>Roughly how many seats <span class="opt">&middot; optional, a guess is fine</span>
-        <input type="text" id="fSeats" maxlength="4" inputmode="numeric">
-      </label>
-      <label>Anything we should know <span class="opt">&middot; optional</span>
-        <textarea id="fNotes" maxlength="1000" placeholder="parking, stairs, wifi, best days of the week&hellip;"></textarea>
-      </label>
+      <div class="fx col gap4"><h2>The room</h2><span class="small">Four things we need, three we&rsquo;d love.</span></div>
+      <div class="fg">
+        <div class="field span"><label for="fName">Your name</label><input class="input" type="text" id="fName" maxlength="80" autocomplete="name"></div>
+        <div class="field"><label for="fEmail">Email <span class="opt">&middot; so we can find a date</span></label><input class="input" type="text" id="fEmail" maxlength="160" autocomplete="email" inputmode="email"></div>
+        <div class="field"><label for="fPhone">Phone <span class="opt">&middot; optional</span></label><input class="input mono" type="text" id="fPhone" maxlength="40" autocomplete="tel" inputmode="tel"></div>
+        <div class="field span"><label for="fVenue">The room <span class="opt">&middot; the building or business it belongs to</span></label><input class="input" type="text" id="fVenue" maxlength="200" placeholder="the meeting room at the town library"></div>
+        <div class="field"><label for="fTown">Town</label><input class="input" type="text" id="fTown" maxlength="80"></div>
+        <div class="field"><label for="fSeats">Roughly how many seats <span class="opt">&middot; optional, a guess is fine</span></label><input class="input mono" type="text" id="fSeats" maxlength="4" inputmode="numeric"></div>
+        <div class="field span"><label for="fNotes">Anything we should know <span class="opt">&middot; optional</span></label><textarea class="input textarea" id="fNotes" maxlength="1000" placeholder="parking, stairs, wifi, best days of the week&hellip;"></textarea></div>
+      </div>
       <label class="hp">Website<input type="text" id="fWebsite" tabindex="-1" autocomplete="off"></label>
       <span class="err" id="fErr"></span>
-      <button class="go" id="fGo" type="submit">Lend the room</button>
+      <button class="btn btn-primary btn-lg" id="fGo" type="submit">Lend the room</button>
+      <p class="fine">No cost, no contract. We come to you, and we leave the room the way we found it.</p>
     </form>
+
     <div class="done" id="doneLend">
       <h2>Thank you. &#9749;</h2>
-      <p>That is exactly how new tables start. We just sent you a note, and we'll be in touch to find a date that works for the room.</p>
-      <p class="foot" style="margin-top:12px">Meanwhile: <a href="recipes.html">the recipes are free</a>, and <a href="waterville.html">the next meetup is posted</a>.</p>
+      <p class="note">That is exactly how new tables start. We just sent you a note, and we&rsquo;ll be in touch to find a date that works for the room.</p>
+      <p class="fine">Meanwhile: <a href="recipes.html">the recipes are free</a>, and <a href="waterville.html">the next meetup is posted</a>.</p>
     </div>
   </div>
-  <p class="foot"><a href="index.html">aihomebrewclub.com</a></p>
 </main>
 
-<script src="assets/config.js"></script>
-<script src="assets/site.js"></script>
+<footer class="slim"><span class="folio">Free, one hour, coffee on &middot; aihomebrewclub.com</span><span class="folio">Give to help others.</span></footer>
+</div>
+
+<script src="assets/config.js?v=3"></script>
+<script src="assets/site.js?v=3"></script>
 <script>
 (function(){
   'use strict';

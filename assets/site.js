@@ -20,23 +20,37 @@
   CFG.paintLogos(document);
   CFG.paintLevels(document, 60, 84);
 
+  /* the masthead's small-screen menu button */
+  var menuBtn = document.querySelector('.masthead .menu');
+  if (menuBtn) menuBtn.addEventListener('click', function(){ document.body.classList.toggle('nav-open'); });
+
+  /* one toast for the public pages (copy buttons, share) */
+  var toastEl = null, toastTimer = null;
+  function toast(msg){
+    if (!toastEl){ toastEl = document.createElement('div'); toastEl.className = 'toast'; toastEl.setAttribute('role', 'status'); document.body.appendChild(toastEl); }
+    toastEl.textContent = msg; toastEl.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(function(){ toastEl.classList.remove('show'); }, 2600);
+  }
+  window.AIHC_UI.toast = toast;
+
   /* members-only nav: only for devices that have already passed the gate.
      The public pages link the clubhouse door; the pitches stay off the menu for guests. */
-  var viewer = null;
+  var viewer = null, session = null;
   try { viewer = JSON.parse(localStorage.getItem('aihc_viewer_v1') || 'null'); } catch(e){}
+  try { session = JSON.parse(localStorage.getItem('aihc_member_v1') || 'null'); } catch(e){}
   if (!viewer || !viewer.name) return;
 
-  var PAGE_IDS = {'': 'home', 'index.html': 'home', 'waterville.html': 'waterville',
-                  'recipes.html': 'recipes', 'chat.html': 'chat', 'feed.html': 'feed'};
+  var PAGE_IDS = {'': 'home', 'index.html': 'home', 'waterville.html': 'waterville', 'events.html': 'events',
+                  'recipes.html': 'recipes', 'chat.html': 'chat', 'feed.html': 'feed', 'members.html': 'members'};
   var file = location.pathname.split('/').pop();
   var current = PAGE_IDS.hasOwnProperty(file) ? PAGE_IDS[file] : null;
 
   var btn = document.createElement('button');
   btn.className = 'deckbtn'; btn.type = 'button';
-  btn.innerHTML = '&#9776;'; btn.setAttribute('aria-label', 'Menu');
+  btn.innerHTML = '&#9776; The club'; btn.setAttribute('aria-label', 'Club menu');
   var pane = document.createElement('nav');
   pane.className = 'deckpane'; pane.id = 'deckPane'; pane.setAttribute('aria-label', 'The club');
-  CFG.buildDeckPane(pane, current);
+  CFG.buildDeckPane(pane, current, session ? session.role : '');
   document.body.appendChild(btn);
   document.body.appendChild(pane);
   btn.addEventListener('click', function(){ document.body.classList.toggle('deck-open'); });

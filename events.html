@@ -12,23 +12,20 @@
 <meta property="og:url" content="https://aihomebrewclub.com/events.html">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="assets/site.css">
+<link rel="stylesheet" href="assets/site.css?v=3">
 <style>
-  body{padding-bottom:60px; position:relative}
-  h1{font-weight:800; font-size:clamp(2.4rem,7.5vw,3.6rem); line-height:1.05; margin:18px 0 4px; letter-spacing:-.01em}
-  h1::after{content:""; display:block; width:126px; height:12px; margin-top:12px; background:var(--squig) no-repeat left center}
-  .kicker{font-family:var(--font-hand); font-weight:600; color:var(--ink-soft); font-size:1.4rem; margin:0 0 20px; transform:rotate(-.6deg)}
-  h2{font-weight:800; font-size:clamp(1.5rem,4vw,2rem); margin:36px 0 12px}
+  /* No. 03 - The circuit: the map and the chapters on the left, the calendar and the cards on the right. */
+  .page-head .rt{align-items:flex-end; text-align:right}
+  .page-head .rt .kicker{max-width:26ch}
+  .pg{display:grid; grid-template-columns:1fr 480px; gap:32px; padding-bottom:64px; align-items:start}
 
-  /* ---- the map ---- */
-  .mapcard{
-    background:var(--card); border:1px solid var(--edge); border-radius:20px;
-    box-shadow:var(--shadow); padding:14px; margin:16px 0;
-  }
-  .mapcard svg{display:block; width:min(420px,100%); margin:0 auto}
+  /* ---- the map card: the inked state and the chapter list ---- */
+  .mapcard{display:grid; grid-template-columns:1fr 260px; overflow:hidden}
+  .map{padding:18px; display:flex; align-items:center; justify-content:center}
+  .map svg{width:min(420px,100%)}
   .pin{cursor:pointer}
   .pin circle.spot{fill:var(--tangerine); stroke:var(--ink); stroke-width:3}
-  .pin.quiet circle.spot{fill:var(--ink-soft)}
+  .pin.quiet circle.spot{fill:var(--ink-3)}
   @media (prefers-reduced-motion: no-preference){
     .pin circle.halo{animation:halo 2.6s ease-out infinite; transform-origin:center; transform-box:fill-box}
     @keyframes halo{0%{opacity:.55; transform:scale(.6)} 70%{opacity:0; transform:scale(1.6)} 100%{opacity:0}}
@@ -38,111 +35,154 @@
     font-family:var(--font-hand); font-size:21px; font-weight:600; fill:var(--ink);
     paint-order:stroke; stroke:var(--card); stroke-width:5px; stroke-linejoin:round;
   }
-  .pin text.seats{font-size:15px; fill:var(--ink-soft)}
-  .maine-label{font-family:var(--font-display); font-style:italic; font-weight:600; font-size:17px; fill:var(--ink-soft); letter-spacing:.14em}
-  .moretowns{color:var(--ink-soft); font-weight:700; font-size:.86rem; text-align:center; margin:6px 0 2px}
-  .moretowns .hand{font-family:var(--font-hand); font-size:1.2rem; color:var(--tangerine)}
+  .pin text.seats{font-size:15px; fill:var(--ink-2)}
+  .maine-label{font-family:var(--font-display); font-style:italic; font-weight:600; font-size:17px; fill:var(--ink-3); letter-spacing:.14em}
+
+  .towns{border-left:1px solid var(--rule); display:flex; flex-direction:column; padding:18px 0}
+  .towns .h{padding:0 18px 10px}
+  .town{display:grid; grid-template-columns:14px 1fr; gap:12px; padding:12px 18px; border:0; border-top:1px solid var(--rule); align-items:start;
+    width:100%; text-align:left; background:none; cursor:pointer; color:var(--ink); border-radius:0}
+  .town:hover{background:var(--paper-2)}
+  div.town{cursor:default}
+  .town .tp{width:12px; height:12px; border-radius:50%; margin-top:4px; background:var(--rule-2)}
+  .town .tp.live{background:var(--tangerine); box-shadow:0 0 0 4px var(--tangerine-wash)}
+  .town b{font-size:14px; display:block}
+  .town .st{font-size:12.5px; color:var(--ink-3); display:block; margin-top:2px}
+  .towns-foot{padding:14px 18px 0; margin-top:auto; border-top:1px solid var(--rule); font-size:13px; color:var(--ink-3)}
+  .towns-foot .hand{font-size:19px; color:var(--tangerine); display:block}
+
+  /* ---- the record: collapsed under the map ---- */
+  .rec summary{padding:14px 18px; display:flex; align-items:center; justify-content:space-between; gap:12px; cursor:pointer; list-style:none}
+  .rec summary::-webkit-details-marker{display:none}
+  .rec summary b{font-size:14px}
+  .rec .caret{color:var(--ink-3); transition:transform .15s}
+  .rec[open] .caret{transform:rotate(180deg)}
+  .rec .past{padding:0 18px 18px; display:flex; flex-direction:column; gap:12px}
 
   /* ---- the calendar ---- */
-  .calcard{
-    background:var(--card); border:1px solid var(--edge); border-radius:20px;
-    box-shadow:var(--shadow); padding:18px 20px 14px; margin:16px 0;
-  }
-  .calhead{display:flex; align-items:center; gap:10px; margin-bottom:10px}
-  .calhead b{font-family:var(--font-display); font-weight:800; font-size:1.3rem; flex:1; text-align:center}
-  .calbtn{
-    border:1px solid var(--edge); background:var(--paper); color:var(--ink); cursor:pointer;
-    border-radius:999px; width:34px; height:34px; font-weight:800; font-size:1rem; flex:none;
-  }
-  .calbtn:hover{border-color:var(--teal)}
+  .cal{padding:18px 20px 16px; display:flex; flex-direction:column; gap:12px}
+  .cal .ch{display:flex; align-items:center; justify-content:space-between}
+  .cal .ch b{font-family:var(--font-display); font-size:20px; font-weight:800}
+  .cal .nav{display:flex; gap:4px}
+  .calbtn{width:28px; height:28px; border:1px solid var(--rule-2); border-radius:6px; background:none; display:inline-flex; align-items:center; justify-content:center; font-size:14px; color:var(--ink-2); cursor:pointer; padding:0}
+  .calbtn:hover{border-color:var(--ink); color:var(--ink)}
   .calbtn:disabled{opacity:.35; cursor:default}
-  .calgrid{display:grid; grid-template-columns:repeat(7,1fr); gap:4px; text-align:center}
-  .dow{font-size:.68rem; font-weight:800; letter-spacing:.08em; color:var(--ink-soft); text-transform:uppercase; padding:4px 0}
-  .day{
-    aspect-ratio:1; display:grid; place-items:center; border-radius:12px;
-    font-weight:700; font-size:.92rem; color:var(--ink); position:relative;
-  }
-  .day.out{color:var(--edge)}
-  .day.today{outline:2px dashed var(--edge); outline-offset:-2px}
-  .day.has{background:var(--w-lemon); cursor:pointer}
-  .day.has:hover{background:var(--lemon)}
-  .day.has::after{
-    content:""; position:absolute; bottom:6px; left:50%; transform:translateX(-50%);
-    width:6px; height:6px; border-radius:50%; background:var(--tangerine);
-  }
-  .day.past-ev{background:var(--w-cream)}
-  .day.past-ev::after{background:var(--ink-soft)}
+  .grid7{display:grid; grid-template-columns:repeat(7,1fr); gap:4px}
+  .grid7 .dow{font-family:var(--font-mono); font-size:10.5px; letter-spacing:.1em; color:var(--ink-3); text-align:center; padding-bottom:4px}
+  .grid7 .day{height:44px; border-radius:6px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; font-family:var(--font-mono); font-size:12.5px; color:var(--ink-2); position:relative}
+  .grid7 .day.out{color:var(--rule-2)}
+  .grid7 .day.today{outline:1.5px dashed var(--rule-2); outline-offset:-1px}
+  .grid7 .day.has{background:var(--lemon-wash); color:var(--ink); font-weight:600; cursor:pointer}
+  .grid7 .day.has:hover{background:var(--lemon)}
+  .grid7 .day.has::after{content:""; width:5px; height:5px; border-radius:50%; background:var(--tangerine)}
+  .grid7 .day.past-ev{background:var(--paper-2)}
+  .grid7 .day.past-ev::after{background:var(--ink-3)}
+  .legend{display:flex; align-items:center; gap:14px}
+  .legend .l{display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--ink-3)}
+  .legend .dot-held{background:var(--ink-3)}
+  .legend .small{margin-left:auto}
 
-  /* ---- event cards (waterville's .meetup, trimmed) ---- */
-  .meetup{
-    background:var(--card); border:1px solid var(--edge); border-radius:20px;
-    box-shadow:var(--shadow); padding:22px 24px; margin:16px 0; scroll-margin-top:16px;
+  /* ---- the event cards ---- */
+  .evl{display:flex; flex-direction:column; gap:12px}
+  .evx{display:grid; grid-template-columns:64px 1fr; gap:16px; padding:16px 18px; scroll-margin-top:16px}
+  .evx .d{display:flex; flex-direction:column; align-items:center; line-height:1; border-right:1px solid var(--rule); padding-right:12px}
+  .evx .d .m{font-family:var(--font-mono); font-size:10px; letter-spacing:.1em; color:var(--tangerine); text-transform:uppercase}
+  .evx .d .n{font-family:var(--font-display); font-size:30px; font-weight:800; margin-top:4px}
+  .evx .d .w{font-family:var(--font-mono); font-size:10px; color:var(--ink-3); margin-top:5px; text-transform:uppercase}
+  .evx .b{display:flex; flex-direction:column; gap:6px; min-width:0}
+  .evx .b .t{font-size:16px; font-weight:700}
+  .evx .b .l{font-size:13px; color:var(--ink-2)}
+  .evx .b .cta{display:flex; align-items:center; gap:10px; margin-top:6px; flex-wrap:wrap}
+  a.tag{font-weight:500}
+  .empty{color:var(--ink-3); font-style:italic; font-size:14px}
+
+  @media (max-width:1000px){ .pg{grid-template-columns:1fr} }
+  @media (max-width:900px){ .page-head .rt{align-items:flex-start; text-align:left} }
+  @media (max-width:640px){
+    .mapcard{grid-template-columns:1fr}
+    .towns{border-left:0; border-top:1px solid var(--rule)}
   }
-  .mhead{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap}
-  .mwhen{font-family:var(--font-display); font-weight:800; font-size:clamp(1.3rem,3.4vw,1.7rem)}
-  .mtitle{color:var(--ink-soft); font-weight:800; margin:2px 0 0}
-  .mwhere{margin:6px 0 0}
-  .mtown{font-size:.76rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--teal-deep)}
-  .mfoot{display:flex; gap:20px; align-items:center; margin-top:16px; flex-wrap:wrap}
-  .callink{font-weight:800; font-size:.85rem; color:var(--teal-deep)}
-  .past summary{cursor:pointer; font-weight:800; color:var(--teal-deep); font-size:.9rem; margin:8px 0}
-  .past .meetup{padding:14px 20px}
-  .empty{color:var(--ink-soft); font-weight:700}
 </style>
 </head>
 <body>
+<div class="frame">
+<div class="runner"></div>
+<header class="masthead">
+  <a class="brand" href="index.html"><span class="logo" data-size="32" aria-hidden="true"></span><span>The AI Homebrew Club</span></a>
+  <span class="est">Central Maine &middot; est. 2026, after 1975</span>
+  <nav>
+    <a class="here" href="events.html">The circuit</a>
+    <a href="waterville.html">Waterville</a>
+    <a href="recipes.html">The recipe box</a>
+    <a href="lend.html">Lend a room</a>
+    <a class="members" href="members.html">Members&rsquo; room</a>
+  </nav>
+  <button class="menu" type="button" aria-label="Menu">&#9776;</button>
+</header>
 
-<div class="wrap">
-  <header class="top">
-    <a href="index.html"><span class="logo" data-size="40"></span><span>The AI Homebrew Club</span></a>
-    <a class="evlink" href="events.html">Events</a>
-    <a class="members" href="members.html">Members</a>
-  </header>
-
-  <h1>The circuit.</h1>
-  <p class="kicker">Every table we set, and where the next one is.</p>
-
-  <div class="mapcard">
-    <svg id="maineMap" viewBox="0 0 400 520" role="img" aria-label="A hand-drawn map of Maine with a pin for each club town">
-      <!-- Maine for real: the state boundary traced from public GeoJSON, projected
-           and smoothed, inked in the club line style -->
-      <path d="M72.5 486.3Q68.1 482.6 68.7 477.4Q69.3 472.3 63.5 466.3Q57.6 460.2 55.2 391.6Q52.8 322.9 51 289.2Q49.2 255.4 65.1 248.3Q81 241.1 78.4 237.4Q75.8 233.7 81.8 225.7Q87.8 217.7 94.1 213.9Q100.3 210.2 99.1 207.1Q97.9 203.9 103.7 199.1Q109.6 194.2 107.8 185Q106 175.9 109.6 162.2Q113.2 148.4 118.9 143.9Q124.5 139.3 126.7 124.7Q128.9 110.1 157.3 70Q185.7 30 192.3 31.7Q199 33.4 199.4 43.2Q199.8 52.9 204.6 56.3Q209.5 59.8 221.3 54Q233.2 48.3 240.7 48.3Q248.1 48.3 253.4 44.6Q258.6 40.9 268.9 49.2Q279.1 57.5 285.2 64.3Q291.2 71.2 291.6 129.8Q292 188.5 291.2 202.5Q290.4 216.5 303.1 220.2Q315.8 224 314 230Q312.2 236 315.4 241.7Q318.6 247.4 316 252.6Q313.4 257.7 318.6 265.7Q323.8 273.7 330.7 272Q337.5 270.3 344.2 288.9Q350.8 307.5 343.2 315.8Q335.5 324.1 331.1 320.9Q326.7 317.8 323 323.5Q319.4 329.2 314.2 327.8Q308.9 326.4 308.3 331.2Q307.7 336.1 300.9 335.5Q294 335 283.2 346.1Q272.3 357.3 269.7 349.5Q267.1 341.8 263.2 341.2Q259.4 340.7 261.2 349Q263 357.3 254.6 361.3Q246.1 365.3 244.1 358.7Q242.1 352.1 238.1 355.5Q234 359 224.6 359Q215.1 359 214.9 351.3Q214.7 343.5 209.1 345.2Q203.4 347 204.4 352.4Q205.4 357.8 200.2 369.3Q195 380.7 196 383.9Q197 387 190.1 393.3Q183.3 399.6 176.4 397.3Q169.6 395 165.6 401.6Q161.5 408.2 155.9 409Q150.3 409.9 145.6 415.3Q141 420.8 135.4 419.6Q129.7 418.5 128.1 412.8Q126.5 407 118.2 416.2Q110 425.3 112.2 431.1Q114.4 436.8 108.4 438.8Q102.3 440.8 101.9 445.7Q101.5 450.5 94.7 456.5Q87.8 462.5 82.4 476.3Q77 490 72.5 486.3Z"
-            fill="var(--paper)" stroke="var(--ink)" stroke-width="4.5"
-            stroke-linejoin="round" stroke-linecap="round"/>
-      <text class="maine-label" x="238" y="428">M A I N E</text>
-      <g id="mapPins"></g>
-    </svg>
-    <p class="moretowns" id="moreTowns" hidden></p>
-    <p class="moretowns"><span class="hand">Your town could be next</span> &middot; <a href="lend.html?ref=circuit">lend us a room</a></p>
-  </div>
-
-  <h2>The calendar.</h2>
-  <div class="calcard">
-    <div class="calhead">
-      <button class="calbtn" id="calPrev" type="button" aria-label="Earlier month">&#8249;</button>
-      <b id="calTitle">&hellip;</b>
-      <button class="calbtn" id="calNext" type="button" aria-label="Later month">&#8250;</button>
+<main class="wrap">
+  <div class="page-head">
+    <div class="fx col gap12">
+      <p class="folio"><b>&#8470; 03</b> &middot; The circuit</p>
+      <h1 class="display-xl">Every table we set, and where the next one is.</h1>
     </div>
-    <div class="calgrid" id="calGrid"></div>
+    <div class="fx col gap10 rt">
+      <p class="kicker">Your town could be next.</p>
+      <a class="btn btn-secondary" href="lend.html?ref=events">Lend us a room</a>
+    </div>
   </div>
 
-  <h2 id="upH" hidden>On the calendar.</h2>
-  <div id="upWrap"><p class="empty">Checking the calendar&hellip;</p></div>
+  <div class="pg">
+    <div class="fx col gap20">
+      <div class="card mapcard">
+        <div class="map">
+          <svg id="maineMap" viewBox="0 0 400 520" role="img" aria-label="A hand-drawn map of Maine with a pin for each club town">
+            <!-- Maine for real: the state boundary traced from public GeoJSON, projected
+                 and smoothed, inked in the club line style -->
+            <path d="M72.5 486.3Q68.1 482.6 68.7 477.4Q69.3 472.3 63.5 466.3Q57.6 460.2 55.2 391.6Q52.8 322.9 51 289.2Q49.2 255.4 65.1 248.3Q81 241.1 78.4 237.4Q75.8 233.7 81.8 225.7Q87.8 217.7 94.1 213.9Q100.3 210.2 99.1 207.1Q97.9 203.9 103.7 199.1Q109.6 194.2 107.8 185Q106 175.9 109.6 162.2Q113.2 148.4 118.9 143.9Q124.5 139.3 126.7 124.7Q128.9 110.1 157.3 70Q185.7 30 192.3 31.7Q199 33.4 199.4 43.2Q199.8 52.9 204.6 56.3Q209.5 59.8 221.3 54Q233.2 48.3 240.7 48.3Q248.1 48.3 253.4 44.6Q258.6 40.9 268.9 49.2Q279.1 57.5 285.2 64.3Q291.2 71.2 291.6 129.8Q292 188.5 291.2 202.5Q290.4 216.5 303.1 220.2Q315.8 224 314 230Q312.2 236 315.4 241.7Q318.6 247.4 316 252.6Q313.4 257.7 318.6 265.7Q323.8 273.7 330.7 272Q337.5 270.3 344.2 288.9Q350.8 307.5 343.2 315.8Q335.5 324.1 331.1 320.9Q326.7 317.8 323 323.5Q319.4 329.2 314.2 327.8Q308.9 326.4 308.3 331.2Q307.7 336.1 300.9 335.5Q294 335 283.2 346.1Q272.3 357.3 269.7 349.5Q267.1 341.8 263.2 341.2Q259.4 340.7 261.2 349Q263 357.3 254.6 361.3Q246.1 365.3 244.1 358.7Q242.1 352.1 238.1 355.5Q234 359 224.6 359Q215.1 359 214.9 351.3Q214.7 343.5 209.1 345.2Q203.4 347 204.4 352.4Q205.4 357.8 200.2 369.3Q195 380.7 196 383.9Q197 387 190.1 393.3Q183.3 399.6 176.4 397.3Q169.6 395 165.6 401.6Q161.5 408.2 155.9 409Q150.3 409.9 145.6 415.3Q141 420.8 135.4 419.6Q129.7 418.5 128.1 412.8Q126.5 407 118.2 416.2Q110 425.3 112.2 431.1Q114.4 436.8 108.4 438.8Q102.3 440.8 101.9 445.7Q101.5 450.5 94.7 456.5Q87.8 462.5 82.4 476.3Q77 490 72.5 486.3Z"
+                  fill="var(--paper)" stroke="var(--ink)" stroke-width="4.5"
+                  stroke-linejoin="round" stroke-linecap="round"/>
+            <text class="maine-label" x="238" y="428">M A I N E</text>
+            <g id="mapPins"></g>
+          </svg>
+        </div>
+        <div class="towns">
+          <span class="folio h">Chapters</span>
+          <div id="townList"></div>
+          <div class="towns-foot"><span class="hand">Your town could be next</span> <a href="lend.html?ref=circuit">Lend us a room</a></div>
+        </div>
+      </div>
 
-  <div class="past">
-    <details id="pastWrap" hidden>
-      <summary>The record: every table we've held</summary>
-      <div id="pastList"></div>
-    </details>
+      <details class="card rec" id="pastWrap" hidden>
+        <summary><b>The record: every table we&rsquo;ve held</b><span class="fx gap12 ac"><span class="mono-s ink3" id="pastCount"></span><span class="caret" aria-hidden="true">&#9662;</span></span></summary>
+        <div class="past" id="pastList"></div>
+      </details>
+    </div>
+
+    <div class="fx col gap20">
+      <div class="card cal">
+        <div class="ch">
+          <b id="calTitle">&hellip;</b>
+          <span class="nav">
+            <button class="calbtn" id="calPrev" type="button" aria-label="Earlier month">&#8249;</button>
+            <button class="calbtn" id="calNext" type="button" aria-label="Later month">&#8250;</button>
+          </span>
+        </div>
+        <div class="grid7" id="calGrid"></div>
+        <div class="legend"><span class="l"><span class="dot dot-tang"></span> meetup</span><span class="l"><span class="dot dot-held"></span> held</span><span class="small">click a day for the card</span></div>
+      </div>
+
+      <p class="folio" id="upH" hidden><b>On the calendar</b></p>
+      <div class="evl" id="upWrap"><p class="empty">Checking the calendar&hellip;</p></div>
+    </div>
   </div>
+</main>
 
-  <footer>
-    Free, one hour, coffee on &middot; <a href="index.html">aihomebrewclub.com</a>
-  </footer>
+<footer class="slim"><span class="folio">Free, one hour, coffee on &middot; aihomebrewclub.com</span><span class="folio">Give to help others.</span></footer>
 </div>
 
-<script src="assets/config.js"></script>
-<script src="assets/site.js"></script>
+<script src="assets/config.js?v=3"></script>
+<script src="assets/site.js?v=3"></script>
 <script>
 (function(){
   'use strict';
@@ -158,15 +198,32 @@
     return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null;
   }
   function monthKey(d){ return d.getFullYear() * 12 + d.getMonth(); }
+  var MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var DOW_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  function shortDate(iso){
+    var d = parseDay(iso);
+    return d ? MONTH_NAMES[d.getMonth()].slice(0, 3) + ' ' + d.getDate() : '';
+  }
 
-  /* ---------- the map ---------- */
+  /* jump to a town's card: the pins and the chapter rows both land here */
+  function goCity(city){
+    var pt = CFG.CITY_POINTS[city];
+    var card = document.querySelector('#upWrap .evx[data-city="' + city + '"]');
+    if (card){ card.scrollIntoView({behavior: 'smooth'}); }
+    else if (pt && pt.page){ location.href = pt.page; }
+  }
+
+  /* ---------- the map and the chapter list ---------- */
   function drawPins(){
     var g = $('mapPins');
     g.innerHTML = '';
     var towns = {};
     events.forEach(function(e){
-      var t = towns[e.city] || (towns[e.city] = {city: e.city, upcoming: 0, left: 0});
-      if (e.status === 'upcoming'){ t.upcoming++; t.left += (e.left || 0); }
+      var t = towns[e.city] || (towns[e.city] = {city: e.city, upcoming: 0, left: 0, next: ''});
+      if (e.status === 'upcoming'){
+        t.upcoming++; t.left += (e.left || 0);
+        if (!t.next || e.sort_date < t.next) t.next = e.sort_date;
+      }
     });
     var missing = [];
     Object.keys(towns).forEach(function(city){
@@ -187,21 +244,32 @@
         '<circle class="spot" cx="' + pt.x + '" cy="' + pt.y + '" r="8"/>' +
         '<text' + anchor + ' x="' + lx + '" y="' + (pt.y + 6) + '">' + esc(pt.label) + '</text>' +
         (seatsNote ? '<text class="seats"' + anchor + ' x="' + lx + '" y="' + (pt.y + 24) + '">' + esc(seatsNote) + '</text>' : '');
-      function go(){
-        var card = document.querySelector('.meetup[data-city="' + city + '"]');
-        if (card){ card.scrollIntoView({behavior: 'smooth'}); }
-        else if (pt.page){ location.href = pt.page; }
-      }
+      function go(){ goCity(city); }
       pin.addEventListener('click', go);
       pin.addEventListener('keydown', function(ev){ if (ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); go(); } });
       g.appendChild(pin);
     });
-    if (missing.length){
-      var mt = $('moreTowns');
-      mt.hidden = false;
-      mt.textContent = 'Also on the circuit: ' + missing.join(', ') + ' (pins coming soon)';
-    }
+
+    /* the chapter column: every pinned town, then any town on the circuit whose pin is still coming */
+    var rows = Object.keys(CFG.CITY_POINTS).map(function(city){
+      var pt = CFG.CITY_POINTS[city];
+      var t = towns[city];
+      var live = !!(t && t.upcoming > 0);
+      var st = live
+        ? (t.left > 0 ? 'Live · ' + t.left + (t.left === 1 ? ' seat open ' : ' seats open ') + shortDate(t.next) : 'Waitlist open')
+        : 'Next date coming';
+      return '<button class="town" type="button" data-city="' + esc(city) + '"><span class="tp' + (live ? ' live' : '') + '"></span>' +
+        '<span><b>' + esc(pt.label) + '</b><span class="st">' + esc(st) + '</span></span></button>';
+    }).concat(missing.map(function(city){
+      return '<div class="town"><span class="tp"></span>' +
+        '<span><b>' + esc(city) + '</b><span class="st">Pin coming soon</span></span></div>';
+    }));
+    $('townList').innerHTML = rows.join('');
   }
+  $('townList').addEventListener('click', function(ev){
+    var b = ev.target.closest('button.town');
+    if (b) goCity(b.getAttribute('data-city'));
+  });
 
   /* ---------- the calendar ---------- */
   var months = [];      /* sorted unique month keys that have events, plus this month */
@@ -225,7 +293,6 @@
     monthIdx = Math.max(0, months.indexOf(openKey));
   }
 
-  var MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   function renderCal(){
     var key = months[monthIdx];
     var y = Math.floor(key / 12), m = key % 12;
@@ -251,8 +318,8 @@
         cell.setAttribute('title', evs.map(function(e){ return e.title; }).join(' · '));
         (function(id){
           cell.addEventListener('click', function(){
-            var card = document.querySelector('.meetup[data-ev="' + id + '"]') ||
-                       document.querySelector('.past .meetup[data-ev="' + id + '"]');
+            var card = document.querySelector('#upWrap .evx[data-ev="' + id + '"]') ||
+                       document.querySelector('#pastList .evx[data-ev="' + id + '"]');
             if (!card) return;
             var det = card.closest('details');
             if (det) det.open = true;
@@ -271,26 +338,46 @@
     var pt = CFG.CITY_POINTS[city];
     var label = pt ? pt.label : city;
     return pt && pt.page
-      ? '<a class="mtown" href="' + pt.page + '">' + esc(label) + '</a>'
-      : '<span class="mtown">' + esc(label) + '</span>';
+      ? '<a class="tag tag-teal" href="' + pt.page + '">' + esc(label) + '</a>'
+      : '<span class="tag tag-teal">' + esc(label) + '</span>';
+  }
+  /* the seat meter: one square per chair, filled as they go; extra squares for the waitlist */
+  function seatMeter(e){
+    var cap = Math.max(0, +e.capacity || 0);
+    var left = Math.max(0, +e.left || 0);
+    var taken = e.taken != null ? +e.taken : cap - left;
+    var filled = Math.min(cap, Math.max(0, taken));
+    var wait = Math.min(8, Math.max(0, taken - cap));
+    var sq = '';
+    for (var i = 0; i < filled; i++) sq += '<span class="s"></span>';
+    for (var j = filled; j < cap; j++) sq += '<span class="s open"></span>';
+    for (var k = 0; k < wait; k++) sq += '<span class="s wait"></span>';
+    var n = left > 0 ? left + ' of ' + cap + ' left' : 'Full · waitlist open';
+    return '<span class="seats' + (left > 0 ? '' : ' full') + '"><span class="row">' + sq + '</span><span class="n">' + n + '</span></span>';
+  }
+  function dateBlock(e){
+    var d = parseDay(e.sort_date);
+    if (!d) return '<div class="d"><span class="m"></span><span class="n">&middot;</span><span class="w"></span></div>';
+    return '<div class="d"><span class="m">' + MONTH_NAMES[d.getMonth()].slice(0, 3) + '</span>' +
+      '<span class="n">' + d.getDate() + '</span><span class="w">' + DOW_NAMES[d.getDay()] + '</span></div>';
   }
   function card(e){
     var t = fmtTime(e.start_time);
-    var pill = e.status !== 'upcoming' ? '' : (e.left > 0
-      ? '<span class="seats">' + e.left + ' of ' + e.capacity + ' seats left</span>'
-      : '<span class="seats full">Full · waitlist open</span>');
-    return '<div class="meetup" data-ev="' + esc(e.id) + '" data-city="' + esc(e.city) + '">' +
-      townTag(e.city) +
-      '<div class="mhead"><span class="mwhen">' + esc(e.when) + (t ? ' · ' + t : '') + '</span>' + pill + '</div>' +
-      '<p class="mtitle">' + esc(e.title) + '</p>' +
-      '<p class="mwhere">' + esc(e.location) + '</p>' +
-      (e.status === 'upcoming'
-        ? '<div class="mfoot">' +
-            '<a class="gobtn" href="rsvp.html?event=' + encodeURIComponent(e.id) + '&ref=circuit">' +
-              (e.left > 0 ? 'Save my seat' : 'Join the waitlist') + '</a>' +
-            (e.gcal ? '<a class="callink" target="_blank" rel="noopener" href="' + esc(e.gcal) + '">Add to calendar</a>' : '') +
-          '</div>'
-        : '') +
+    return '<div class="card evx" data-ev="' + esc(e.id) + '" data-city="' + esc(e.city) + '">' +
+      dateBlock(e) +
+      '<div class="b">' +
+        '<span class="fx gap8 ac fwrap">' + townTag(e.city) + '<span class="mono-s ink3">' + esc(e.when) + (t ? ' · ' + t : '') + '</span></span>' +
+        '<span class="t">' + esc(e.title) + '</span>' +
+        '<span class="l">' + esc(e.location) + '</span>' +
+        (e.status === 'upcoming' ? seatMeter(e) : '') +
+        (e.status === 'upcoming'
+          ? '<span class="cta">' +
+              '<a class="btn btn-primary btn-sm" href="rsvp.html?event=' + encodeURIComponent(e.id) + '&ref=circuit">' +
+                (e.left > 0 ? 'Save my seat' : 'Join the waitlist') + '</a>' +
+              (e.gcal ? '<a class="btn btn-ghost btn-sm" target="_blank" rel="noopener" href="' + esc(e.gcal) + '">Add to calendar</a>' : '') +
+            '</span>'
+          : '') +
+      '</div>' +
     '</div>';
   }
   function renderCards(){
@@ -307,6 +394,7 @@
     }
     if (past.length){
       $('pastWrap').hidden = false;
+      $('pastCount').textContent = past.length + (past.length === 1 ? ' meetup' : ' meetups');
       $('pastList').innerHTML = past.map(card).join('');
     }
   }
@@ -322,6 +410,7 @@
     })
     .catch(function(){
       $('upWrap').innerHTML = '<p class="empty">Could not reach the calendar. RSVP still works at <a href="rsvp.html">the RSVP page</a>.</p>';
+      drawPins();
       buildMonths(); renderCal();
     });
 })();

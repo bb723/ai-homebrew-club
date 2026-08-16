@@ -8,25 +8,27 @@ window.AIHC_CONFIG = (function(){
   var SITE_HOSTS = ['aihomebrewclub.com', 'www.aihomebrewclub.com', 'bb723.github.io',
                     'aibrownbag.com', 'www.aibrownbag.com', 'localhost', '127.0.0.1'];
 
-  /* The one nav. Order is display order; group headings render on change. */
+  /* The one nav. Order is display order; group headings render on change.
+     Members see only 'The club'; the other groups are admin-only. */
   var DECKS = [
     {id: 'members', title: 'The members&rsquo; room', desc: 'Your front door: chat, recipes, the next table.', group: 'The club'},
     {id: 'chat', title: 'The clubhouse', desc: 'Members&rsquo; chat and the bulletin board.', group: 'The club'},
-    {id: 'waterville', title: 'Waterville', desc: 'Public meetup page: agendas, seats, QR.', group: 'The club'},
     {id: 'recipes', title: 'The recipe box', desc: 'Public prompt library, one steal at a time.', group: 'The club'},
+    {id: 'waterville', title: 'Waterville', desc: 'Public meetup page: agendas, seats, QR.', group: 'The club'},
+    {id: 'events', title: 'The circuit', desc: 'Every meetup, mapped and dated.', group: 'The club'},
     {id: 'home', title: 'The invite', desc: 'The public landing page.', group: 'The club'},
-    {id: 'admin', title: 'Meetup controls', desc: 'Create meetups, edit agendas.', group: 'Internal'},
-    {id: 'invest', title: 'Investor pitch', desc: 'The hardest room in America.', group: 'The pitches'},
-    {id: 'join', title: 'Attendee pitch', desc: 'Come to the first AI Brown Bag.', group: 'The pitches'},
-    {id: 'why', title: 'Why we meet', desc: 'Fear, lies, and folding chairs.', group: 'The pitches'},
-    {id: 'charter', title: 'The Charter', desc: 'The whole plan. Every pitch is cut from this.', group: 'Internal'},
-    {id: 'kit101', title: 'The 101 kit', desc: 'Twelve live demos, step by step.', group: 'Internal'},
-    {id: 'funding', title: 'The funding plan', desc: 'Grants, links, deadlines, in unlock order.', group: 'Internal'},
-    {id: 'model', title: 'The model', desc: 'The studio P&amp;L, live.', group: 'Internal'}
+    {id: 'admin', title: 'Meetup controls', desc: 'Create meetups, edit agendas, the keyring.', group: 'The back office', admin: true},
+    {id: 'charter', title: 'The Charter', desc: 'The whole plan. Every pitch is cut from this.', group: 'The pitches &amp; plans', admin: true},
+    {id: 'invest', title: 'Investor pitch', desc: 'The hardest room in America.', group: 'The pitches &amp; plans', admin: true},
+    {id: 'join', title: 'Attendee pitch', desc: 'Come to the first AI Brown Bag.', group: 'The pitches &amp; plans', admin: true},
+    {id: 'why', title: 'Why we meet', desc: 'Fear, lies, and folding chairs.', group: 'The pitches &amp; plans', admin: true},
+    {id: 'kit101', title: 'The 101 kit', desc: 'Twelve live demos, step by step.', group: 'The pitches &amp; plans', admin: true},
+    {id: 'funding', title: 'The funding plan', desc: 'Grants, links, deadlines, in unlock order.', group: 'The pitches &amp; plans', admin: true},
+    {id: 'model', title: 'The model', desc: 'The studio P&amp;L, live.', group: 'The pitches &amp; plans', admin: true}
   ];
 
   /* Root-level pages; everything else lives under deck/. 'feed' stays routable for old links. */
-  var ROOT_PAGES = {feed: 1, chat: 1, waterville: 1, recipes: 1, members: 1, events: 1};
+  var ROOT_PAGES = {feed: 1, chat: 1, waterville: 1, recipes: 1, members: 1, events: 1, rsvp: 1, lend: 1};
 
   /* The circuit map: where each chapter sits on the hand-drawn Maine SVG
      (viewBox 0 0 400 520 in events.html). One line per town as chapters open. */
@@ -43,15 +45,17 @@ window.AIHC_CONFIG = (function(){
     return local ? (inDeck ? '' : 'deck/') + id + '.html' : 'https://aihomebrewclub.com/deck/' + id + '.html';
   }
 
-  /* Renders the member nav into a .deckpane element. currentId gets the "You are here" badge. */
-  function buildDeckPane(pane, currentId){
+  /* Renders the member nav into a .deckpane element (the public-page hamburger and the decks).
+     currentId gets the "here" mark. role 'admin' unlocks the back-office groups. */
+  function buildDeckPane(pane, currentId, role){
     if (!pane) return;
     pane.innerHTML = '';
     var lastGroup = '';
     DECKS.forEach(function(d){
+      if (d.admin && role !== 'admin') return;
       if (d.group !== lastGroup){
         var h = document.createElement('h3');
-        h.textContent = d.group;
+        h.innerHTML = d.group;
         pane.appendChild(h);
         lastGroup = d.group;
       }
@@ -59,14 +63,69 @@ window.AIHC_CONFIG = (function(){
       a.href = deckHref(d.id);
       if (location.protocol !== 'file:' && SITE_HOSTS.indexOf(location.hostname) === -1) a.target = '_blank';
       if (d.id === currentId) a.className = 'here';
-      a.innerHTML = '<span class="t">' + d.title + '</span><span class="d">' + d.desc + '</span>' +
-        (d.id === currentId ? '<span class="yh">You are here</span>' : '');
+      a.innerHTML = '<span class="t">' + d.title + '</span><span class="d">' + d.desc + '</span>';
       pane.appendChild(a);
     });
     var c = document.createElement('button');
     c.className = 'close'; c.type = 'button'; c.textContent = 'Close';
     c.addEventListener('click', function(){ document.body.classList.remove('deck-open'); });
     pane.appendChild(c);
+  }
+
+  /* Renders the club shell sidebar (members.html, chat.html, deck/admin.html).
+     Fills el with the brand, grouped .navi links, and an empty .me block that club.js
+     paints on unlock. extra = optional {group, items:[{id, title, href, k}]} injected
+     after the matching group (chat rooms, console panels). Returns el. */
+  function buildSideNav(el, currentId, role, extras){
+    if (!el) return el;
+    el.innerHTML = '';
+    var brand = document.createElement('a');
+    brand.className = 'brand'; brand.href = deckHref('home');
+    brand.innerHTML = '<span class="logo" data-size="26" aria-hidden="true"></span><span>The AI Homebrew Club</span>';
+    el.appendChild(brand);
+    var groups = {}, order = [];
+    DECKS.forEach(function(d){
+      if (d.admin && role !== 'admin') return;
+      if (!groups[d.group]){ groups[d.group] = []; order.push(d.group); }
+      groups[d.group].push(d);
+    });
+    order.forEach(function(g){
+      var box = document.createElement('div');
+      box.className = 'grp';
+      var h = document.createElement('span'); h.className = 'h'; h.innerHTML = g;
+      box.appendChild(h);
+      groups[g].forEach(function(d){
+        var a = document.createElement('a');
+        a.className = 'navi' + (d.id === currentId ? ' here' : '');
+        a.href = deckHref(d.id);
+        a.setAttribute('data-nav', d.id);
+        a.innerHTML = d.title;
+        box.appendChild(a);
+      });
+      el.appendChild(box);
+      (extras || []).forEach(function(x){
+        if (x.after !== g) return;
+        var xb = document.createElement('div');
+        xb.className = 'grp'; xb.id = x.id || '';
+        var xh = document.createElement('span'); xh.className = 'h'; xh.innerHTML = x.group;
+        xb.appendChild(xh);
+        (x.items || []).forEach(function(it){
+          var a = document.createElement('a');
+          a.className = 'navi' + (it.here ? ' here' : '');
+          a.href = it.href || '#';
+          if (it.id) a.setAttribute('data-nav', it.id);
+          a.innerHTML = it.title + (it.k != null ? ' <span class="k">' + it.k + '</span>' : '');
+          xb.appendChild(a);
+        });
+        el.appendChild(xb);
+      });
+    });
+    var me = document.createElement('div');
+    me.className = 'me';
+    me.innerHTML = '<span class="av av-ink" id="meAv"></span><span class="who"><b id="meName"></b><span id="meRole"></span></span>';
+    el.appendChild(me);
+    if (typeof paintLogos === 'function') paintLogos(el);
+    return el;
   }
 
   /* The one urn. Paints every <span class="logo" data-size="N"> under root. */
@@ -133,6 +192,7 @@ window.AIHC_CONFIG = (function(){
     LOGO: LOGO,
     deckHref: deckHref,
     buildDeckPane: buildDeckPane,
+    buildSideNav: buildSideNav,
     paintLogos: paintLogos,
     paintLevels: paintLevels
   };

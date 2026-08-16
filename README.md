@@ -28,16 +28,16 @@ Zero-build GitHub Pages site at **aihomebrewclub.com** (see `CNAME`). Plain HTML
 | `members.html` | The members' hub and the invite-link landing page: greets you by name, links the clubhouse, recipes, and the next meetup; admins also get the board door and the back office here. The MEMBERS masthead pill lands here |
 | `chat.html` | The clubhouse: live chat (WebSocket w/ REST fallback), plus the bulletin-board feed |
 | `feed.html` | Redirect stub → `chat.html?room=~feed` (kept so old links work) |
-| `deck/admin.html` | Ops console: meetups, attendees, agendas, venues, chat rooms, recipes, printable QR |
+| `deck/admin.html` | The back office: a hash-routed console (`#meetups` master→detail with Details / Run sheet / Attendees tabs, `#members`, `#venues`, `#channels`, `#recipes`, `#blocks`, `#word`); the run-sheet builder is shelf · lineup · drafter |
 | `deck/*.html` | Internal decks: why, join, invest, charter, kit101, funding, model |
 
 ### Architecture
 
 Every page is self-contained HTML with a small page-specific `<style>`/`<script>`, standing on shared assets:
 
-- `assets/config.js` — the single source of truth: API base URL, `SITE_HOSTS`, the member nav (`DECKS`), the urn logo, level icons
-- `assets/site.css` + `assets/site.js` — the public chassis: Bean Supper tokens (palette/fonts/gingham), header/footer, forms, buttons, and the member hamburger (injected only for devices that have passed the gate)
-- `assets/club.css` + `assets/club.js` — the gated chassis: gate overlay, shared pinned notes, slide rail, member nav pane, the `window.AIHC` bridge for page scripts
+- `assets/config.js` — the single source of truth: API base URL, `SITE_HOSTS`, the one nav (`DECKS`, grouped The club / The back office / The pitches & plans, admin-only entries flagged), `buildDeckPane` (the hamburger) and `buildSideNav` (the shell sidebar), the urn logo, level icons
+- `assets/site.css` + `assets/site.js` — the public chassis. The look is "the newsletter and the supper": tokens (paper/ink/tangerine/teal + washes, dark mode), fonts (Besley display, Public Sans body, IBM Plex Mono for data, Caveat for prompts), the masthead + slim/big footers, buttons, tags, the seat meter (`.seats`, one square per chair), the call sheet (`.callsheet`, agendas everywhere), the index card (`.index-card`/`.steal`, ruled hand-written prompts), forms, the 6px gingham runner, layout utilities. `site.js` paints the urn, wires the mobile menu, exposes `AIHC_UI.{$,esc,fmtTime,toast}`, and injects the member hamburger for devices that have passed the gate
+- `assets/club.css` + `assets/club.js` — the gated chassis (imports site.css): the split-screen gate (the card stays inline in every page; club.js dresses the frame around it), the **club shell** (`.shell` = 248px `.sidebar` + `.main` with a `.topbar`; used by members.html, chat.html, deck/admin.html — club.js paints `#sideNav` from `DECKS`, pages add groups via `window.AIHC_PAGE.sideExtras` and hook repaints with `AIHC_PAGE.onSideNav`), deck slides, shared pinned notes, slide rail, the `window.AIHC` bridge for page scripts
 - `assets/model.js` — the P&L calculator, loaded only by `deck/model.html`
 - `assets/qrlib.js`, `assets/fonts/`, `assets/favicon.svg`
 
@@ -85,7 +85,7 @@ then open `http://localhost:8000` (`localhost` is in `SITE_HOSTS`, so nav behave
 
 Push to `master`; GitHub Pages serves the root. Two cautions:
 
-- GitHub Pages caches assets ~10 minutes. After editing an already-deployed shared asset (`site.css`, `club.js`, …), bump a `?v=N` query on its `<link>`/`<script>` tags if the change must land atomically with the HTML.
+- GitHub Pages caches assets ~10 minutes. After editing an already-deployed shared asset (`site.css`, `club.js`, …), bump the `?v=N` query on its `<link>`/`<script>` tags (and the `@import` in club.css) if the change must land atomically with the HTML. Currently `?v=3`.
 - Always push with git, never the GitHub web UI (25 MB upload cap; the walkthrough videos in `assets/` are larger).
 
 The three `assets/*.mp4` walkthrough videos (VS Code install, Claude Code install, working with Claude) are workshop material — nothing on the site links them.

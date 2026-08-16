@@ -34,6 +34,58 @@
   function $(id){ return document.getElementById(id); }
   function esc(s){ var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
+  /* ---------- the shell vs the deck ----------
+     shell pages (members, chat, admin) carry <div class="shell"><aside class="sidebar" id="sideNav">…;
+     deck pages carry .slide sections. The chrome adapts to whichever is present. */
+  var IS_SHELL = !!document.querySelector('.shell');
+  var slidesEarly = document.querySelectorAll('.slide').length;
+  if (slidesEarly) document.documentElement.classList.add('deck-page');
+  if (IS_SHELL){ $('deckBtn').style.display = 'none'; }
+  if (!slidesEarly){ document.querySelector('.rail').style.display = 'none'; document.querySelector('.hint').style.display = 'none'; }
+
+  /* the gate: every page carries the card inline (so it covers content before JS runs);
+     the split-screen frame around it is chrome, injected here once. */
+  (function dressGate(){
+    var g = $('gate'), card = $('gateCard');
+    if (!g || !card || g.querySelector('.gate-lft')) return;
+    var isMember = (PAGE.gate === 'member');
+    var lft = document.createElement('div');
+    lft.className = 'gate-lft';
+    lft.innerHTML =
+      '<div style="display:flex;flex-direction:column;gap:18px">' +
+        '<span class="brand"><span class="logo" data-size="36" aria-hidden="true"></span><span>The AI Homebrew Club</span></span>' +
+        '<p class="folio"><b>' + (isMember ? 'The members&rsquo; room' : 'The back office') + '</b> &middot; friends only, for now</p>' +
+        '<h1 class="big">' + (isMember ? 'Been to a meetup? Come on in.' : 'The folks running the place.') + '</h1>' +
+        '<p class="lede">' + (isMember
+          ? 'Members get in with the invite link from their email. Lost yours? It pastes in on the right, or reply to the invite for a fresh one.'
+          : 'Controls, the plan, and every pitch. Your name and the admin word open the door.') + '</p>' +
+      '</div>' +
+      (isMember
+        ? '<div class="keys">' +
+            '<div class="k"><span class="i">1</span><span><b>Come to a meetup.</b> Any table on the circuit.</span></div>' +
+            '<div class="k"><span class="i">2</span><span><b>Get marked in.</b> The invite emails itself that afternoon.</span></div>' +
+            '<div class="k"><span class="i">3</span><span><b>Open the link.</b> The clubhouse, the recipes, the next table &mdash; on any device you carry it to.</span></div>' +
+          '</div>'
+        : '<div class="keys">' +
+            '<div class="k"><span class="i">1</span><span><b>Meetups.</b> Dates, run sheets, the book of who came.</span></div>' +
+            '<div class="k"><span class="i">2</span><span><b>Members &amp; keys.</b> Every invite, cut and revoked from one keyring.</span></div>' +
+            '<div class="k"><span class="i">3</span><span><b>The plan.</b> The Charter, the pitches, the model.</span></div>' +
+          '</div>');
+    var rgt = document.createElement('div');
+    rgt.className = 'gate-rgt';
+    g.insertBefore(lft, card);
+    g.appendChild(rgt);
+    rgt.appendChild(card);
+    var pass = $('gPass'); if (pass) pass.classList.add('mono');
+    var fine = document.createElement('p');
+    fine.className = 'fine';
+    fine.innerHTML = isMember
+      ? 'Not a member yet? <a href="' + (CFG.deckHref ? CFG.deckHref('rsvp') : '../rsvp.html') + '">Save a seat at the next table.</a>'
+      : 'Members: your invite link opens the members&rsquo; room, not this door.';
+    card.appendChild(fine);
+    if (CFG.paintLogos) CFG.paintLogos(g);
+  })();
+
   /* ---------- toast ---------- */
   var toastTimer = null;
   function toast(msg){
@@ -71,6 +123,7 @@
       localStorage.setItem(LS_SESSION, JSON.stringify(session));
       localStorage.setItem(LS_USER, JSON.stringify(viewer));
     } catch(e){}
+    if (typeof paintSideNav === 'function' && sideNav) paintSideNav();
   }
   function clearSession(){
     session = null; viewer = null;
@@ -93,12 +146,14 @@
   function unlock(first){
     document.body.classList.remove('locked');
     $('gate').style.display = 'none';
-    $('notesBtn').hidden = false; $('clickHint').hidden = false; $('deckBtn').hidden = false;
+    var hasSlides = slides.length > 0;
+    $('notesBtn').hidden = !hasSlides; $('clickHint').hidden = !hasSlides; $('deckBtn').hidden = IS_SHELL;
     $('whoami').innerHTML = 'Signed in as ' + esc(viewer.name) + ' &middot; <button id="switchBtn" type="button">not you?</button>';
+    paintMe();
     $('noteCount').textContent = String(notes.length);
     var sb = $('switchBtn');
     if (sb) sb.addEventListener('click', function(){ clearSession(); lock(); });
-    if (window.innerWidth >= 1100) document.body.classList.add('pane-open');
+    if (hasSlides && window.innerWidth >= 1100) document.body.classList.add('pane-open');
     if (first) toast('Hey ' + viewer.name + '! Welcome in.');
     startSync();
   }
@@ -184,10 +239,38 @@
     setTimeout(function(){ $('rw1').focus(); }, 50);
   }
 
+  /* ---------- the sidebar (shell pages) ---------- */
+  var sideNav = $('sideNav');
+  function paintSideNav(){
+    if (!sideNav) return;
+    CFG.buildSideNav(sideNav, DECK_ID, session ? session.role : '', PAGE.sideExtras || []);
+    paintMe();
+    if (typeof PAGE.onSideNav === 'function') PAGE.onSideNav(sideNav);
+  }
+  function paintMe(){
+    var n = $('meName'), r = $('meRole'), av = $('meAv');
+    if (!n) return;
+    if (!viewer){ n.textContent = ''; r.textContent = ''; if (av) av.textContent = ''; return; }
+    n.textContent = viewer.name;
+    if (av) av.textContent = (viewer.name || '?').trim().charAt(0).toUpperCase();
+    r.innerHTML = esc(session && session.role === 'admin' ? 'admin' : 'member') + ' &middot; <button id="meSwitch" type="button">not you?</button>';
+    var sb = $('meSwitch');
+    if (sb) sb.addEventListener('click', function(){ clearSession(); lock(); });
+  }
+  if (sideNav) paintSideNav();
+  var shellBtn = document.querySelector('.shellbtn');
+  if (shellBtn) shellBtn.addEventListener('click', function(){ document.body.classList.toggle('deck-open'); });
+  if (IS_SHELL) document.addEventListener('click', function(ev){
+    if (!document.body.classList.contains('deck-open')) return;
+    if (ev.target.closest('.sidebar, .shellbtn')) return;
+    document.body.classList.remove('deck-open');
+  });
+
   /* bridge for page-specific scripts: everything credential-ish reads live off the session */
   window.AIHC = {
     deck: DECK_ID, sync: SYNC_URL, toast: toast,
     viewer: function(){ return viewer; },
+    repaintNav: function(){ paintSideNav(); },
     cred: function(){ return session ? session.token : ''; },
     role: function(){ return session ? session.role : ''; },
     /* the console's admin-word panel swaps the stored credential in place so a
@@ -582,6 +665,7 @@
     var tag = (ev.target.tagName || '').toLowerCase();
     if (tag === 'input' || tag === 'textarea') return;
     if (document.body.classList.contains('locked')) return;
+    if (!slides.length) return; /* shell pages have nothing to page through */
     if (ev.key === 'ArrowDown' || ev.key === 'PageDown' || ev.key === ' '){
       ev.preventDefault();
       slides[Math.min(current() + 1, slides.length - 1)].scrollIntoView();
@@ -592,7 +676,7 @@
   });
 
   /* ---------- deck switcher (nav data + renderer live in config.js) ---------- */
-  CFG.buildDeckPane($('deckPane'), DECK_ID);
+  CFG.buildDeckPane($('deckPane'), DECK_ID, session ? session.role : 'admin');
   $('deckBtn').addEventListener('click', function(){
     document.body.classList.toggle('deck-open');
   });

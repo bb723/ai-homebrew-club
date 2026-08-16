@@ -11,115 +11,177 @@
 <meta property="og:url" content="https://aihomebrewclub.com/rsvp.html">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="assets/site.css">
+<link rel="stylesheet" href="assets/site.css?v=3">
 <style>
-  body{min-height:100svh; display:flex; flex-direction:column; align-items:center; padding:12px 16px 60px}
-  header.top{width:min(500px,100%); justify-content:center; padding:14px 0 0}
-  main{width:min(500px,100%); text-align:center; margin:auto 0; padding:14px 0}
-  h1{font-weight:800; font-size:clamp(2rem,7vw,2.8rem); line-height:1.1; margin:14px 0 6px}
-  .sub{color:var(--ink-soft); font-weight:700; margin:0 0 18px}
-  .sharerow{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px}
-  .lend{font-size:.85rem; font-weight:700; color:var(--ink-soft); margin-top:14px}
-  .lend a{color:var(--teal-deep)}
-  .handnote{
-    font-family:var(--font-hand); font-size:1.45rem; line-height:1.3; color:var(--tangerine);
-    transform:rotate(-1.2deg); margin:10px 0 2px;
+  [hidden]{display:none !important}
+  .pg{display:grid; grid-template-columns:1fr 520px; gap:80px; padding:56px 0 80px; align-items:start}
+  .lead{display:flex; flex-direction:column; gap:22px; position:sticky; top:24px}
+  .lead .kicker{margin-top:-6px}
+
+  /* the event card */
+  .evc{display:flex; flex-direction:column; overflow:hidden}
+  .evc .top{display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; padding:14px 22px; border-bottom:1px solid var(--rule)}
+  .evc .top .when{font-family:var(--font-display); font-size:22px; font-weight:800; letter-spacing:-.015em}
+  .evc .rows{padding:6px 22px 8px}
+  .evc .rows .r{display:grid; grid-template-columns:64px 1fr; gap:14px; padding:10px 0; border-bottom:1px dashed var(--rule-2); font-size:14px; color:var(--ink-2)}
+  .evc .rows .r:last-child{border-bottom:0}
+  .evc .rows .k{font-family:var(--font-mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); padding-top:3px}
+  .evc .rows .callsheet{margin-top:2px}
+  .evc .rows .callsheet .row{padding:6px 0; grid-template-columns:44px 1fr; border-bottom:0}
+  .evc .rows .callsheet .ti{font-size:13.5px; color:var(--ink)} .evc .rows .callsheet .d{font-size:13px}
+  .evc .rows .agmore{display:block; margin-top:6px; font-size:13px}
+  .seats .n{transition:color .2s}
+
+  /* the form card, and the states that replace it */
+  .formcard{padding:28px 30px 30px; display:flex; flex-direction:column; gap:16px}
+  .formcard h2{font-size:22px; font-weight:800; letter-spacing:-.015em}
+  .fg{display:grid; grid-template-columns:1fr 1fr; gap:14px 16px}
+  .fg .span{grid-column:1 / -1}
+  #rsvpForm{gap:16px}
+  .done{display:none}
+  .done > * + *{margin-top:14px}
+  .done h2{font-size:34px; font-weight:800; letter-spacing:-.02em; line-height:1.1}
+  .done .note{font-size:14px; color:var(--ink-2); line-height:1.55}
+  .done .note b{color:var(--ink)}
+  .done .label{display:block}
+  .done .hand{margin-top:4px}
+  .done p{margin-bottom:0}
+  .sharerow{display:flex; gap:10px; flex-wrap:wrap}
+  .lend{font-size:12.5px; color:var(--ink-3); line-height:1.5}
+  .lend b{color:var(--ink-2)}
+
+  /* the pair-choice moment: one seat left, and you are two */
+  .pairchoice{display:none; position:fixed; inset:0; z-index:100; background:rgba(43,36,25,.42); overflow-y:auto; padding:16px}
+  .pairchoice .modal{width:min(480px,100%); margin:12vh auto 24px; padding:28px 30px 26px; display:flex; flex-direction:column; gap:12px}
+  .pairchoice h2{font-size:26px; font-weight:800; letter-spacing:-.02em; line-height:1.15}
+  .pairchoice .note{font-size:14px; color:var(--ink-2); line-height:1.55}
+  .pairchoice .acts{display:flex; flex-direction:column; gap:8px; margin-top:6px}
+
+  @media (max-width:900px){
+    .pg{grid-template-columns:1fr; gap:36px; padding:28px 0 56px}
+    .lead{position:static; order:2}
+    .formcard{order:1; padding:22px 18px 24px}
+    .fg{grid-template-columns:1fr}
+    .done h2{font-size:28px}
   }
-  .pairchoice{display:none; padding:8px 0 2px}
-  .pairchoice h2{font-weight:800; font-size:1.3rem; margin:0 0 8px}
-  .pairchoice .go{margin-right:8px; margin-top:8px}
 </style>
 </head>
 <body>
-
-<header class="top">
-  <a href="index.html?ref=rsvp"><span class="logo" data-size="40"></span><span>The AI Homebrew Club</span></a>
+<div class="frame">
+<div class="runner"></div>
+<header class="masthead">
+  <a class="brand" href="index.html"><span class="logo" data-size="32" aria-hidden="true"></span><span>The AI Homebrew Club</span></a>
+  <span class="est">Central Maine &middot; est. 2026, after 1975</span>
+  <nav>
+    <a href="events.html">The circuit</a>
+    <a class="here" href="waterville.html">Waterville</a>
+    <a href="recipes.html">The recipe box</a>
+    <a href="lend.html">Lend a room</a>
+    <a class="members" href="members.html">Members&rsquo; room</a>
+  </nav>
+  <button class="menu" type="button" aria-label="Menu">&#9776;</button>
 </header>
 
-<main>
-  <h1>Save your seat.</h1>
-  <p class="sub" id="evTitle">The AI Homebrew Club &middot; free, and it always will be</p>
-  <div class="card">
-    <span class="seats" id="seatPill">Checking seats&hellip;</span>
-    <span id="evWhen"><b>When:</b> Tuesday, August 18, 9:00 am. One hour, coffee on.</span>
-    <span id="evWhere"><b>Where:</b> the conference room at Bricks Coworking &amp; Innovation Space, Hathaway Creative Center, 10 Water St, downtown Waterville.</span>
-    <span><b>Bring:</b> a laptop or just your phone, and one real task that is eating your week.</span>
-    <span style="font-size:.85rem"><a href="waterville.html">Full agenda on the Waterville page</a></span>
+<main class="wrap pg">
+  <div class="lead">
+    <p class="folio"><b>The AI Brown Bag</b> &middot; Waterville &middot; seat page</p>
+    <h1 class="display-xl">Save your seat.</h1>
+    <p class="kicker" id="evTitle">The AI Homebrew Club &middot; free, and it always will be</p>
+    <p class="lede">First come, first served, and a waitlist that actually works. We&rsquo;ll email the welcome note and text you the morning of.</p>
+    <div class="card evc">
+      <div class="top">
+        <span class="when" id="evDate">The next meetup</span>
+        <span class="seats" id="seatPill"><span class="n">Checking seats&hellip;</span></span>
+      </div>
+      <div class="rows">
+        <div class="r"><span class="k">When</span><span id="evWhen">Tuesday, August 18, 9:00 am. One hour, coffee on.</span></div>
+        <div class="r"><span class="k">Where</span><span id="evWhere">The conference room at Bricks Coworking &amp; Innovation Space, Hathaway Creative Center, 10 Water St, downtown Waterville.</span></div>
+        <div class="r"><span class="k">Bring</span><span>A laptop or just your phone, and one real task that is eating your week.</span></div>
+        <div class="r"><span class="k">The hour</span><span id="evHour"><a href="waterville.html">Full agenda on the Waterville page</a></span></div>
+      </div>
+    </div>
+    <p class="hand">We&rsquo;ll keep the chair tipped against the table for you.</p>
   </div>
-  <div class="card">
+
+  <div class="card-raised formcard">
     <form id="rsvpForm">
-      <label>Your name
-        <input type="text" id="fName" maxlength="80" autocomplete="name">
-      </label>
-      <label>Email <span class="opt">&middot; for the welcome note and the time</span>
-        <input type="text" id="fEmail" maxlength="160" autocomplete="email" inputmode="email">
-      </label>
-      <label>Cell phone <span class="opt">&middot; for day-of texts</span>
-        <input type="text" id="fPhone" maxlength="40" autocomplete="tel" inputmode="tel">
-      </label>
-      <label>Business or trade <span class="opt">&middot; optional</span>
-        <input type="text" id="fBiz" maxlength="160" autocomplete="organization">
-      </label>
-      <label>Bringing a neighbor? <span class="opt">&middot; optional, their name saves them a seat too</span>
-        <input type="text" id="fGuest" maxlength="80" autocomplete="off">
-      </label>
-      <label>One task eating your week <span class="opt">&middot; optional, we may work it live</span>
-        <textarea id="fNote" maxlength="500"></textarea>
-      </label>
+      <div class="fx col gap4"><h2>Who&rsquo;s coming?</h2><span class="small">Three things we need, three we&rsquo;d love.</span></div>
+      <div class="fg">
+        <div class="field span"><label for="fName">Your name</label><input class="input" type="text" id="fName" maxlength="80" autocomplete="name"></div>
+        <div class="field"><label for="fEmail">Email <span class="opt">&middot; for the welcome note</span></label><input class="input" type="text" id="fEmail" maxlength="160" autocomplete="email" inputmode="email"></div>
+        <div class="field"><label for="fPhone">Cell phone <span class="opt">&middot; for day-of texts</span></label><input class="input mono" type="text" id="fPhone" maxlength="40" autocomplete="tel" inputmode="tel"></div>
+        <div class="field"><label for="fBiz">Business or trade <span class="opt">&middot; optional</span></label><input class="input" type="text" id="fBiz" maxlength="160" autocomplete="organization"></div>
+        <div class="field"><label for="fGuest">Bringing a neighbor? <span class="opt">&middot; saves them a seat</span></label><input class="input" type="text" id="fGuest" maxlength="80" autocomplete="off" placeholder="Their name"></div>
+        <div class="field span"><label for="fNote">One task eating your week <span class="opt">&middot; optional, we may work it live</span></label><textarea class="input textarea" id="fNote" maxlength="500"></textarea></div>
+      </div>
       <label class="hp">Website<input type="text" id="fWebsite" tabindex="-1" autocomplete="off"></label>
       <span class="err" id="fErr"></span>
-      <button class="go" id="fGo" type="submit">Save my seat</button>
+      <button class="btn btn-primary btn-lg" id="fGo" type="submit">Save my seat</button>
+      <p class="fine">No tickets, no vendors, no list sold to anyone. Cancel any time from the email.</p>
     </form>
+
     <div class="done" id="doneSeat">
       <h2>Seat saved. &#9749;</h2>
-      <p class="handnote">We'll keep the chair tipped against the table for you.</p>
-      <p>You're on the list for <span class="evWhenInline">the next meetup</span>. A confirmation just landed in your email with a calendar invite and a cancel link, and we'll email a reminder before the day.</p>
-      <p style="margin-top:12px"><b>Every table fills by word of mouth.</b> Know a neighbor who should be here?</p>
+      <p class="hand">We&rsquo;ll keep the chair tipped against the table for you.</p>
+      <p class="note">You&rsquo;re on the list for <span class="evWhenInline">the next meetup</span>. A confirmation just landed in your email with a calendar invite and a cancel link, and we&rsquo;ll email a reminder before the day.</p>
+      <div class="hr"></div>
+      <span class="label">Every table fills by word of mouth. Know a neighbor who should be here?</span>
       <div class="sharerow">
-        <a class="go share shSms">Text a neighbor</a>
-        <button class="go share shCopy" type="button">Copy the link</button>
-        <button class="go share shNative" type="button" hidden>Share&hellip;</button>
+        <a class="btn btn-primary shSms">Text a neighbor</a>
+        <button class="btn btn-secondary shCopy" type="button">Copy the link</button>
+        <button class="btn btn-secondary shNative" type="button" hidden>Share&hellip;</button>
+        <a class="btn btn-ghost" id="gcalGo" target="_blank" rel="noopener" hidden>Add to Google Calendar</a>
       </div>
-      <p style="margin-top:14px"><a class="go" id="gcalGo" target="_blank" rel="noopener" hidden>Add to Google Calendar</a></p>
-      <p class="lend" style="margin-top:16px"><b>Before the day:</b> <a href="waterville.html">see the agenda</a>, and <a href="recipes.html?ref=rsvp">steal a recipe</a> to try tonight.</p>
-      <p class="lend">Come once and you're a member — the secret word to <a href="members.html">the members' room</a> is handed out at the table.</p>
+      <p class="lend"><b>Before the day:</b> <a href="waterville.html">see the agenda</a>, and <a href="recipes.html?ref=rsvp">steal a recipe</a> to try tonight.</p>
+      <p class="lend">Come once and you&rsquo;re a member &mdash; the secret word to <a href="members.html">the members&rsquo; room</a> is handed out at the table.</p>
     </div>
+
     <div class="done" id="doneWait">
-      <h2>You're on the waitlist.</h2>
-      <p>All the seats are spoken for, but seats do open up. If one frees, your seat is automatic and we'll email you right away.</p>
-      <p style="margin-top:12px">Waiting is easier with company. Send a neighbor the link and they can wait with you:</p>
+      <h2>You&rsquo;re on the waitlist.</h2>
+      <p class="note">All the seats are spoken for, but seats do open up. If one frees, your seat is automatic and we&rsquo;ll email you right away.</p>
+      <div class="hr"></div>
+      <span class="label">Waiting is easier with company. Send a neighbor the link and they can wait with you:</span>
       <div class="sharerow">
-        <a class="go share shSms">Text a neighbor</a>
-        <button class="go share shCopy" type="button">Copy the link</button>
-        <button class="go share shNative" type="button" hidden>Share&hellip;</button>
+        <a class="btn btn-primary shSms">Text a neighbor</a>
+        <button class="btn btn-secondary shCopy" type="button">Copy the link</button>
+        <button class="btn btn-secondary shNative" type="button" hidden>Share&hellip;</button>
       </div>
       <p class="lend">Want a table sooner, or closer to you? <a href="lend.html?ref=overflow">Lend us a room.</a></p>
     </div>
-    <div class="pairchoice" id="pairChoice">
-      <h2>One seat left, and you are two.</h2>
-      <p>The room is nearly full. You can take the last seat yourself, or the two of you can hold the front of the waitlist together.</p>
-      <p>
-        <button class="go" id="pcSolo" type="button">Take the last seat solo</button>
-        <button class="go" id="pcWait" type="button" style="background:var(--teal)">Waitlist us both</button>
-      </p>
-    </div>
+
     <div class="done" id="doneCancel">
       <h2 id="cxTitle">Give the seat back?</h2>
-      <p id="cxText">Plans change, no hard feelings. Your seat goes to the next neighbor in line.</p>
-      <p style="margin-top:14px"><button class="go" id="cxGo" type="button">Cancel my RSVP</button></p>
+      <p class="note" id="cxText">Plans change, no hard feelings. Your seat goes to the next neighbor in line.</p>
+      <p><button class="btn btn-primary" id="cxGo" type="button">Cancel my RSVP</button></p>
     </div>
-    <p class="alt" id="mineNote" hidden>You already have a seat here. <a href="#" id="mineCancel">Need to cancel?</a></p>
-    <p class="lend" id="fullLend" hidden>The room is full and the waitlist is open. Want a table sooner, or closer to you? <a href="lend.html?ref=overflow">Lend us a room.</a></p>
+
+    <p class="fine" id="mineNote" hidden>You already have a seat here. <a href="#" id="mineCancel">Need to cancel?</a></p>
+    <p class="fine" id="fullLend" hidden>The room is full and the waitlist is open. Want a table sooner, or closer to you? <a href="lend.html?ref=overflow">Lend us a room.</a></p>
   </div>
 </main>
 
-<script src="assets/config.js"></script>
-<script src="assets/site.js"></script>
+<div class="pairchoice" id="pairChoice" role="dialog" aria-modal="true" aria-labelledby="pcTitle">
+  <div class="card-raised modal">
+    <h2 id="pcTitle">One seat left, and you are two.</h2>
+    <p class="note">The room is nearly full. You can take the last seat yourself, or the two of you can hold the front of the waitlist together.</p>
+    <div class="acts">
+      <button class="btn btn-primary btn-lg" id="pcSolo" type="button">Take the last seat solo</button>
+      <button class="btn btn-teal btn-lg" id="pcWait" type="button">Waitlist us both</button>
+    </div>
+  </div>
+</div>
+
+<footer class="slim"><span class="folio">Free, one hour, coffee on &middot; aihomebrewclub.com</span><span class="folio">Got a room and a coffee pot? <a href="lend.html?ref=rsvp">Lend it to the club</a></span></footer>
+</div>
+
+<script src="assets/config.js?v=3"></script>
+<script src="assets/site.js?v=3"></script>
 <script>
 (function(){
   'use strict';
   var BASE = window.AIHC_CONFIG.API_BASE;
   var $ = window.AIHC_UI.$;
+  var esc = window.AIHC_UI.esc;
   var fmtTime = window.AIHC_UI.fmtTime;
   /* one page, many events: /rsvp.html?event=<id> — each event gets its own QR.
      with no ?event=, the page resolves to the NEXT UPCOMING meetup, so printed
@@ -132,28 +194,50 @@
 
   var evData = null;
   var full = false;
+  /* the seat meter: one square per chair at the table */
+  function seatMeter(d){
+    var pill = $('seatPill');
+    var cap = Math.max(0, Math.min(d.capacity || 0, 40));
+    var taken = Math.max(0, Math.min(d.taken != null ? d.taken : (cap - d.left), cap));
+    var sq = '';
+    for (var i = 0; i < cap; i++) sq += '<span class="s' + (i < taken ? '' : ' open') + '"></span>';
+    var n = d.left <= 0 ? 'Room is full · waitlist open' : d.left + ' of ' + d.capacity + ' seats left';
+    pill.innerHTML = (cap ? '<span class="row">' + sq + '</span>' : '') + '<span class="n">' + esc(n) + '</span>';
+  }
   function paintSeats(d){
     evData = d;
     if (d.gcal){ $('gcalGo').href = d.gcal; $('gcalGo').hidden = false; }
     var pill = $('seatPill');
     full = d.left <= 0;
+    seatMeter(d);
     if (full){
-      pill.textContent = 'Room is full · waitlist open';
       pill.classList.add('full');
       $('fGo').textContent = 'Join the waitlist';
     } else {
-      pill.textContent = d.left + ' of ' + d.capacity + ' seats left';
       pill.classList.remove('full');
       $('fGo').textContent = 'Save my seat';
     }
     if (d.title) $('evTitle').textContent = d.title + ' · free, and it always will be';
     if (d.when){
       var t = fmtTime(d.start_time);
-      $('evWhen').innerHTML = '<b>When:</b> ' + d.when + (t ? ', ' + t : '. Time announced soon') + '. One hour, coffee on.';
+      $('evDate').textContent = d.when;
+      $('evWhen').textContent = d.when + (t ? ', ' + t : '. Time announced soon') + '. One hour, coffee on.';
       document.querySelectorAll('.evWhenInline').forEach(function(el){ el.textContent = d.when; });
     }
-    if (d.location) $('evWhere').innerHTML = '<b>Where:</b> ' + d.location + '.';
+    if (d.location) $('evWhere').textContent = d.location.charAt(0).toUpperCase() + d.location.slice(1) + '.';
     $('fullLend').hidden = !full;
+  }
+  /* the mini call sheet: the event's agenda when /events has it, else just the link */
+  function paintAgenda(items){
+    if (!items || !items.length) return;
+    $('evHour').innerHTML = '<div class="callsheet">' + items.map(function(a){
+      return '<div class="row"><span class="t">' + esc(a.t || '') + '</span><span><span class="ti">' + esc(a.title || '') + '</span>' +
+        (a.detail ? ' <span class="d">' + esc(a.detail) + '</span>' : '') + '</span></div>';
+    }).join('') + '</div><a class="agmore" href="waterville.html">Full agenda on the Waterville page</a>';
+  }
+  function agendaFrom(events){
+    var e = (events || []).filter(function(x){ return x.id === EVENT; })[0];
+    if (e) paintAgenda(e.agenda);
   }
 
   /* share row: the neighbor link carries this rsvp's ref tag so we learn what fills seats */
@@ -200,7 +284,7 @@
     fetch(BASE + '/rsvp?event=' + encodeURIComponent(EVENT))
       .then(function(r){ return r.json(); })
       .then(function(d){ if (d && d.capacity) paintSeats(d); })
-      .catch(function(){ $('seatPill').textContent = 'First come, first served'; });
+      .catch(function(){ $('seatPill').innerHTML = '<span class="n">First come, first served</span>'; });
   }
 
   function doSubmit(extra){
@@ -233,7 +317,7 @@
         refresh();
       } else if (d && d.error === 'one-seat-left'){
         $('fGo').disabled = false;
-        $('rsvpForm').style.display = 'none';
+        /* the pair-choice modal sits over the form; the form stays put behind it */
         $('pairChoice').style.display = 'block';
       } else {
         throw new Error('bad');
@@ -310,10 +394,15 @@
     };
   }
   var cancelParam = params.get('cancel');
-  function begin(eventId){
+  function begin(eventId, events){
     EVENT = eventId;
     LS_MINE = 'aihc_rsvp_' + EVENT;
     refresh();
+    if (events) agendaFrom(events);
+    else {
+      fetch(BASE + '/events').then(function(r){ return r.json(); })
+        .then(function(d){ agendaFrom((d && d.events) || []); }).catch(function(){});
+    }
     if (!cancelParam){
       var mineId = null;
       try { mineId = localStorage.getItem(LS_MINE); } catch(e){}
@@ -333,9 +422,10 @@
     fetch(BASE + '/events')
       .then(function(r){ return r.json(); })
       .then(function(d){
-        var up = ((d && d.events) || []).filter(function(e){ return e.status === 'upcoming'; })
+        var all = (d && d.events) || [];
+        var up = all.filter(function(e){ return e.status === 'upcoming'; })
           .sort(function(a, b){ return a.sort_date < b.sort_date ? -1 : 1; });
-        begin(up.length ? up[0].id : 'aug18-bricks');
+        begin(up.length ? up[0].id : 'aug18-bricks', all);
       })
       .catch(function(){ begin('aug18-bricks'); });
   }
