@@ -183,6 +183,30 @@ window.AIHC_CONFIG = (function(){
     });
   }
 
+  /* the traffic beacon: one first-party, cookieless ping per page load so the
+     back office can see where people go. Sends the path, the referrer, the ?ref=
+     tag, a device class, and the language; nothing that identifies a person.
+     Honors Do Not Track / Global Privacy Control and stays quiet on localhost. */
+  (function beacon(){
+    try {
+      if (location.protocol === 'file:' || /^(localhost|127\.0\.0\.1)$/.test(location.hostname)) return;
+      if (navigator.doNotTrack === '1' || window.doNotTrack === '1' || navigator.globalPrivacyControl) return;
+      var q = new URLSearchParams(location.search);
+      var w = window.innerWidth || 0;
+      var dev = w < 700 ? 'phone' : (w < 1100 && ('ontouchstart' in window) ? 'tablet' : 'desktop');
+      var payload = JSON.stringify({
+        page: location.pathname,
+        ref: document.referrer || '',
+        src: q.get('ref') || q.get('utm_source') || '',
+        dev: dev,
+        lang: (navigator.language || '').slice(0, 8)
+      });
+      var url = API_BASE + '/hits';
+      if (navigator.sendBeacon) navigator.sendBeacon(url, payload);
+      else fetch(url, {method: 'POST', body: payload, headers: {'Content-Type': 'text/plain'}, keepalive: true}).catch(function(){});
+    } catch(e){}
+  })();
+
   return {
     API_BASE: API_BASE,
     SYNC_URL: API_BASE + '/notes',

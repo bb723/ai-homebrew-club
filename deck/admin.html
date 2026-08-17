@@ -375,6 +375,32 @@
         </div>
       </section>
 
+      <section class="view" id="v-traffic" hidden>
+        <div class="page">
+          <div class="ph">
+            <h2>Traffic</h2>
+            <p class="quiet">Where people go on the site. First-party and cookieless: pages, referrers, the <code>?ref=</code> tag on links we hand out, device class. No IPs, no cookies, nobody followed around.</p>
+          </div>
+          <div class="fx gap10" style="margin-bottom:14px">
+            <button class="btn btn-ghost btn-xs" data-days="7">7 days</button>
+            <button class="btn btn-ghost btn-xs" data-days="30">30 days</button>
+            <button class="btn btn-ghost btn-xs" data-days="90">90 days</button>
+            <span class="quiet" id="trWhen"></span>
+          </div>
+          <div class="statrow" id="trStats"></div>
+          <div class="card" style="margin-top:14px; padding:16px">
+            <h3 style="margin:0 0 10px">By day</h3>
+            <div class="trbars" id="trDays"></div>
+          </div>
+          <div class="trgrid">
+            <div class="card rowlist"><div class="r one"><b>Pages</b></div><div id="trPages"></div></div>
+            <div class="card rowlist"><div class="r one"><b>Came from</b></div><div id="trRefs"></div></div>
+            <div class="card rowlist"><div class="r one"><b>Links we handed out (?ref=)</b></div><div id="trSrcs"></div></div>
+            <div class="card rowlist"><div class="r one"><b>Devices</b></div><div id="trDevs"></div></div>
+          </div>
+        </div>
+      </section>
+
     </div><!-- /views -->
   </section>
 </div><!-- /shell -->
@@ -394,6 +420,17 @@
   .sr{position:absolute; left:-5000px}
   .quiet{color:var(--ink-3); font-size:13.5px}
   .empty-row{padding:18px 16px; color:var(--ink-3); font-size:13.5px}
+  .trbars{display:flex; align-items:flex-end; gap:3px; height:110px}
+  .trbars .b{flex:1; min-width:4px; background:var(--teal); border-radius:3px 3px 0 0; position:relative}
+  .trbars .b:hover{background:var(--tangerine)}
+  .trbars .b span{position:absolute; bottom:100%; left:50%; transform:translateX(-50%); font-family:var(--font-mono); font-size:10.5px; color:var(--ink-3); white-space:nowrap; display:none; padding-bottom:3px}
+  .trbars .b:hover span{display:block}
+  .trgrid{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:14px; margin-top:14px}
+  .trgrid .r{grid-template-columns:1fr auto auto}
+  .trgrid .r .n{font-family:var(--font-mono); font-size:13px}
+  .trgrid .r .pct{font-family:var(--font-mono); font-size:11.5px; color:var(--ink-3); min-width:5ch; text-align:right}
+  .trgrid .r .bar{grid-column:1 / -1; height:3px; background:var(--rule); border-radius:2px; overflow:hidden; margin-top:-6px}
+  .trgrid .r .bar i{display:block; height:100%; background:var(--teal)}
 
   /* plain pages: members, rooms offered, clubhouse rooms, recipes, blocks, the word */
   .page{width:min(960px,100%); padding:26px 28px 56px; display:flex; flex-direction:column; gap:18px}
@@ -589,7 +626,7 @@
   /* ---- the sidebar bridge: club.js repaints the nav on unlock; these keep the
      console group's counts and .here mark in step (called from AIHC_PAGE.onSideNav) ---- */
   var NAV = { view: 'meetups', counts: {} };
-  (function(){ var v = (location.hash || '').replace(/^#/, '').split('/')[0]; if (/^(meetups|members|venues|channels|recipes|blocks|word)$/.test(v)) NAV.view = v; })();
+  (function(){ var v = (location.hash || '').replace(/^#/, '').split('/')[0]; if (/^(meetups|members|venues|channels|recipes|blocks|word|traffic)$/.test(v)) NAV.view = v; })();
   function markHere(){
     var el = document.getElementById('sideNav');
     if (!el) return;
@@ -657,7 +694,7 @@
     }
 
     /* ---------- the router: one view at a time, the hash is the state ---------- */
-    var VIEWS = {meetups: 'Meetups', members: 'Members & keys', venues: 'Rooms offered', channels: 'Clubhouse rooms', recipes: 'Recipe box', blocks: 'The block shelf', word: 'The admin word'};
+    var VIEWS = {meetups: 'Meetups', members: 'Members & keys', venues: 'Rooms offered', channels: 'Clubhouse rooms', recipes: 'Recipe box', blocks: 'The block shelf', word: 'The admin word', traffic: 'Traffic'};
     function parseHash(){
       var h = (location.hash || '#meetups').replace(/^#/, '');
       var p = h.split('/');
@@ -1713,6 +1750,51 @@
         .then(function(){ A.toast('Message deleted.'); loadModeration(); });
     });
 
+    /* ---------- traffic: /hits/summary, first-party page views ---------- */
+    var trDays = 30, trLoaded = false;
+    function trRows(host, rows, key, total){
+      host.innerHTML = rows.length ? rows.map(function(r){
+        var pct = total ? Math.round(100 * r.n / total) : 0;
+        return '<div class="r"><span class="min0" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(r[key]) + '</span>' +
+               '<span class="n">' + r.n + '</span><span class="pct">' + pct + '%</span>' +
+               '<span class="bar"><i style="width:' + pct + '%"></i></span></div>';
+      }).join('') : '<div class="empty-row">Nothing yet.</div>';
+    }
+    function loadTraffic(){
+      get('/hits/summary?days=' + trDays + '&secret=' + encodeURIComponent(A.secret)).then(function(d){
+        if (!(d && d.ok)) return;
+        trLoaded = true;
+        var days = d.daysSeries || [], perDay = days.length ? (d.total / days.length) : 0;
+        var top = (d.pages || [])[0];
+        $('trWhen').textContent = 'the last ' + d.days + ' days';
+        $('trStats').innerHTML =
+          '<div class="stat a-teal"><span class="n">' + d.total + '</span><span class="l">page views</span></div>' +
+          '<div class="stat"><span class="n">' + (Math.round(perDay * 10) / 10) + '</span><span class="l">a day, on days we saw anyone</span></div>' +
+          '<div class="stat a-tangerine"><span class="n" style="font-size:1.4rem;line-height:1.2;word-break:break-all">' + (top ? esc(top.page) : '&mdash;') + '</span><span class="l">busiest page' + (top ? ' &middot; ' + top.n : '') + '</span></div>';
+        var max = days.reduce(function(m, r){ return Math.max(m, r.n); }, 0) || 1;
+        /* fill in the empty days so the strip reads as a calendar */
+        var byDay = {}; days.forEach(function(r){ byDay[r.day] = r.n; });
+        var out = [], t = new Date(); t.setHours(12,0,0,0);
+        for (var i = d.days - 1; i >= 0; i--){
+          var dt = new Date(t.getTime() - i * 86400000);
+          var key = dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0') + '-' + String(dt.getDate()).padStart(2,'0');
+          var n = byDay[key] || 0;
+          out.push('<div class="b" style="height:' + Math.max(2, Math.round(100 * n / max)) + '%"><span>' + key.slice(5) + ' &middot; ' + n + '</span></div>');
+        }
+        $('trDays').innerHTML = out.join('');
+        trRows($('trPages'), d.pages || [], 'page', d.total);
+        trRows($('trRefs'), d.refs || [], 'ref', d.total);
+        trRows($('trSrcs'), d.srcs || [], 'src', d.total);
+        trRows($('trDevs'), d.devs || [], 'dev', d.total);
+      }).catch(function(){});
+    }
+    $('v-traffic').addEventListener('click', function(ev){
+      var b = ev.target.closest('[data-days]'); if (!b) return;
+      trDays = parseInt(b.getAttribute('data-days'), 10) || 30;
+      loadTraffic();
+    });
+    window.addEventListener('hashchange', function(){ if (parseHash().view === 'traffic') loadTraffic(); });
+
     route();
     load();
     loadRecipes();
@@ -1720,6 +1802,7 @@
     loadVenues();
     loadChannels();
     loadBlocks();
+    if (parseHash().view === 'traffic') loadTraffic();
   }
   boot();
 })();
@@ -1737,7 +1820,8 @@ window.AIHC_PAGE = {
       {id: 'channels', title: 'Clubhouse rooms',  href: '#channels'},
       {id: 'recipes',  title: 'Recipe box',       href: '#recipes'},
       {id: 'blocks',   title: 'The block shelf',  href: '#blocks',   k: ''},
-      {id: 'word',     title: 'The admin word',   href: '#word'}
+      {id: 'word',     title: 'The admin word',   href: '#word'},
+      {id: 'traffic',  title: 'Traffic',          href: '#traffic',  k: ''}
     ]
   }],
   onSideNav: function(){
@@ -1745,7 +1829,7 @@ window.AIHC_PAGE = {
   }
 };
 </script>
-<script src="../assets/config.js?v=3"></script>
+<script src="../assets/config.js?v=4"></script>
 <script src="../assets/club.js?v=3"></script>
 </body>
 </html>
