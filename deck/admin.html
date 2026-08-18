@@ -186,8 +186,9 @@
                     <button class="btn btn-secondary btn-sm" id="fillAll" type="button">Select all</button>
                     <button class="btn btn-secondary btn-sm" id="fillNone" type="button">None</button>
                     <button class="btn btn-primary btn-sm" id="fillSend" type="button">Email invites</button>
+                    <button class="btn btn-secondary btn-sm" id="fillNoteGo" type="button" title="Send the line below as a plain note to the selected people (a reminder, not an invite)">Send a note</button>
                   </div>
-                  <input class="input" id="fillNote" type="text" maxlength="600" placeholder="Optional line for the email: e.g. This one is all about getting set up, bring your laptop and your login.">
+                  <input class="input" id="fillNote" type="text" maxlength="600" placeholder="A line for the email. Invites tuck it in; Send a note mails just this (e.g. Bring your laptop and your login so we get you set up).">
                   <div class="rowlist" id="fillList"></div>
                 </div>
               </div>
@@ -1166,8 +1167,12 @@
       rsvps.forEach(function(r){
         if (r.event === e.id && r.status !== 'cancelled' && r.email) onBook[r.email.toLowerCase()] = true;
       });
-      var asked = {};
-      invites.forEach(function(iv){ if (iv.event === e.id) asked[iv.email.toLowerCase()] = iv.ts; });
+      var asked = {}, noted = {};
+      invites.forEach(function(iv){
+        if (iv.event !== e.id) return;
+        if (String(iv.by || '').indexOf('note:') === 0) noted[iv.email.toLowerCase()] = iv.ts;
+        else asked[iv.email.toLowerCase()] = iv.ts;
+      });
       var evName = {};
       events.forEach(function(x){ evName[x.id] = x.when; });
       var pool = {};
@@ -1188,7 +1193,7 @@
       });
       fillPool = Object.keys(pool).map(function(k){ return pool[k]; })
         .filter(function(p){ return !onBook[p.email]; })
-        .map(function(p){ p.asked = asked[p.email] || ''; return p; })
+        .map(function(p){ p.asked = asked[p.email] || ''; p.noted = noted[p.email] || ''; return p; })
         .sort(function(a, b){ return (a.asked ? 1 : 0) - (b.asked ? 1 : 0) || String(a.name || '').localeCompare(String(b.name || '')); });
       fillSel = {};
       fillPool.forEach(function(p){ if (!p.asked) fillSel[p.email] = true; });
@@ -1218,6 +1223,7 @@
         var chips = p.hist.map(function(h){ return '<span class="tag tag-plain">' + esc(h) + '</span>'; }).join('') +
           (p.member ? '<span class="tag tag-ink">member</span>' : '') +
           (p.asked ? '<span class="tag tag-plain">invited ' + esc(fmtDay(p.asked)) + '</span>' : '') +
+          (p.noted ? '<span class="tag tag-plain">noted ' + esc(fmtDay(p.noted)) + '</span>' : '') +
           (p.adhoc ? '<span class="tag tag-plain">new to the book</span>' : '');
         return '<div class="r fr' + (p.asked ? ' asked' : '') + '">' +
           '<input type="checkbox" data-fsel="' + esc(p.email) + '"' + (fillSel[p.email] ? ' checked' : '') + '>' +
@@ -1257,6 +1263,23 @@
         })
         .catch(function(){ A.toast('Could not reach the club.'); $('fillSend').disabled = false; });
     }
+    $('fillNoteGo').addEventListener('click', function(){
+      var people = Object.keys(fillSel).map(fillPerson);
+      var msg = $('fillNote').value.trim();
+      if (!people.length){ A.toast('Tick who should get the note.'); return; }
+      if (!msg){ A.toast('Write the note in the line above first.'); $('fillNote').focus(); return; }
+      if (!window.confirm('Send this note to ' + people.length + ' ' + (people.length === 1 ? 'person' : 'people') + '?' + String.fromCharCode(10, 10) + msg)) return;
+      $('fillNoteGo').disabled = true;
+      post('/rsvps', {action: 'note', event: fillEvent.id, message: msg,
+        people: people.map(function(p){ return {name: p.name || '', email: p.email}; })})
+        .then(function(d){
+          $('fillNoteGo').disabled = false;
+          if (!d.ok){ A.toast(d.error || 'Could not send the note.'); return; }
+          A.toast(d.mailed ? 'Note sent to ' + d.sent.length + '.' : 'Mail is off; nothing sent.');
+          if (attEvent) showAttendees(attEvent);
+        })
+        .catch(function(){ $('fillNoteGo').disabled = false; A.toast('Could not reach the club.'); });
+    });
     $('fillQ').addEventListener('input', paintFill);
     $('fillAll').addEventListener('click', function(){ fillMatches().forEach(function(p){ if (!p.adhoc) fillSel[p.email] = true; }); paintFill(); });
     $('fillNone').addEventListener('click', function(){ fillSel = {}; paintFill(); });
