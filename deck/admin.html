@@ -617,8 +617,30 @@
     .topbar .crumb{font-size:12px}
     #newMeetup{display:none}
   }
+  /* the key QR: one member's clubhouse link, big enough to scan from across the table */
+  #keyQr{position:fixed; inset:0; z-index:90; display:grid; place-items:center; background:rgba(59,50,39,.72); padding:20px}
+  #keyQr[hidden]{display:none}
+  #keyQr .kq{background:var(--card); color:var(--ink); border-radius:16px; padding:28px 28px 22px; max-width:440px; width:100%; text-align:center; box-shadow:0 24px 60px rgba(0,0,0,.35)}
+  #keyQr .kq h2{margin:0 0 4px; font-size:22px}
+  #keyQr .kq .pic{width:min(300px, 70vw); aspect-ratio:1; margin:14px auto; padding:10px; background:#fff; border-radius:10px; line-height:0}
+  #keyQr .kq .pic svg{width:100%; height:100%}
+  #keyQr .kq .lead{font-size:16px; margin:0 0 6px}
+  #keyQr .kq .small{display:block; overflow-wrap:anywhere}
+  #keyQr .kq .fx{justify-content:center; margin-top:14px}
 </style>
 
+<div id="keyQr" hidden role="dialog" aria-modal="true" aria-label="Clubhouse key">
+  <div class="kq">
+    <h2 id="kqName">Your key</h2>
+    <p class="lead">Point your phone camera here. It opens the clubhouse; no password, no account.</p>
+    <div class="pic" id="kqPic"></div>
+    <span class="small mono-s" id="kqUrl"></span>
+    <div class="fx gap8 fwrap">
+      <button class="btn btn-secondary btn-sm" type="button" data-kq="copy">Copy the link</button>
+      <button class="btn btn-primary btn-sm" type="button" data-kq="close">Done</button>
+    </div>
+  </div>
+</div>
 <script src="../assets/qrlib.js"></script>
 <script>
 (function(){
@@ -1094,7 +1116,8 @@
                   '<span class="task">' + (r.note ? '“' + esc(r.note) + '”' : '') + '</span>' +
                   '<span class="acts">' +
                   (r.attended
-                    ? '<span class="ok">✓ attended' + (r.email ? ' · invite sent' : '') + '</span>'
+                    ? '<span class="ok">✓ attended' + (r.email ? ' · invite sent' : '') + '</span>' +
+                      (r.email ? '<button class="btn btn-secondary btn-sm" data-keyqr="' + esc(r.email) + '" data-nm="' + esc(r.name) + '" type="button">Show QR</button>' : '')
                     : '<button class="btn btn-secondary btn-sm" data-att="' + esc(r.id) + '" type="button">' + (r.email ? 'Attended · send invite' : 'Attended') + '</button>') +
                   '</span>' +
                 '</div>';
@@ -1110,6 +1133,15 @@
     }
     var attEvent = null;
     $('attList').addEventListener('click', function(ev){
+      var q = ev.target.closest('button[data-keyqr]');
+      if (q){
+        /* an attendee's key, from the keyring by email: scan it right here at the table */
+        var em = q.getAttribute('data-keyqr').toLowerCase();
+        var mm = members.find(function(x){ return x.status === 'active' && String(x.email || '').toLowerCase() === em; });
+        if (mm && mm.invite) showKeyQr(q.getAttribute('data-nm') || mm.name, mm.invite);
+        else A.toast('No active key for that email yet; check the Members keyring.');
+        return;
+      }
       var b = ev.target.closest('button[data-att]');
       if (!b) return;
       b.disabled = true;
@@ -1120,10 +1152,36 @@
           A.toast('Marked attended. Mail is off — invite link copied instead.');
           try { navigator.clipboard.writeText(d.invite); } catch(e){}
         } else { A.toast('Marked attended. No email on the rsvp — add them by hand in Members.'); }
+        /* the easy path in the room: their key on screen, they scan it, done */
+        if (d.member && d.invite) showKeyQr(d.member.name, d.invite);
         if (attEvent) showAttendees(attEvent);
         loadMembers();
       });
     });
+
+    /* the key QR overlay */
+    var kqUrl = '';
+    function showKeyQr(name, url){
+      try{
+        var qr = qrcode(0, 'M');
+        qr.addData(url);
+        qr.make();
+        kqUrl = url;
+        $('kqName').textContent = (name || 'Your') + (name ? "'s key" : ' key');
+        $('kqPic').innerHTML = qr.createSvgTag({cellSize: 4, margin: 0, scalable: true});
+        $('kqUrl').textContent = url.replace(/^https:\/\//, '');
+        $('keyQr').hidden = false;
+      } catch(e){ A.toast('Could not draw the QR; copy the key instead.'); }
+    }
+    $('keyQr').addEventListener('click', function(ev){
+      var b = ev.target.closest('button[data-kq]');
+      if (b && b.getAttribute('data-kq') === 'copy'){
+        try { navigator.clipboard.writeText(kqUrl); A.toast('Key link copied.'); } catch(e){ window.prompt('Their key:', kqUrl); }
+        return;
+      }
+      if (b || ev.target === $('keyQr')) $('keyQr').hidden = true;
+    });
+    document.addEventListener('keydown', function(ev){ if (ev.key === 'Escape' && !$('keyQr').hidden) $('keyQr').hidden = true; });
 
     /* recipe box manager */
     var recipes = [];
@@ -1528,6 +1586,7 @@
                 '<span class="m">' + esc(m.email || 'no email') + (m.source ? ' · ' + esc(m.source) : '') + '</span></span>' +
               '<span class="acts">' +
               (m.status === 'active' ? (
+                '<button class="btn btn-secondary btn-sm" data-mb="qr" data-id="' + esc(m.id) + '" type="button">Show QR</button>' +
                 '<button class="btn btn-secondary btn-sm" data-mb="copy" data-id="' + esc(m.id) + '" type="button">Copy key</button>' +
                 (m.email ? '<button class="btn btn-secondary btn-sm" data-mb="resend" data-id="' + esc(m.id) + '" type="button">Resend</button>' : '') +
                 (m.role === 'admin'
@@ -1546,6 +1605,7 @@
       var m = members.find(function(x){ return x.id === b.getAttribute('data-id'); });
       if (!m) return;
       var act = b.getAttribute('data-mb');
+      if (act === 'qr'){ showKeyQr(m.name, m.invite); return; }
       if (act === 'copy'){
         try { navigator.clipboard.writeText(m.invite); A.toast('Invite link copied.'); }
         catch(e){ window.prompt('Their invite link:', m.invite); }
@@ -1574,6 +1634,7 @@
           A.toast(email ? 'Key cut; mail is off, link copied.' : 'Key cut — link copied, hand it to them.');
           try { navigator.clipboard.writeText(d.invite); } catch(e){}
         }
+        if (d.invite) showKeyQr(name, d.invite);
         $('mbForm').reset();
         loadMembers();
       });
