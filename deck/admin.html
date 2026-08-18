@@ -178,6 +178,19 @@
             <div class="att" id="attPanel">
               <h3 class="sr" id="attTitle">Attendees</h3>
               <div class="sum" id="attCounts"></div>
+              <div class="grp fill" id="attFill" hidden>
+                <div class="gh"><h3>Fill the table</h3><span class="n" id="fillN"></span></div>
+                <div class="card">
+                  <div class="fill-bar">
+                    <input class="input" id="fillQ" type="text" autocomplete="off" placeholder="Type a name or email; the book predicts the rest. Everyone from past meetups and the keyring is listed below.">
+                    <button class="btn btn-secondary btn-sm" id="fillAll" type="button">Select all</button>
+                    <button class="btn btn-secondary btn-sm" id="fillNone" type="button">None</button>
+                    <button class="btn btn-primary btn-sm" id="fillSend" type="button">Email invites</button>
+                  </div>
+                  <input class="input" id="fillNote" type="text" maxlength="600" placeholder="Optional line for the email: e.g. This one is all about getting set up, bring your laptop and your login.">
+                  <div class="rowlist" id="fillList"></div>
+                </div>
+              </div>
               <div id="attList"></div>
             </div>
           </div>
@@ -584,6 +597,16 @@
   .pr .ct span{display:block; overflow-wrap:anywhere}
   .pr.gone{opacity:.6}
   .ok{display:inline-flex; align-items:center; gap:6px; color:var(--teal-deep); font-size:12.5px; font-weight:600}
+  .fill .card{display:flex; flex-direction:column; gap:10px; padding:12px}
+  .fill-bar{display:flex; gap:8px; align-items:center}
+  .fill-bar .input{flex:1; min-width:0}
+  .fill .rowlist{max-height:46svh; overflow:auto}
+  .rowlist > .r.fr{grid-template-columns:24px 1.2fr 1.3fr 1fr auto; align-items:center}
+  .fr input[type=checkbox]{width:16px; height:16px; margin:0}
+  .fr .who b{font-size:13.5px; display:block}
+  .fr .who span, .fr .ct{font-size:12px; color:var(--ink-3); overflow-wrap:anywhere}
+  .fr .hist{display:flex; gap:5px; flex-wrap:wrap}
+  .fr.asked{opacity:.7}
 
   @media (max-width:1180px){
     .work{grid-template-columns:240px 1fr 280px}
@@ -1080,6 +1103,7 @@
         .then(function(d){
           setLive(true);
           var rows = ((d && d.rsvps) || []).filter(function(r){ return r.event === e.id; });
+          buildFillPool(e, (d && d.rsvps) || [], (d && d.invites) || []);
           var seats = rows.filter(function(r){ return r.status === 'seat'; });
           var waits = rows.filter(function(r){ return r.status === 'waitlist'; });
           var gone = rows.filter(function(r){ return r.status === 'cancelled'; });
@@ -1131,6 +1155,142 @@
         })
         .catch(function(){ setLive(false); $('attCounts').innerHTML = '<div class="card c"><span class="l">Could not load the book.</span></div>'; });
     }
+    /* ---- fill the table: predictive lookups over everyone the book knows ----
+       pool = every rsvp on any OTHER event (deduped by email, newest wins) plus the
+       members keyring, minus whoever is already on this event's book. default
+       selection: everyone not yet invited to this event. */
+    var fillPool = [], fillEvent = null, fillSel = {};
+    function buildFillPool(e, rsvps, invites){
+      fillEvent = e;
+      var onBook = {};
+      rsvps.forEach(function(r){
+        if (r.event === e.id && r.status !== 'cancelled' && r.email) onBook[r.email.toLowerCase()] = true;
+      });
+      var asked = {};
+      invites.forEach(function(iv){ if (iv.event === e.id) asked[iv.email.toLowerCase()] = iv.ts; });
+      var evName = {};
+      events.forEach(function(x){ evName[x.id] = x.when; });
+      var pool = {};
+      rsvps.slice().sort(function(a, b){ return String(a.ts).localeCompare(String(b.ts)); }).forEach(function(r){
+        if (r.event === e.id || !r.email) return;
+        var k = r.email.toLowerCase();
+        var p = pool[k] || {email: k, hist: []};
+        p.name = r.name || p.name; p.phone = r.phone || p.phone; p.biz = r.biz || p.biz;
+        if (r.status !== 'cancelled') p.hist.push((r.attended ? 'came ' : 'rsvp’d ') + (evName[r.event] || r.event));
+        pool[k] = p;
+      });
+      members.forEach(function(m){
+        if (m.status !== 'active' || !m.email) return;
+        var k = m.email.toLowerCase();
+        var p = pool[k] || {email: k, hist: []};
+        p.name = p.name || m.name; p.member = true;
+        pool[k] = p;
+      });
+      fillPool = Object.keys(pool).map(function(k){ return pool[k]; })
+        .filter(function(p){ return !onBook[p.email]; })
+        .map(function(p){ p.asked = asked[p.email] || ''; return p; })
+        .sort(function(a, b){ return (a.asked ? 1 : 0) - (b.asked ? 1 : 0) || String(a.name || '').localeCompare(String(b.name || '')); });
+      fillSel = {};
+      fillPool.forEach(function(p){ if (!p.asked) fillSel[p.email] = true; });
+      $('attFill').hidden = false;
+      $('fillQ').value = '';
+      paintFill();
+    }
+    function fillMatches(){
+      var q = $('fillQ').value.trim().toLowerCase();
+      var qe = q.split(',')[0].trim();
+      var list = fillPool.filter(function(p){
+        return !q || (p.name || '').toLowerCase().indexOf(q) > -1 || p.email.indexOf(q) > -1 || (p.biz || '').toLowerCase().indexOf(q) > -1;
+      });
+      /* a fresh email nobody has seen: offer it as a one-off row */
+      if (qe.indexOf('@') > 0 && !fillPool.some(function(p){ return p.email === qe; })){
+        list.unshift({email: qe, name: '', hist: [], adhoc: true});
+      }
+      return list;
+    }
+    function paintFill(){
+      var list = fillMatches();
+      var nSel = Object.keys(fillSel).length;
+      $('fillN').textContent = fillPool.length + ' the book knows · ' + nSel + ' selected';
+      $('fillSend').textContent = nSel ? 'Email ' + nSel + ' invite' + (nSel === 1 ? '' : 's') : 'Email invites';
+      $('fillSend').disabled = !nSel;
+      $('fillList').innerHTML = list.length ? list.map(function(p){
+        var chips = p.hist.map(function(h){ return '<span class="tag tag-plain">' + esc(h) + '</span>'; }).join('') +
+          (p.member ? '<span class="tag tag-ink">member</span>' : '') +
+          (p.asked ? '<span class="tag tag-plain">invited ' + esc(fmtDay(p.asked)) + '</span>' : '') +
+          (p.adhoc ? '<span class="tag tag-plain">new to the book</span>' : '');
+        return '<div class="r fr' + (p.asked ? ' asked' : '') + '">' +
+          '<input type="checkbox" data-fsel="' + esc(p.email) + '"' + (fillSel[p.email] ? ' checked' : '') + '>' +
+          '<span class="who"><b>' + esc(p.name || p.email.split('@')[0]) + '</b><span>' + esc(p.biz || (p.adhoc ? 'add a name after a comma: jane@x.com, Jane Doe' : '')) + '</span></span>' +
+          '<span class="ct">' + esc(p.email) + (p.phone ? '<br><span class="mono-s">' + esc(p.phone) + '</span>' : '') + '</span>' +
+          '<span class="hist">' + chips + '</span>' +
+          '<span class="acts">' +
+            '<button class="btn btn-secondary btn-sm" data-fone="' + esc(p.email) + '" type="button">' + (p.asked ? 'Invite again' : 'Invite') + '</button>' +
+            '<button class="btn btn-secondary btn-sm" data-fseat="' + esc(p.email) + '" type="button" title="Put them straight on the book; they get the seat confirmation email">Seat</button>' +
+          '</span></div>';
+      }).join('') : '<div class="empty-row">Nobody in the book matches. Type a full email to invite someone new.</div>';
+    }
+    function fmtDay(ts){
+      try { return new Date(ts).toLocaleDateString(undefined, {month: 'short', day: 'numeric'}); } catch(e){ return ''; }
+    }
+    function fillPerson(email){
+      var p = fillPool.find(function(x){ return x.email === email; });
+      if (p) return p;
+      /* ad-hoc: "jane@x.com, Jane Doe" */
+      var parts = $('fillQ').value.split(',');
+      return {email: email, name: (parts[1] || '').trim(), hist: [], adhoc: true};
+    }
+    function sendInvites(people, force){
+      if (!people.length || !fillEvent) return;
+      $('fillSend').disabled = true;
+      post('/rsvps', {action: 'invite', event: fillEvent.id,
+        people: people.map(function(p){ return {name: p.name || '', email: p.email}; }),
+        note: $('fillNote').value.trim(), force: !!force})
+        .then(function(d){
+          if (!d.ok){ A.toast('Could not send invites.'); $('fillSend').disabled = false; return; }
+          var n = d.sent.length, sk = d.skipped.length;
+          var whys = d.skipped.map(function(x){ return x.why; }).filter(function(v, i, a){ return a.indexOf(v) === i; }).join(', ');
+          A.toast(d.mailed
+            ? (n + ' invite' + (n === 1 ? '' : 's') + ' emailed' + (sk ? ' · ' + sk + ' skipped (' + whys + ')' : '') + '.')
+            : 'Mail is off; nothing sent.');
+          if (attEvent) showAttendees(attEvent);
+        })
+        .catch(function(){ A.toast('Could not reach the club.'); $('fillSend').disabled = false; });
+    }
+    $('fillQ').addEventListener('input', paintFill);
+    $('fillAll').addEventListener('click', function(){ fillMatches().forEach(function(p){ if (!p.adhoc) fillSel[p.email] = true; }); paintFill(); });
+    $('fillNone').addEventListener('click', function(){ fillSel = {}; paintFill(); });
+    $('fillSend').addEventListener('click', function(){
+      var people = Object.keys(fillSel).map(fillPerson);
+      var again = people.some(function(p){ return p.asked; });
+      if (again && !window.confirm('Some of these were already invited to this meetup. Email them again?')) return;
+      sendInvites(people, again);
+    });
+    $('fillList').addEventListener('change', function(ev){
+      var c = ev.target.closest('input[data-fsel]');
+      if (!c) return;
+      if (c.checked) fillSel[c.getAttribute('data-fsel')] = true; else delete fillSel[c.getAttribute('data-fsel')];
+      paintFill();
+    });
+    $('fillList').addEventListener('click', function(ev){
+      var one = ev.target.closest('button[data-fone]');
+      if (one){ var p = fillPerson(one.getAttribute('data-fone')); sendInvites([p], !!p.asked); return; }
+      var st = ev.target.closest('button[data-fseat]');
+      if (!st || !fillEvent) return;
+      var q = fillPerson(st.getAttribute('data-fseat'));
+      var name = q.name || window.prompt('Their name:', '');
+      if (!name) return;
+      var phone = q.phone || window.prompt('Their cell (the rsvp needs one):', '');
+      if (!phone) return;
+      st.disabled = true;
+      post('/rsvp', {event: fillEvent.id, name: name, email: q.email, phone: phone, biz: q.biz || '', ref: 'console'})
+        .then(function(d){
+          if (!d.ok){ A.toast(d.error || 'Could not seat them.'); st.disabled = false; return; }
+          A.toast(name + (d.status === 'seat' ? ' has a seat' : ' is on the waitlist') + '; confirmation emailed.');
+          if (attEvent) showAttendees(attEvent);
+        });
+    });
+
     var attEvent = null;
     $('attList').addEventListener('click', function(ev){
       var q = ev.target.closest('button[data-keyqr]');

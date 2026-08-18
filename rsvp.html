@@ -191,6 +191,13 @@
   /* ref: where this visitor came from (qr, feed, email, n-<rsvpId>...); stored with the rsvp */
   var REF = (params.get('ref') || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 40);
   var LS_MINE = '';
+  /* invite links from the console arrive with name+email: fill them in so the
+     regulars just add a phone and go */
+  (function(){
+    var pn = params.get('name'), pe = params.get('email');
+    if (pn && $('fName') && !$('fName').value) $('fName').value = pn.slice(0, 80);
+    if (pe && $('fEmail') && !$('fEmail').value) $('fEmail').value = pe.slice(0, 160);
+  })();
 
   var evData = null;
   var full = false;
