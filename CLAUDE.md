@@ -9,6 +9,8 @@
 
 If a change needs a new/changed API endpoint, it belongs in `aihc-notes-server`, not here. Never run a manual deploy command for either repo.
 
+Cloud/phone sessions: use the **`aihc` cloud environment** — it carries `HEROKU_API_KEY` (backend logs/releases via the Heroku CLI) and `AIHC_ADMIN`/`AIHC_API` (admin endpoints). Details in `aihc-notes-server/CLAUDE.md`.
+
 ## Hard rules
 
 - **Zero-build, forever.** Plain HTML + shared assets. No bundler, framework, or package manager.
