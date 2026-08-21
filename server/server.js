@@ -27,13 +27,13 @@ function ai() {
 }
 
 /* email notifications: no-op until BREVO_SMTP_KEY is configured */
-const NOTIFY_EMAIL = process.env.NOTIFY_EMAIL || 'brett.brockway@gmail.com';
-const mailer = process.env.BREVO_SMTP_KEY
+const NOTIFY_EMAIL = process.env.NOTIFY_EMAIL || '';
+const mailer = process.env.BREVO_SMTP_KEY && process.env.BREVO_SMTP_USER
   ? nodemailer.createTransport({
       host: 'smtp-relay.brevo.com',
       port: 587,
       auth: {
-        user: process.env.BREVO_SMTP_USER || 'b4863b001@smtp-brevo.com',
+        user: process.env.BREVO_SMTP_USER,
         pass: process.env.BREVO_SMTP_KEY,
       },
     })
