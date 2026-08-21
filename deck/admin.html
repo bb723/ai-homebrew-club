@@ -192,6 +192,16 @@
                   <div class="rowlist" id="fillList"></div>
                 </div>
               </div>
+              <div class="grp tell" id="attTell" hidden>
+                <div class="gh"><h3>Tell the table</h3><span class="n" id="tellN"></span></div>
+                <div class="card">
+                  <textarea id="tellMsg" maxlength="600" placeholder="What changed, in a line or two. e.g. New start time: we now begin at 10:30 a.m. Same room, same hour, coffee still on."></textarea>
+                  <div class="fill-bar">
+                    <span class="small" id="tellWho"></span>
+                    <button class="btn btn-primary btn-sm" id="tellGo" type="button" disabled>Send the update</button>
+                  </div>
+                </div>
+              </div>
               <div id="attList"></div>
             </div>
           </div>
@@ -608,6 +618,10 @@
   .fr .who span, .fr .ct{font-size:12px; color:var(--ink-3); overflow-wrap:anywhere}
   .fr .hist{display:flex; gap:5px; flex-wrap:wrap}
   .fr.asked{opacity:.7}
+  .tell .card{display:flex; flex-direction:column; gap:10px; padding:12px}
+  .tell textarea{min-height:68px; font-size:13px}
+  .tell .fill-bar{justify-content:space-between; flex-wrap:wrap}
+  .tell .fill-bar .small{flex:1; min-width:0; color:var(--ink-3); font-size:12px}
 
   @media (max-width:1180px){
     .work{grid-template-columns:240px 1fr 280px}
@@ -1108,6 +1122,7 @@
           var seats = rows.filter(function(r){ return r.status === 'seat'; });
           var waits = rows.filter(function(r){ return r.status === 'waitlist'; });
           var gone = rows.filter(function(r){ return r.status === 'cancelled'; });
+          buildTellPool(e, seats.concat(waits));
           function seatSum(list){
             return list.reduce(function(n, r){ return n + 1 + (r.guest_name ? 1 : 0); }, 0);
           }
@@ -1312,6 +1327,50 @@
           A.toast(name + (d.status === 'seat' ? ' has a seat' : ' is on the waitlist') + '; confirmation emailed.');
           if (attEvent) showAttendees(attEvent);
         });
+    });
+
+    /* ---- tell the table: the note tool for the people already on the book ----
+       the fill pool above deliberately excludes them, so a change of plan (a new
+       start time, a room move) had no way to reach the people it actually affects.
+       same POST /rsvps {action:'note'} the fill panel sends, pointed the other way. */
+    var tellPool = [], tellEvent = null;
+    function buildTellPool(e, onBook){
+      tellEvent = e;
+      var seen = {}, quiet = 0;
+      tellPool = [];
+      onBook.forEach(function(r){
+        var k = String(r.email || '').trim().toLowerCase();
+        if (!k){ quiet++; return; }
+        if (seen[k]) return;
+        seen[k] = true;
+        tellPool.push({name: r.name || '', email: k});
+      });
+      $('attTell').hidden = false;
+      $('tellN').textContent = tellPool.length + ' inbox' + (tellPool.length === 1 ? '' : 'es') +
+        (quiet ? ' \u00b7 ' + quiet + ' with no email' : '');
+      $('tellWho').textContent = tellPool.length
+        ? 'Everyone holding a seat or a waitlist spot. Plus-ones hear it from whoever booked them.' +
+          (quiet ? ' ' + quiet + ' left no email \u2014 tell them another way.' : '')
+        : 'Nobody on the book left an email yet.';
+      $('tellGo').disabled = !tellPool.length;
+      $('tellGo').textContent = tellPool.length ? 'Send to ' + tellPool.length : 'Send the update';
+    }
+    $('tellGo').addEventListener('click', function(){
+      var msg = $('tellMsg').value.trim();
+      if (!tellEvent || !tellPool.length) return;
+      if (!msg){ A.toast('Write the update in the box first.'); $('tellMsg').focus(); return; }
+      if (!window.confirm('Email this to ' + tellPool.length + ' ' + (tellPool.length === 1 ? 'person' : 'people') +
+        ' on the book?' + String.fromCharCode(10, 10) + msg)) return;
+      $('tellGo').disabled = true;
+      post('/rsvps', {action: 'note', event: tellEvent.id, message: msg, people: tellPool})
+        .then(function(d){
+          $('tellGo').disabled = false;
+          if (!d.ok){ A.toast(d.error || 'Could not send the update.'); return; }
+          if (d.mailed){ A.toast('Update sent to ' + d.sent.length + '.'); $('tellMsg').value = ''; }
+          else A.toast('Mail is off; nothing sent.');
+          if (attEvent) showAttendees(attEvent);
+        })
+        .catch(function(){ $('tellGo').disabled = false; A.toast('Could not reach the club.'); });
     });
 
     var attEvent = null;
