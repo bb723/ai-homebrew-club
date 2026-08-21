@@ -1,0 +1,19 @@
+name: Deploy server to Heroku
+
+on:
+  push:
+    branches: [master]
+    paths: ["server/**"]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push server/ subtree to Heroku (aihc-notes)
+        run: |
+          git subtree split --prefix server -b heroku-deploy
+          git push https://heroku:${{ secrets.HEROKU_API_KEY }}@git.heroku.com/aihc-notes.git heroku-deploy:refs/heads/main --force
