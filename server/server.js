@@ -885,6 +885,75 @@ app.post('/events', async (req, res) => {
       await pool.query('DELETE FROM aihc_agenda_items WHERE event = $1', [String(body.id)]);
       return res.json({ ok: true });
     }
+    /* reschedule: move the meetup and start the book over. every seat and waitlist
+       spot is released ('rescheduled'), and each party gets an email naming the old
+       and new time with a prefilled link to re-claim; seats stay first-come. logged
+       in aihc_invites (by resched:) so the book remembers who was told. */
+    if (body.action === 'reschedule' && body.id) {
+      const eventId = String(body.id);
+      const before = await getEvent(eventId);
+      if (!before) return res.status(404).json({ error: 'no such event' });
+      const when = String(body.when || '').slice(0, 200) || before.when;
+      const sortDate = /^\d{4}-\d{2}-\d{2}$/.test(String(body.sort_date || '')) ? String(body.sort_date) : before.sort_date;
+      const startTime = /^\d{1,2}:\d{2}$/.test(String(body.start_time || '')) ? String(body.start_time) : '';
+      const message = String(body.message || '').trim().slice(0, 600);
+      const oldLine = before.when + (before.start_time ? ', ' + fmtTime(before.start_time) : '');
+      await pool.query(
+        'UPDATE aihc_events SET when_text = $1, sort_date = $2, start_time = $3 WHERE id = $4',
+        [when, sortDate, startTime, eventId]
+      );
+      /* the old date's 12h/1h markers would block reminders for the new date */
+      await pool.query('DELETE FROM aihc_reminders WHERE event = $1', [eventId]);
+      const after = await getEvent(eventId);
+      const newLine = after.when + (after.start_time ? ', ' + fmtTime(after.start_time) : ' (time announced soon)');
+      const q = await pool.query(
+        "UPDATE aihc_rsvps SET status = 'rescheduled' WHERE event = $1 AND status IN ('seat','waitlist') RETURNING *", [eventId]
+      );
+      const seen = new Set(); const sent = []; let quiet = 0;
+      const gc = gcalUrl(after, eventId);
+      const ics = icsText(after, eventId);
+      const ts = new Date().toISOString();
+      for (const r of q.rows) {
+        const email = String(r.email || '').trim().toLowerCase();
+        if (!email || email.indexOf('@') === -1) { quiet++; continue; }
+        if (seen.has(email)) continue;
+        seen.add(email);
+        const link = 'https://aihomebrewclub.com/rsvp.html?event=' + encodeURIComponent(eventId) + '&ref=resched' +
+          (r.name ? '&name=' + encodeURIComponent(r.name) : '') + '&email=' + encodeURIComponent(email);
+        mailTo(
+          email,
+          'Time change: ' + after.title + ' is now ' + newLine,
+          'Hey ' + (r.name || 'neighbor') + ',\n\n' +
+          after.title + ' moved.\n\nWas: ' + oldLine + '\nNow: ' + newLine +
+          '\nWhere: ' + after.location +
+          (message ? '\n\n' + message : '') +
+          '\n\nThe new time starts the book over, so your ' + (r.status === 'seat' ? 'seat' : 'waitlist spot') +
+          ' was released. If the new time works, grab your chair again (takes ten seconds):\n' + link +
+          (gc ? '\n\nNew calendar entry: ' + gc : '') +
+          '\n\nToss the old calendar invite; the fresh one is attached.' +
+          '\n\nSee you at the table,\nThe AI Homebrew Club\nhttps://aihomebrewclub.com',
+          ics ? [{ filename: 'ai-brown-bag.ics', content: ics, contentType: 'text/calendar' }] : undefined
+        );
+        await pool.query(
+          'INSERT INTO aihc_invites (id, event, email, name, by, ts) VALUES ($1,$2,$3,$4,$5,$6)',
+          ['rs' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), eventId, email, r.name || '',
+           'resched:' + (who.name || who.role || ''), ts]
+        );
+        sent.push(email);
+      }
+      await addFeedPost(
+        'resched-' + eventId + '-' + Date.now().toString(36), 'New time.',
+        after.title + ' moved: now ' + newLine + '. The book started over, so grab your seat again: ' +
+        'https://aihomebrewclub.com/rsvp.html?event=' + encodeURIComponent(eventId) + '&ref=resched-feed',
+        '#rsvp', true, ts
+      );
+      notify(
+        'Rescheduled: ' + eventId + ' → ' + newLine,
+        after.title + '\nWas: ' + oldLine + '\nNow: ' + newLine + '\n\nReleased ' + q.rows.length +
+        ' rsvps; emailed ' + sent.length + (quiet ? '; ' + quiet + ' left no email — tell them another way' : '') + '.'
+      );
+      return res.json({ ok: true, released: q.rows.length, sent, quiet, mailed: !!mailer });
+    }
     res.status(400).json({ error: 'unknown action' });
   } catch (err) {
     console.error(err);
@@ -1368,7 +1437,7 @@ app.post('/rsvps', async (req, res) => {
       const note = String(body.note || '').trim().slice(0, 600);
       const force = body.force === true;
       const onBook = new Set((await pool.query(
-        "SELECT lower(email) AS e FROM aihc_rsvps WHERE event = $1 AND status <> 'cancelled' AND email <> ''", [eventId]
+        "SELECT lower(email) AS e FROM aihc_rsvps WHERE event = $1 AND status IN ('seat','waitlist') AND email <> ''", [eventId]
       )).rows.map(r => r.e));
       const asked = new Set((await pool.query(
         "SELECT lower(email) AS e FROM aihc_invites WHERE event = $1 AND by NOT LIKE 'note:%'", [eventId]

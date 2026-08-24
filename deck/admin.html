@@ -87,6 +87,7 @@
                 <label class="check span"><input type="checkbox" id="eAnnounce" checked> Announce it on the club feed</label>
                 <div class="fx ac gap10 fwrap span">
                   <button class="btn btn-primary" id="eSave" type="submit">Save meetup</button>
+                  <button class="btn btn-secondary" id="eResched" type="button" hidden>Reschedule &amp; re-invite</button>
                   <button class="btn btn-ghost" id="eReset" type="button">Clear form</button>
                   <span class="small msg" id="eMsg"></span>
                 </div>
@@ -871,6 +872,7 @@
       $('eStatus').value = e.status; $('eId').value = e.id;
       $('eAnnounce').checked = false;
       $('eSave').textContent = 'Save changes';
+      $('eResched').hidden = false;
       $('eMsg').textContent = '';
       showQr(e.id);
       if (fresh){ lineup = []; cancelItem(); attStats = null; }
@@ -1016,10 +1018,36 @@
         }
       });
     });
+    /* ---- reschedule & re-invite: moves the clock server-side in one shot ----
+       only the when / date / start time fields ride along; the server releases
+       every seat and waitlist spot and emails each party a prefilled re-RSVP
+       link. other edits in the form still go through Save as usual. */
+    $('eResched').addEventListener('click', function(){
+      if (!editingEvent) return;
+      var when = $('eWhen').value.trim(), sd = $('eSort').value, st = $('eTime').value;
+      if (!when){ $('eMsg').textContent = 'Fill in the new when first.'; return; }
+      if (!window.confirm('Move this meetup to "' + when + (st ? ' · ' + st : '') + '"?' + String.fromCharCode(10, 10) +
+        'Everyone on the book gets the change by email, and every seat and waitlist spot is released — they re-RSVP first come, first served.')) return;
+      var msg = window.prompt('A line for the email (optional):', '') || '';
+      $('eResched').disabled = true;
+      post('/events', {action: 'reschedule', id: editingEvent, when: when, sort_date: sd, start_time: st, message: msg})
+        .then(function(d){
+          $('eResched').disabled = false;
+          if (!d.ok){ $('eMsg').textContent = d.error || 'Reschedule failed.'; return; }
+          A.toast('Moved. ' + d.released + ' released; ' +
+            (d.mailed ? d.sent.length + ' emailed.' : 'mail is off — nobody emailed.') +
+            (d.quiet ? ' ' + d.quiet + ' left no email — tell them another way.' : ''));
+          $('eMsg').textContent = '';
+          load();
+          if (attEvent) showAttendees(attEvent);
+        })
+        .catch(function(){ $('eResched').disabled = false; A.toast('Could not reach the club.'); });
+    });
     function resetForm(clearQr){
       editingEvent = null;
       $('formTitle').textContent = 'New meetup';
       $('eSave').textContent = 'Save meetup';
+      $('eResched').hidden = true;
       $('evForm').reset();
       $('eCap').value = 8; $('eCity').value = 'waterville';
       delete $('eId').dataset.touched;
@@ -1122,6 +1150,7 @@
           var seats = rows.filter(function(r){ return r.status === 'seat'; });
           var waits = rows.filter(function(r){ return r.status === 'waitlist'; });
           var gone = rows.filter(function(r){ return r.status === 'cancelled'; });
+          var moved = rows.filter(function(r){ return r.status === 'rescheduled'; });
           buildTellPool(e, seats.concat(waits));
           function seatSum(list){
             return list.reduce(function(n, r){ return n + 1 + (r.guest_name ? 1 : 0); }, 0);
@@ -1166,6 +1195,7 @@
           $('attList').innerHTML =
             (block(seats, 'At the table', attStats.seats + ' of ' + esc(e.capacity)) +
              block(waits, 'Waiting for a seat', attStats.waits + ' · in order') +
+             block(moved, 'Released by reschedule', moved.length + ' · told, not yet re-RSVPed', 'gone') +
              block(gone, 'Cancelled', String(gone.length), 'gone')) ||
             '<div class="card"><div class="empty-row">Nobody on the books yet.</div></div>';
         })
@@ -1180,7 +1210,7 @@
       fillEvent = e;
       var onBook = {};
       rsvps.forEach(function(r){
-        if (r.event === e.id && r.status !== 'cancelled' && r.email) onBook[r.email.toLowerCase()] = true;
+        if (r.event === e.id && (r.status === 'seat' || r.status === 'waitlist') && r.email) onBook[r.email.toLowerCase()] = true;
       });
       var asked = {}, noted = {};
       invites.forEach(function(iv){
