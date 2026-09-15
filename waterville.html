@@ -6,12 +6,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <meta property="og:title" content="The AI Brown Bag in Waterville">
-<meta property="og:description" content="The next meetup, the agenda, and every table we've held. Free, one hour, coffee on.">
+<meta property="og:description" content="The next meetup, the agenda, and every meetup held here. Free, one hour, no vendors.">
 <meta property="og:image" content="https://aihomebrewclub.com/invite-card.png">
 <meta property="og:url" content="https://aihomebrewclub.com/waterville.html">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="assets/site.css?v=3">
+<link rel="stylesheet" href="assets/site.css?v=4">
 <style>
   /* Chapter 01 - Waterville: the next meetup as one raised card, the QR beside it, the record below. */
   .page-head .hand{max-width:24ch; text-align:right}
@@ -59,7 +59,6 @@
 </head>
 <body>
 <div class="frame">
-<div class="runner"></div>
 <header class="masthead">
   <a class="brand" href="index.html"><span class="logo" data-size="32" aria-hidden="true"></span><span>The AI Homebrew Club</span></a>
   <span class="est">Central Maine &middot; est. 2026, after 1975</span>
@@ -87,17 +86,17 @@
   <div id="nextWrap"><p class="empty">Checking the calendar&hellip;</p></div>
 
   <div class="past">
-    <p class="folio sec" id="pastH" hidden><b>The record</b> &middot; every table we&rsquo;ve held here</p>
+    <p class="folio sec" id="pastH" hidden><b>The record</b> &middot; every meetup held here</p>
     <div id="pastWrap"></div>
   </div>
 </main>
 
-<footer class="slim"><span class="folio">Free, one hour, coffee on</span><span class="folio"><a href="recipes.html">The recipes</a> &middot; <a href="lend.html?ref=town">Lend a room</a> &middot; <a href="events.html">The circuit</a></span></footer>
+<footer class="slim"><span class="folio">Free, one hour, no vendors</span><span class="folio"><a href="recipes.html">The recipes</a> &middot; <a href="lend.html?ref=town">Lend a room</a> &middot; <a href="events.html">The circuit</a></span></footer>
 </div>
 
 <script src="assets/qrlib.js"></script>
-<script src="assets/config.js?v=4"></script>
-<script src="assets/site.js?v=3"></script>
+<script src="assets/config.js?v=5"></script>
+<script src="assets/site.js?v=4"></script>
 <script>
 (function(){
   'use strict';
@@ -112,8 +111,8 @@
       qr.addData(url);
       qr.make();
       return qr.createSvgTag({cellSize: 4, margin: 0, scalable: true})
-        .replace(/#000000|black/gi, '#3B3227')
-        .replace(/#ffffff|white/gi, '#FFFDF7');
+        .replace(/#000000|black/gi, '#191919')
+        .replace(/#ffffff|white/gi, '#FBF9F4');
     } catch(e){ return ''; }
   }
 

@@ -6,12 +6,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <meta property="og:title" content="Save a seat at the AI Brown Bag">
-<meta property="og:description" content="One hour, one problem off your plate. Neighbors teaching neighbors to put AI to work. Free, coffee on.">
+<meta property="og:description" content="One hour, one problem off your plate. Neighbors teaching neighbors to put AI to work. Free, no vendors.">
 <meta property="og:image" content="https://aihomebrewclub.com/invite-card.png">
 <meta property="og:url" content="https://aihomebrewclub.com/rsvp.html">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="assets/site.css?v=3">
+<link rel="stylesheet" href="assets/site.css?v=4">
 <style>
   [hidden]{display:none !important}
   .pg{display:grid; grid-template-columns:1fr 520px; gap:80px; padding:56px 0 80px; align-items:start}
@@ -68,7 +68,6 @@
 </head>
 <body>
 <div class="frame">
-<div class="runner"></div>
 <header class="masthead">
   <a class="brand" href="index.html"><span class="logo" data-size="32" aria-hidden="true"></span><span>The AI Homebrew Club</span></a>
   <span class="est">Central Maine &middot; est. 2026, after 1975</span>
@@ -94,13 +93,13 @@
         <span class="seats" id="seatPill"><span class="n">Checking seats&hellip;</span></span>
       </div>
       <div class="rows">
-        <div class="r"><span class="k">When</span><span id="evWhen">Tuesday, August 18, 9:00 am. One hour, coffee on.</span></div>
+        <div class="r"><span class="k">When</span><span id="evWhen">The next meetup. One hour.</span></div>
         <div class="r"><span class="k">Where</span><span id="evWhere">The conference room at Bricks Coworking &amp; Innovation Space, Hathaway Creative Center, 10 Water St, downtown Waterville.</span></div>
         <div class="r"><span class="k">Bring</span><span>A laptop or just your phone, and one real task that is eating your week.</span></div>
         <div class="r"><span class="k">The hour</span><span id="evHour"><a href="waterville.html">Full agenda on the Waterville page</a></span></div>
       </div>
     </div>
-    <p class="hand">We&rsquo;ll keep the chair tipped against the table for you.</p>
+    <p class="hand">Seats are held in the order they are claimed.</p>
   </div>
 
   <div class="card-raised formcard">
@@ -122,10 +121,10 @@
 
     <div class="done" id="doneSeat">
       <h2>Seat saved. &#9749;</h2>
-      <p class="hand">We&rsquo;ll keep the chair tipped against the table for you.</p>
+      <p class="hand">Seats are held in the order they are claimed.</p>
       <p class="note">You&rsquo;re on the list for <span class="evWhenInline">the next meetup</span>. A confirmation just landed in your email with a calendar invite and a cancel link, and we&rsquo;ll email a reminder before the day.</p>
       <div class="hr"></div>
-      <span class="label">Every table fills by word of mouth. Know a neighbor who should be here?</span>
+      <span class="label">Every meetup fills by word of mouth. Know a neighbor who should be here?</span>
       <div class="sharerow">
         <a class="btn btn-primary shSms">Text a neighbor</a>
         <button class="btn btn-secondary shCopy" type="button">Copy the link</button>
@@ -171,11 +170,11 @@
   </div>
 </div>
 
-<footer class="slim"><span class="folio">Free, one hour, coffee on &middot; aihomebrewclub.com</span><span class="folio">Got a room and a coffee pot? <a href="lend.html?ref=rsvp">Lend it to the club</a></span></footer>
+<footer class="slim"><span class="folio">Free, one hour, no vendors &middot; aihomebrewclub.com</span><span class="folio">Got a room to lend? <a href="lend.html?ref=rsvp">Lend it to the club</a></span></footer>
 </div>
 
-<script src="assets/config.js?v=4"></script>
-<script src="assets/site.js?v=3"></script>
+<script src="assets/config.js?v=5"></script>
+<script src="assets/site.js?v=4"></script>
 <script>
 (function(){
   'use strict';
@@ -228,7 +227,7 @@
     if (d.when){
       var t = fmtTime(d.start_time);
       $('evDate').textContent = d.when;
-      $('evWhen').textContent = d.when + (t ? ', ' + t : '. Time announced soon') + '. One hour, coffee on.';
+      $('evWhen').textContent = d.when + (t ? ', ' + t : '. Time announced soon') + '. One hour.';
       document.querySelectorAll('.evWhenInline').forEach(function(el){ el.textContent = d.when; });
     }
     if (d.location) $('evWhere').textContent = d.location.charAt(0).toUpperCase() + d.location.slice(1) + '.';
@@ -255,7 +254,7 @@
       var t = fmtTime(evData.start_time);
       bits += ', ' + evData.when + (t ? ', ' + t : '');
     }
-    return bits + '. Free, one hour, coffee on. Grab a seat: ' + shareLink;
+    return bits + '. Free, one hour. Grab a seat: ' + shareLink;
   }
   function wireShare(){
     if (!shareLink) shareLink = 'https://aihomebrewclub.com/rsvp.html?event=' + encodeURIComponent(EVENT);

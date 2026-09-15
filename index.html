@@ -7,12 +7,12 @@
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <meta name="description" content="A free one-hour class in Waterville, Maine: bring one real problem from your shop and leave with it handled. No tickets, no vendors.">
 <meta property="og:title" content="The AI Homebrew Club">
-<meta property="og:description" content="You're invited. One hour, and one problem off your plate. Neighbors teaching neighbors to put AI to work. Free, coffee on.">
+<meta property="og:description" content="You're invited. One hour, and one problem off your plate. Neighbors teaching neighbors to put AI to work. Free, no vendors.">
 <meta property="og:image" content="https://aihomebrewclub.com/invite-card.png">
 <meta property="og:url" content="https://aihomebrewclub.com/">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="assets/site.css?v=3">
+<link rel="stylesheet" href="assets/site.css?v=4">
 <style>
   /* ---- the hero: invitation on the left, the ticket on the right ---- */
   .hero{display:grid; grid-template-columns:1fr 460px; gap:clamp(32px,5vw,72px); align-items:start; padding:clamp(40px,5vw,64px) 0 clamp(48px,6vw,72px)}
@@ -20,9 +20,9 @@
   .hero .kicker .by{font-size:15px; font-style:normal; font-family:var(--font-body); font-weight:500; color:var(--ink-3)}
 
   .ticket{display:flex; flex-direction:column; overflow:hidden}
-  .ticket .top{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 22px; background:var(--tangerine); color:var(--on-tangerine)}
-  .ticket .top .folio{color:color-mix(in srgb, var(--on-tangerine) 85%, transparent)}
-  .ticket .top .folio b{color:var(--on-tangerine)}
+  .ticket .top{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 22px; background:var(--paper-2); color:var(--ink); border-bottom:1px dashed var(--rule-2)}
+  .ticket .top .folio{color:var(--ink-3)}
+  .ticket .top .folio b{color:var(--accent)}
   .ticket .date{padding:22px 22px 6px; display:flex; flex-direction:column; gap:2px}
   .ticket .date .big{font-family:var(--font-display); font-size:clamp(1.7rem,3vw,2.375rem); font-weight:800; letter-spacing:-.02em; line-height:1.05; text-wrap:balance}
   .ticket .date .time{font-family:var(--font-mono); font-size:14px; color:var(--ink-2)}
@@ -51,7 +51,7 @@
   .rc .num{font-family:var(--font-mono); font-size:11px; color:var(--ink-3); letter-spacing:.12em}
   .rc h3{font-family:var(--font-body); font-size:17px; font-weight:700; letter-spacing:0; line-height:1.3}
   .rc .body{font-size:14px}
-  .rc .index-card{margin-top:auto; font-size:19px}
+  .rc .index-card{margin-top:auto}
   .rc .cp{display:flex; justify-content:flex-end; margin-top:-4px}
 
   /* ---- why we meet: the two stats ---- */
@@ -69,7 +69,7 @@
   .rung{padding:26px 26px 28px; display:flex; flex-direction:column; gap:10px; border-right:1px solid var(--rule); position:relative}
   .rung:last-child{border-right:0}
   .rung .lv{font-family:var(--font-display); font-size:44px; font-weight:800; letter-spacing:-.03em; line-height:1}
-  .rung .lv.a{color:var(--teal)} .rung .lv.b{color:var(--tangerine)} .rung .lv.c{color:var(--berry)}
+  .rung .lv{color:var(--ink)}
   .rung .bring{font-family:var(--font-mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3)}
   .rung h3{font-family:var(--font-body); font-size:18px; letter-spacing:0; margin-top:6px}
   .rung .body{font-size:14px}
@@ -107,7 +107,6 @@
 </head>
 <body>
 <div class="frame">
-<div class="runner"></div>
 <header class="masthead">
   <a class="brand" href="index.html"><span class="logo" data-size="32" aria-hidden="true"></span><span>The AI Homebrew Club</span></a>
   <span class="est">Central Maine &middot; est. 2026, after 1975</span>
@@ -126,8 +125,9 @@
     <div class="fx col gap24">
       <p class="folio"><b>&#8470; 01</b> &middot; The invitation &middot; Waterville, Maine</p>
       <h1 class="display-xl">You&rsquo;re invited. One hour, and one problem off your plate.</h1>
-      <p class="lede">Neighbors teaching neighbors to put AI to work. Bring one real task that is eating your week; somebody sits with you until it&rsquo;s done. Free, no tickets, no vendors, coffee on.</p>
-      <p class="kicker">&ldquo;Give to help others.&rdquo; <span class="by">&mdash; the Homebrew Computer Club, 1975</span></p>
+      <p class="lede">Neighbors teaching neighbors to put AI to work. Bring one real task that is eating your week; somebody sits with you until it&rsquo;s done. Free, no tickets, no vendors.</p>
+      <p class="kicker">&ldquo;Give to help others.&rdquo; <span class="by">the Homebrew Computer Club, 1975</span></p>
+      <p class="folio">Written by Brett Brockway, Waterville</p>
       <div class="cta">
         <a class="btn btn-secondary btn-lg" href="#the-hour">How the hour runs</a>
         <a class="link" href="events.html">Every meetup, mapped &rarr;</a>
@@ -296,7 +296,7 @@
         <div class="fx gap12 fwrap" style="margin-top:6px"><a class="btn btn-primary" href="rsvp.html?ref=home" id="footRsvp">Save my seat</a><a class="btn btn-secondary" href="lend.html?ref=home">Lend a room</a></div>
       </div>
       <div class="flist"><h4>The club</h4><a href="events.html">The circuit</a><a href="waterville.html">Waterville</a><a href="recipes.html">The recipe box</a><a href="members.html">Members&rsquo; room</a></div>
-      <div class="flist"><h4>Start a chapter</h4><a href="lend.html?ref=home">Got a room and a coffee pot? Lend it to the club.</a><a href="events.html">Every meetup, mapped.</a></div>
+      <div class="flist"><h4>Start a chapter</h4><a href="lend.html?ref=home">Got a room to lend? Start a chapter.</a><a href="events.html">Every meetup, mapped.</a></div>
       <div class="flist"><h4>Always</h4><a href="recipes.html">The recipes are free. They always will be.</a><a href="#the-hour">No tickets, no vendors.</a><a href="members.html">Been to a meetup? The members&rsquo; room is open.</a></div>
     </div>
     <div class="bot">
@@ -308,8 +308,8 @@
 </footer>
 </div>
 
-<script src="assets/config.js?v=4"></script>
-<script src="assets/site.js?v=3"></script>
+<script src="assets/config.js?v=5"></script>
+<script src="assets/site.js?v=4"></script>
 <script>
 (function(){
   'use strict';
@@ -358,7 +358,7 @@
       if (e.when){
         var t = fmtTime(e.start_time);
         $('invWhen').textContent = e.when;
-        $('invTime').textContent = t ? t + ' · coffee on' : 'Coffee on';
+        $('invTime').textContent = t ? t + ' · one hour' : 'Time announced soon';
       }
       $('invSeats').innerHTML = seatMeter(e);
       var full = !(e.left > 0);

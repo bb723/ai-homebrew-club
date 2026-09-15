@@ -10,7 +10,7 @@
 <meta property="og:description" content="Your front door to the club: chat, recipes, the next table. Members only.">
 <meta property="og:image" content="https://aihomebrewclub.com/invite-card.png">
 <meta property="og:type" content="website">
-<link rel="stylesheet" href="assets/club.css?v=3">
+<link rel="stylesheet" href="assets/club.css?v=4">
 </head>
 <body>
 
@@ -40,7 +40,7 @@
       <div class="greet">
         <p class="folio"><b>The members&rsquo; room</b> <span id="roomDate"></span></p>
         <h1 class="display-l" id="hubHi">Come on in.</h1>
-        <p class="hand">Pour yourself a coffee &mdash; here&rsquo;s where everything lives.</p>
+        <p class="hand">Here&rsquo;s where everything lives.</p>
       </div>
 
       <div class="card-raised nt" id="nextCard">
@@ -59,7 +59,7 @@
           <span class="folio">The table</span>
           <span class="tag tag-tang" id="nmSeats" hidden></span>
           <span class="small">Save a seat and the confirmation lands in your email with a calendar invite and a cancel link.</span>
-          <span class="small" style="margin-top:auto">Every table on the circuit: <a class="link" href="events.html">the map and the calendar</a>.</span>
+          <span class="small" style="margin-top:auto">Every meetup on the circuit: <a class="link" href="events.html">the map and the calendar</a>.</span>
         </div>
       </div>
 
@@ -67,7 +67,7 @@
         <a class="card door" href="chat.html">
           <span class="tag tag-teal"><span class="dot dot-live"></span> live now</span>
           <span class="t">The clubhouse</span>
-          <span class="d">Members&rsquo; chat. Pull up a chair, see who&rsquo;s around.</span>
+          <span class="d">Members&rsquo; chat. See who&rsquo;s around.</span>
           <span class="go">Open the clubhouse &rarr;</span>
         </a>
         <a class="card door" id="boardDoor" href="chat.html?room=~feed">
@@ -85,7 +85,7 @@
         <a class="card door" href="events.html">
           <span class="tag tag-sky">the map</span>
           <span class="t">The circuit</span>
-          <span class="d">Every table we set, on the map and the calendar.</span>
+          <span class="d">Every meetup, on the map and the calendar.</span>
           <span class="go">See the circuit &rarr;</span>
         </a>
       </div>
@@ -93,7 +93,7 @@
       <div class="bo">
         <div class="bo-h">
           <h2 class="display-s">The back office</h2>
-          <span class="hand">For the folks running the place &mdash; controls, the plan, and every pitch.</span>
+          <span class="hand">For the folks running the place: controls, the plan, and every pitch.</span>
         </div>
         <div class="pills" id="boLinks"></div>
       </div>
@@ -116,7 +116,7 @@
   .nt [hidden]{display:none}
   .nt .r{border-left:1px solid var(--rule); background:var(--paper-2); padding:22px 24px; display:flex; flex-direction:column; gap:10px}
   .nt .r .tag{height:auto; padding:5px 10px; white-space:normal; line-height:1.3}
-  .nt .r .tag.full{background:var(--tangerine); color:var(--on-tangerine)}
+  .nt .r .tag.full{background:var(--alert); color:#fff}
 
   /* the doors */
   .doors{display:grid; grid-template-columns:repeat(4,1fr); gap:16px}
@@ -243,7 +243,7 @@
 </script>
 
 <script>window.AIHC_PAGE = {deck: 'members', gate: 'member'};</script>
-<script src="assets/config.js?v=4"></script>
+<script src="assets/config.js?v=5"></script>
 <script src="assets/club.js?v=3"></script>
 </body>
 </html>

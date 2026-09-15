@@ -128,19 +128,13 @@ window.AIHC_CONFIG = (function(){
     return el;
   }
 
-  /* The one urn. Paints every <span class="logo" data-size="N"> under root. */
-  var LOGO = '<svg viewBox="0 0 120 120" fill="none" role="img" aria-label="A church-supper coffee urn with a cup">' +
-    '<rect x="34" y="30" width="48" height="56" rx="9" stroke="var(--ink)" stroke-width="5"/>' +
-    '<path d="M40 30 a18 10 0 0 1 36 0" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>' +
-    '<circle cx="58" cy="14" r="4.5" fill="var(--tangerine)"/>' +
-    '<circle cx="58" cy="64" r="4" fill="var(--sky)"/>' +
-    '<path d="M58 68 v10" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/>' +
-    '<path d="M42 86 v9" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>' +
-    '<path d="M74 86 v9" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>' +
-    '<path d="M90 88 h18 v6 a7 7 0 0 1 -7 7 h-4 a7 7 0 0 1 -7 -7 Z" stroke="var(--ink)" stroke-width="4" stroke-linejoin="round"/>' +
-    '<path d="M99 82 c-2 -3 2 -5 0 -9" stroke="var(--tangerine)" stroke-width="3.5" stroke-linecap="round"/>' +
-    '<path d="M46 46 h24" stroke="var(--teal)" stroke-width="4" stroke-linecap="round"/>' +
-    '<path d="M46 54 h16" stroke="var(--lemon)" stroke-width="4" stroke-linecap="round"/></svg>';
+  /* The mark: a notice pinned to the board. Paints every <span class="logo" data-size="N"> under root. */
+  var LOGO = '<svg viewBox="0 0 120 120" fill="none" role="img" aria-label="A pinned notice">' +
+    '<rect x="14" y="14" width="92" height="92" rx="10" fill="var(--ink)"/>' +
+    '<rect x="32" y="38" width="56" height="9" rx="2" fill="var(--paper)"/>' +
+    '<rect x="32" y="56" width="40" height="9" rx="2" fill="var(--paper)"/>' +
+    '<rect x="32" y="74" width="48" height="9" rx="2" fill="var(--paper)"/>' +
+    '<circle cx="90" cy="30" r="7" fill="var(--accent)"/></svg>';
 
   function paintLogos(root){
     (root || document).querySelectorAll('.logo').forEach(function(el){

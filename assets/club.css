@@ -2,7 +2,7 @@
    notes pane, member nav. Shared by members.html, chat.html and every deck/ page.
    Tokens, fonts and the shared components come from site.css (imported below);
    page-specific overrides live in each page's own <style> block after this file. */
-@import url(site.css?v=3);
+@import url(site.css?v=4);
 
 :root{ --panew:320px; }
 
@@ -175,7 +175,7 @@ body.pane-open .hint{display:none}
 .popover .body{font-size:.95rem; white-space:pre-wrap}
 .btn.warn{background:var(--tangerine); color:var(--on-tangerine)}
 .btn.ghost{background:transparent; color:var(--ink-2); border-color:var(--rule-2)}
-.popover .btn,.sidepane .btn{background:var(--teal); color:#FFFDF7; height:32px; padding:0 14px; font-size:13px}
+.popover .btn,.sidepane .btn{background:var(--accent); color:var(--on-accent); height:32px; padding:0 14px; font-size:13px}
 .popover .btn.ghost,.sidepane .btn.ghost{background:transparent; color:var(--ink-2); border:1px solid var(--rule-2)}
 .popover .btn.warn{background:var(--tangerine); color:var(--on-tangerine)}
 .notesbtn{position:fixed; right:16px; bottom:16px; z-index:50; border:1px solid var(--rule-2); border-radius:var(--r-1); height:36px; padding:0 14px; cursor:pointer; background:var(--card); color:var(--ink); font-family:var(--font-body); font-weight:600; font-size:13px; box-shadow:var(--shadow-2); transition:right .25s}
