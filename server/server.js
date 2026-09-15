@@ -3,6 +3,7 @@ const http = require('http');
 const crypto = require('crypto');
 const { Pool } = require('pg');
 const nodemailer = require('nodemailer');
+const Email = require('./email');
 const cron = require('node-cron');
 const { WebSocketServer } = require('ws');
 
@@ -44,10 +45,10 @@ function notify(subject, text) {
     .sendMail({ from: `"The AI Homebrew Club" <${NOTIFY_EMAIL}>`, to: NOTIFY_EMAIL, subject, text })
     .catch(err => console.error('mail failed:', err.message));
 }
-function mailTo(to, subject, text, attachments) {
+function mailTo(to, subject, text, attachments, html) {
   if (!mailer || !to) return;
   mailer
-    .sendMail({ from: `"The AI Homebrew Club" <${NOTIFY_EMAIL}>`, to, subject, text, attachments })
+    .sendMail({ from: `"The AI Homebrew Club" <${NOTIFY_EMAIL}>`, to, subject, text, html, attachments })
     .catch(err => console.error('mail failed:', err.message));
 }
 
@@ -101,13 +102,7 @@ function icsText(ev, eventId) {
 function cancelUrl(eventId, rsvpId) {
   return 'https://aihomebrewclub.com/rsvp.html?event=' + eventId + '&cancel=' + rsvpId;
 }
-function fmtTime(t) {
-  if (!/^\d{1,2}:\d{2}$/.test(t || '')) return '';
-  let [h, m] = t.split(':').map(Number);
-  const ap = h >= 12 ? 'pm' : 'am';
-  h = h % 12 || 12;
-  return h + ':' + String(m).padStart(2, '0') + ' ' + ap;
-}
+const fmtTime = Email.fmtTime;
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -2103,27 +2098,33 @@ async function runReminders() {
       );
       if (!ins.rows.length) continue; /* already sent */
       const seats = await pool.query(
-        "SELECT * FROM aihc_rsvps WHERE event = $1 AND status = 'seat' AND email <> ''", [row.id]
+        "SELECT * FROM aihc_rsvps WHERE event = $1 AND status = 'seat' AND email <> '' ORDER BY ts", [row.id]
       );
+      const quiet = await pool.query(
+        "SELECT name FROM aihc_rsvps WHERE event = $1 AND status = 'seat' AND email = '' ORDER BY ts", [row.id]
+      );
+      const agenda = await pool.query('SELECT t, title, detail FROM aihc_agenda_items WHERE event = $1 ORDER BY pos', [row.id]);
+      const taken = await seatsTaken(row.id);
+      const calendar = gcalUrl(ev, row.id);
+      const now = new Date();
       for (const s of seats.rows) {
-        mailTo(
-          s.email,
-          (w.kind === '12h' ? 'Reminder: ' : 'Almost time: ') + ev.title + ', ' + ev.when,
-          'Hey ' + s.name + ',\n\n' +
-          (w.kind === '12h'
-            ? (s.guest_name ? 'Your seats are saved, yours and ' + s.guest_name + '\'s.' : 'Your seat is saved.')
-            : 'It is nearly time. Your seat is waiting.') +
-          '\n\nWhen: ' + ev.when + ', ' + fmtTime(ev.start_time) +
-          '\nWhere: ' + ev.location +
-          '\nBring: a laptop or just your phone, and one real task that is eating your week.' +
-          (w.kind === '12h'
-            ? '\n\nKnow a neighbor who should be at this table? Send them your link: ' + shareUrl(row.id, s.id)
-            : '') +
-          '\n\nCannot make it after all? Free the seat for a neighbor: ' + cancelUrl(row.id, s.id) +
-          '\n\nCoffee is on.\nThe AI Homebrew Club\nhttps://aihomebrewclub.com'
-        );
+        /* branded html with a plain-text twin; see email.js */
+        const m = Email.reminderEmail({
+          kind: w.kind, ev, rsvp: s, agenda: agenda.rows, taken, now,
+          links: { calendar, share: w.kind === '12h' ? shareUrl(row.id, s.id) : '', cancel: cancelUrl(row.id, s.id) },
+        });
+        mailTo(s.email, m.subject, m.text, undefined, m.html);
       }
-      notify('Reminders sent (' + w.kind + '): ' + ev.when, 'Sent to ' + seats.rows.length + ' seated RSVPs for ' + row.id + '.');
+      const whenLine = (Email.longDate(ev.sort_date) || ev.when) + ', ' + Email.fmtRange(ev.start_time);
+      const n = seats.rows.length;
+      notify(
+        'Reminders sent (' + w.kind + '): ' + ev.title + ', ' + whenLine,
+        ev.title + '\n' + whenLine + '\n' + ev.location + '\n\n' +
+        'The ' + w.kind + ' reminder went to ' + n + ' seated RSVP' + (n === 1 ? '' : 's') +
+        (n ? ':\n' + seats.rows.map(s => '  ' + s.name + (s.guest_name ? ' +1 (' + s.guest_name + ')' : '') + ' <' + s.email + '>').join('\n') : '.') +
+        (quiet.rows.length ? '\n\nNo email on file, not sent: ' + quiet.rows.map(r => r.name).join(', ') : '') +
+        '\n\n' + taken + ' of ' + ev.capacity + ' chairs spoken for. Who is coming: https://aihomebrewclub.com/deck/admin.html'
+      );
     }
   }
 }
