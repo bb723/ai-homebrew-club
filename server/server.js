@@ -2127,11 +2127,12 @@ async function runReminders() {
       const agenda = await pool.query('SELECT t, title, detail FROM aihc_agenda_items WHERE event = $1 ORDER BY pos', [row.id]);
       const taken = await seatsTaken(row.id);
       const calendar = gcalUrl(ev, row.id);
-      const now = new Date();
+      /* sentAt, not now: a `const now` here shadows the loop's guard above into a TDZ error */
+      const sentAt = new Date();
       for (const s of seats.rows) {
         /* branded html with a plain-text twin; see email.js */
         const m = Email.reminderEmail({
-          kind: w.kind, ev, rsvp: s, agenda: agenda.rows, taken, now,
+          kind: w.kind, ev, rsvp: s, agenda: agenda.rows, taken, now: sentAt,
           links: { calendar, share: w.kind === '12h' ? shareUrl(row.id, s.id) : '', cancel: cancelUrl(row.id, s.id) },
         });
         mailTo(s.email, m.subject, m.text, undefined, m.html);
