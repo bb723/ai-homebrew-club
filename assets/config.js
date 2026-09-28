@@ -15,6 +15,7 @@ window.AIHC_CONFIG = (function(){
     {id: 'chat', title: 'The clubhouse', desc: 'Members&rsquo; chat and the bulletin board.', group: 'The club'},
     {id: 'recipes', title: 'The recipe box', desc: 'Public prompt library, one steal at a time.', group: 'The club'},
     {id: 'waterville', title: 'Waterville', desc: 'Public meetup page: agendas, seats, QR.', group: 'The club'},
+    {id: 'portland', title: 'Portland', desc: 'Public meetup page: agendas, seats, QR.', group: 'The club'},
     {id: 'events', title: 'The circuit', desc: 'Every meetup, mapped and dated.', group: 'The club'},
     {id: 'home', title: 'The invite', desc: 'The public landing page.', group: 'The club'},
     {id: 'admin', title: 'Meetup controls', desc: 'Create meetups, edit agendas, the keyring.', group: 'The back office', admin: true},
@@ -28,12 +29,14 @@ window.AIHC_CONFIG = (function(){
   ];
 
   /* Root-level pages; everything else lives under deck/. 'feed' stays routable for old links. */
-  var ROOT_PAGES = {feed: 1, chat: 1, waterville: 1, recipes: 1, members: 1, events: 1, rsvp: 1, lend: 1};
+  var ROOT_PAGES = {feed: 1, chat: 1, waterville: 1, portland: 1, recipes: 1, members: 1, events: 1, rsvp: 1, lend: 1};
 
   /* The circuit map: where each chapter sits on the hand-drawn Maine SVG
-     (viewBox 0 0 400 520 in events.html). One line per town as chapters open. */
+     (viewBox 0 0 400 520 in events.html). One line per town as chapters open;
+     the server's CHAPTERS map (server/server.js) names the same towns for email. */
   var CITY_POINTS = {
-    waterville: {x: 156, y: 334, label: 'Waterville', page: 'waterville.html'}
+    waterville: {x: 156, y: 334, label: 'Waterville', page: 'waterville.html'},
+    portland:   {x: 110, y: 427, label: 'Portland', page: 'portland.html'}
   };
 
   function deckHref(id){

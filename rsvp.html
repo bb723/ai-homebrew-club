@@ -70,10 +70,11 @@
 <div class="frame">
 <header class="masthead">
   <a class="brand" href="index.html"><span class="logo" data-size="32" aria-hidden="true"></span><span>The AI Homebrew Club</span></a>
-  <span class="est">Central Maine &middot; est. 2026, after 1975</span>
+  <span class="est">Maine &middot; est. 2026, after 1975</span>
   <nav>
     <a href="events.html">The circuit</a>
-    <a class="here" href="waterville.html">Waterville</a>
+    <a href="waterville.html" data-city="waterville">Waterville</a>
+    <a href="portland.html" data-city="portland">Portland</a>
     <a href="recipes.html">The recipe box</a>
     <a href="lend.html">Lend a room</a>
     <a class="members" href="members.html">Members&rsquo; room</a>
@@ -83,7 +84,7 @@
 
 <main class="wrap pg">
   <div class="lead">
-    <p class="folio"><b>The AI Brown Bag</b> &middot; Waterville &middot; seat page</p>
+    <p class="folio"><b>The AI Brown Bag</b> &middot; <span id="evTown">Waterville</span> &middot; seat page</p>
     <h1 class="display-xl">Save your seat.</h1>
     <p class="kicker" id="evTitle">The AI Homebrew Club &middot; free, and it always will be</p>
     <p class="lede">First come, first served, and a waitlist that actually works. We&rsquo;ll email the welcome note and text you the morning of.</p>
@@ -93,10 +94,10 @@
         <span class="seats" id="seatPill"><span class="n">Checking seats&hellip;</span></span>
       </div>
       <div class="rows">
-        <div class="r"><span class="k">When</span><span id="evWhen">The next meetup. One hour.</span></div>
+        <div class="r"><span class="k">When</span><span id="evWhen">The next meetup.</span></div>
         <div class="r"><span class="k">Where</span><span id="evWhere">The conference room at Bricks Coworking &amp; Innovation Space, Hathaway Creative Center, 10 Water St, downtown Waterville.</span></div>
         <div class="r"><span class="k">Bring</span><span>A laptop or just your phone, and one real task that is eating your week.</span></div>
-        <div class="r"><span class="k">The hour</span><span id="evHour"><a href="waterville.html">Full agenda on the Waterville page</a></span></div>
+        <div class="r"><span class="k">The hour</span><span id="evHour"><a href="events.html" data-chapter-link>Full agenda on the <span data-chapter-name>chapter</span> page</a></span></div>
       </div>
     </div>
     <p class="hand">Seats are held in the order they are claimed.</p>
@@ -131,7 +132,7 @@
         <button class="btn btn-secondary shNative" type="button" hidden>Share&hellip;</button>
         <a class="btn btn-ghost" id="gcalGo" target="_blank" rel="noopener" hidden>Add to Google Calendar</a>
       </div>
-      <p class="lend"><b>Before the day:</b> <a href="waterville.html">see the agenda</a>, and <a href="recipes.html?ref=rsvp">steal a recipe</a> to try tonight.</p>
+      <p class="lend"><b>Before the day:</b> <a href="events.html" data-chapter-link>see the agenda</a>, and <a href="recipes.html?ref=rsvp">steal a recipe</a> to try tonight.</p>
       <p class="lend">Come once and you&rsquo;re a member &mdash; the secret word to <a href="members.html">the members&rsquo; room</a> is handed out at the table.</p>
     </div>
 
@@ -170,11 +171,11 @@
   </div>
 </div>
 
-<footer class="slim"><span class="folio">Free, one hour, no vendors &middot; aihomebrewclub.com</span><span class="folio">Got a room to lend? <a href="lend.html?ref=rsvp">Lend it to the club</a></span></footer>
+<footer class="slim"><span class="folio" id="footStamp">Free, one hour, no vendors &middot; aihomebrewclub.com</span><span class="folio">Got a room to lend? <a href="lend.html?ref=rsvp">Lend it to the club</a></span></footer>
 </div>
 
-<script src="assets/config.js?v=5"></script>
-<script src="assets/site.js?v=4"></script>
+<script src="assets/config.js?v=6"></script>
+<script src="assets/site.js?v=5"></script>
 <script>
 (function(){
   'use strict';
@@ -182,6 +183,7 @@
   var $ = window.AIHC_UI.$;
   var esc = window.AIHC_UI.esc;
   var fmtTime = window.AIHC_UI.fmtTime;
+  var lengthPhrase = window.AIHC_UI.lengthPhrase;
   /* one page, many events: /rsvp.html?event=<id> — each event gets its own QR.
      with no ?event=, the page resolves to the NEXT UPCOMING meetup, so printed
      generic QRs stay evergreen. */
@@ -190,6 +192,19 @@
   /* ref: where this visitor came from (qr, feed, email, n-<rsvpId>...); stored with the rsvp */
   var REF = (params.get('ref') || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 40);
   var LS_MINE = '';
+  /* the chapter this meetup belongs to: its public page, and its name on the masthead and in the copy */
+  var chapter = {page: 'events.html', label: 'chapter'};
+  function cap(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
+  function paintChapter(city){
+    var pt = window.AIHC_CONFIG.CITY_POINTS[city];
+    chapter = pt ? {page: pt.page, label: pt.label} : {page: 'events.html', label: cap(String(city || 'chapter'))};
+    $('evTown').textContent = chapter.label;
+    document.querySelectorAll('.masthead nav a[data-city]').forEach(function(a){
+      a.classList.toggle('here', a.getAttribute('data-city') === city);
+    });
+    document.querySelectorAll('a[data-chapter-link]').forEach(function(a){ a.href = chapter.page; });
+    document.querySelectorAll('[data-chapter-name]').forEach(function(s){ s.textContent = chapter.label; });
+  }
   /* invite links from the console arrive with name+email: fill them in so the
      regulars just add a phone and go */
   (function(){
@@ -227,10 +242,12 @@
     if (d.when){
       var t = fmtTime(d.start_time);
       $('evDate').textContent = d.when;
-      $('evWhen').textContent = d.when + (t ? ', ' + t : '. Time announced soon') + '. One hour.';
+      $('evWhen').textContent = d.when + (t ? ', ' + t : '. Time announced soon') + '. ' + cap(lengthPhrase(d.minutes)) + '.';
       document.querySelectorAll('.evWhenInline').forEach(function(el){ el.textContent = d.when; });
     }
     if (d.location) $('evWhere').textContent = d.location.charAt(0).toUpperCase() + d.location.slice(1) + '.';
+    if (d.city) paintChapter(d.city);
+    if (d.minutes) $('footStamp').textContent = 'Free, ' + lengthPhrase(d.minutes) + ', no vendors · aihomebrewclub.com';
     $('fullLend').hidden = !full;
   }
   /* the mini call sheet: the event's agenda when /events has it, else just the link */
@@ -239,11 +256,11 @@
     $('evHour').innerHTML = '<div class="callsheet">' + items.map(function(a){
       return '<div class="row"><span class="t">' + esc(a.t || '') + '</span><span><span class="ti">' + esc(a.title || '') + '</span>' +
         (a.detail ? ' <span class="d">' + esc(a.detail) + '</span>' : '') + '</span></div>';
-    }).join('') + '</div><a class="agmore" href="waterville.html">Full agenda on the Waterville page</a>';
+    }).join('') + '</div><a class="agmore" href="' + chapter.page + '">Full agenda on the ' + esc(chapter.label) + ' page</a>';
   }
   function agendaFrom(events){
     var e = (events || []).filter(function(x){ return x.id === EVENT; })[0];
-    if (e) paintAgenda(e.agenda);
+    if (e){ paintAgenda(e.agenda); if (e.city) paintChapter(e.city); }
   }
 
   /* share row: the neighbor link carries this rsvp's ref tag so we learn what fills seats */
@@ -254,7 +271,7 @@
       var t = fmtTime(evData.start_time);
       bits += ', ' + evData.when + (t ? ', ' + t : '');
     }
-    return bits + '. Free, one hour. Grab a seat: ' + shareLink;
+    return bits + '. Free, ' + lengthPhrase(evData && evData.minutes) + '. Grab a seat: ' + shareLink;
   }
   function wireShare(){
     if (!shareLink) shareLink = 'https://aihomebrewclub.com/rsvp.html?event=' + encodeURIComponent(EVENT);

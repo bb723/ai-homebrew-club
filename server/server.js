@@ -66,11 +66,29 @@ function eventStartUtc(ev) {
 function calStamp(d) {
   return d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
 }
+/* the chapters: one public page per town, and how the town is named in mail.
+   A town missing here still works everywhere; its links just point at the circuit. */
+const CHAPTERS = {
+  waterville: { label: 'Waterville, Maine', page: 'https://aihomebrewclub.com/waterville.html' },
+  portland: { label: 'Portland, Maine', page: 'https://aihomebrewclub.com/portland.html' },
+};
+function chapterOf(city) {
+  return CHAPTERS[String(city || '').toLowerCase()] || { label: 'Maine', page: 'https://aihomebrewclub.com/events.html' };
+}
+/* how long a meetup runs, in minutes: the event's own length, else the classic hour */
+function eventMinutes(ev) {
+  return Math.min(480, Math.max(15, parseInt(ev && ev.minutes, 10) || 60));
+}
+/* 60 -> 'One hour', 120 -> 'Two hours', 90 -> '90 minutes' */
+function lengthWord(minutes) {
+  const m = parseInt(minutes, 10) || 60;
+  return m === 60 ? 'One hour' : m === 120 ? 'Two hours' : m === 180 ? 'Three hours' : m + ' minutes';
+}
 function gcalUrl(ev, eventId) {
   const start = eventStartUtc(ev);
   let dates;
   if (start) {
-    dates = calStamp(start) + '/' + calStamp(new Date(start.getTime() + 3600000));
+    dates = calStamp(start) + '/' + calStamp(new Date(start.getTime() + eventMinutes(ev) * 60000));
   } else if (ev.sort_date) {
     const d0 = ev.sort_date.replace(/-/g, '');
     const next = new Date(Date.UTC(
@@ -83,20 +101,20 @@ function gcalUrl(ev, eventId) {
     '&text=' + encodeURIComponent(ev.title) +
     '&dates=' + dates +
     '&location=' + encodeURIComponent(ev.location) +
-    '&details=' + encodeURIComponent('One hour, coffee on. Bring a laptop or your phone and one real task. Agenda: https://aihomebrewclub.com/waterville.html');
+    '&details=' + encodeURIComponent(lengthWord(ev.minutes) + ', coffee on. Bring a laptop or your phone and one real task. Agenda: ' + chapterOf(ev.city).page);
 }
 function icsText(ev, eventId) {
   const start = eventStartUtc(ev);
   let dt;
   if (start) {
-    dt = 'DTSTART:' + calStamp(start) + '\r\nDTEND:' + calStamp(new Date(start.getTime() + 3600000));
+    dt = 'DTSTART:' + calStamp(start) + '\r\nDTEND:' + calStamp(new Date(start.getTime() + eventMinutes(ev) * 60000));
   } else if (ev.sort_date) {
     dt = 'DTSTART;VALUE=DATE:' + ev.sort_date.replace(/-/g, '');
   } else return null;
   return 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//AIHC//meetup//EN\r\nBEGIN:VEVENT\r\n' +
     'UID:' + eventId + '@aihomebrewclub.com\r\n' + dt + '\r\n' +
     'SUMMARY:' + ev.title + '\r\nLOCATION:' + ev.location.replace(/,/g, '\\,') + '\r\n' +
-    'DESCRIPTION:One hour\\, coffee on. Agenda: https://aihomebrewclub.com/waterville.html\r\n' +
+    'DESCRIPTION:' + lengthWord(ev.minutes) + '\\, coffee on. Agenda: ' + chapterOf(ev.city).page + '\r\n' +
     'END:VEVENT\r\nEND:VCALENDAR\r\n';
 }
 function cancelUrl(eventId, rsvpId) {
@@ -227,6 +245,8 @@ async function init() {
   await pool.query("ALTER TABLE aihc_rsvps ADD COLUMN IF NOT EXISTS ref text NOT NULL DEFAULT ''");
   await pool.query("ALTER TABLE aihc_rsvps ADD COLUMN IF NOT EXISTS guest_name text NOT NULL DEFAULT ''");
   await pool.query("ALTER TABLE aihc_events ADD COLUMN IF NOT EXISTS start_time text NOT NULL DEFAULT ''");
+  /* how long the meetup runs: the calendar invite's end, the reminders' range, the 'one hour' copy */
+  await pool.query('ALTER TABLE aihc_events ADD COLUMN IF NOT EXISTS minutes integer NOT NULL DEFAULT 60');
   await pool.query(`
     CREATE TABLE IF NOT EXISTS aihc_venues (
       id     text PRIMARY KEY,
@@ -538,13 +558,13 @@ app.post('/posts', async (req, res) => {
 /* rsvp: slots are recorded per event; events live in aihc_events (admin-managed) */
 async function getEvent(id) {
   const q = await pool.query(
-    'SELECT id, city, title, when_text, sort_date, start_time, location, capacity, status FROM aihc_events WHERE id = $1', [id]
+    'SELECT id, city, title, when_text, sort_date, start_time, minutes, location, capacity, status FROM aihc_events WHERE id = $1', [id]
   );
   if (!q.rows.length) return null;
   const r = q.rows[0];
   return {
     title: r.title, when: r.when_text, location: r.location, capacity: r.capacity,
-    city: r.city, status: r.status, sort_date: r.sort_date, start_time: r.start_time,
+    city: r.city, status: r.status, sort_date: r.sort_date, start_time: r.start_time, minutes: r.minutes,
   };
 }
 
@@ -638,7 +658,7 @@ app.get('/rsvp', async (req, res) => {
     res.json({
       event: key, title: ev.title, when: ev.when, location: ev.location,
       capacity: ev.capacity, taken, left: Math.max(0, ev.capacity - taken),
-      sort_date: ev.sort_date, start_time: ev.start_time, gcal: gcalUrl(ev, key),
+      sort_date: ev.sort_date, start_time: ev.start_time, minutes: ev.minutes, city: ev.city, gcal: gcalUrl(ev, key),
     });
   } catch (err) {
     console.error(err);
@@ -691,7 +711,7 @@ app.post('/rsvp', async (req, res) => {
             (promoted.guest_name ? 'You and ' + promoted.guest_name + ' have seats for ' : 'You have a seat for ') +
             ev.title + '.\n\nWhen: ' + ev.when + (ev.start_time ? ', ' + fmtTime(ev.start_time) : ' (time announced soon)') +
             '\nWhere: ' + ev.location +
-            '\n\nAdd it to your calendar: ' + (gcalUrl(ev, r.event) || 'https://aihomebrewclub.com/waterville.html') +
+            '\n\nAdd it to your calendar: ' + (gcalUrl(ev, r.event) || chapterOf(ev.city).page) +
             '\n\nPlans change? Give the seat back here: ' + cancelUrl(r.event, promoted.id) +
             '\n\nSee you at the table,\nThe AI Homebrew Club\nhttps://aihomebrewclub.com'
           );
@@ -802,8 +822,8 @@ app.post('/rsvp', async (req, res) => {
             (ev.start_time ? ', ' + fmtTime(ev.start_time) : ' (time announced soon)') +
             '\nWhere: ' + ev.location +
             '\nBring: a laptop or just your phone, and one real task that is eating your week.' +
-            '\nCost: free. Coffee on.\n\nAdd it to your calendar: ' + (gc || 'https://aihomebrewclub.com/waterville.html') +
-            '\nAgenda: https://aihomebrewclub.com/waterville.html' +
+            '\nCost: free. Coffee on.\n\nAdd it to your calendar: ' + (gc || chapterOf(ev.city).page) +
+            '\nAgenda: ' + chapterOf(ev.city).page +
             '\n\nKnow a neighbor who should be at this table? Forward this, or send them your link: ' + shareUrl(key, id) +
             '\n\nPlans change? Cancel your seat here so a neighbor can have it: ' + cancelUrl(key, id) +
             '\n\nSee you at the table,\nThe AI Homebrew Club\nhttps://aihomebrewclub.com'
@@ -835,8 +855,8 @@ app.get('/events', async (req, res) => {
       const taken = await seatsTaken(r.id);
       events.push({
         id: r.id, city: r.city, title: r.title, when: r.when_text, sort_date: r.sort_date,
-        start_time: r.start_time, location: r.location, capacity: r.capacity, status: r.status,
-        gcal: gcalUrl({ title: r.title, location: r.location, sort_date: r.sort_date, start_time: r.start_time }, r.id),
+        start_time: r.start_time, minutes: r.minutes, location: r.location, capacity: r.capacity, status: r.status,
+        gcal: gcalUrl({ title: r.title, location: r.location, sort_date: r.sort_date, start_time: r.start_time, minutes: r.minutes, city: r.city }, r.id),
         taken, left: Math.max(0, r.capacity - taken),
         agenda: agQ.rows.filter(a => a.event === r.id)
           .map(a => ({ id: a.id, pos: a.pos, t: a.t, title: a.title, detail: a.detail })),
@@ -862,14 +882,14 @@ app.post('/events', async (req, res) => {
       if (!id) return res.status(400).json({ error: 'bad id' });
       const startTime = /^\d{1,2}:\d{2}$/.test(String(e.start_time || '')) ? String(e.start_time) : '';
       await pool.query(
-        `INSERT INTO aihc_events (id, city, title, when_text, sort_date, start_time, location, capacity, status, ts)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+        `INSERT INTO aihc_events (id, city, title, when_text, sort_date, start_time, minutes, location, capacity, status, ts)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
          ON CONFLICT (id) DO UPDATE SET
            city = EXCLUDED.city, title = EXCLUDED.title, when_text = EXCLUDED.when_text,
-           sort_date = EXCLUDED.sort_date, start_time = EXCLUDED.start_time, location = EXCLUDED.location,
-           capacity = EXCLUDED.capacity, status = EXCLUDED.status`,
+           sort_date = EXCLUDED.sort_date, start_time = EXCLUDED.start_time, minutes = EXCLUDED.minutes,
+           location = EXCLUDED.location, capacity = EXCLUDED.capacity, status = EXCLUDED.status`,
         [id, String(e.city || 'waterville').toLowerCase().slice(0, 40), String(e.title || '').slice(0, 200),
-         String(e.when || '').slice(0, 200), String(e.sort_date || '').slice(0, 10), startTime,
+         String(e.when || '').slice(0, 200), String(e.sort_date || '').slice(0, 10), startTime, eventMinutes(e),
          String(e.location || '').slice(0, 300), Math.max(1, parseInt(e.capacity, 10) || 8),
          e.status === 'past' ? 'past' : 'upcoming', new Date().toISOString()]
       );
@@ -1695,7 +1715,7 @@ app.post('/venues', async (req, res) => {
       mailTo(
         email, 'Got it. Thank you for the room.',
         'Hey ' + name + ',\n\nThank you for offering ' + venue + ' in ' + town + '. That is exactly how new tables start.' +
-        '\n\nWe will be in touch to find a date that works. In the meantime, the recipes are free at https://aihomebrewclub.com/recipes.html and the next meetup is at https://aihomebrewclub.com/waterville.html.' +
+        '\n\nWe will be in touch to find a date that works. In the meantime, the recipes are free at https://aihomebrewclub.com/recipes.html and every meetup is on the circuit at https://aihomebrewclub.com/events.html.' +
         '\n\nCoffee is on us,\nThe AI Homebrew Club\nhttps://aihomebrewclub.com'
       );
     }
@@ -2083,6 +2103,7 @@ async function runReminders() {
     const ev = {
       title: row.title, when: row.when_text, location: row.location,
       capacity: row.capacity, sort_date: row.sort_date, start_time: row.start_time,
+      city: row.city, minutes: row.minutes, place: chapterOf(row.city).label,
     };
     const start = eventStartUtc(ev);
     if (!start) continue;
@@ -2115,7 +2136,7 @@ async function runReminders() {
         });
         mailTo(s.email, m.subject, m.text, undefined, m.html);
       }
-      const whenLine = (Email.longDate(ev.sort_date) || ev.when) + ', ' + Email.fmtRange(ev.start_time);
+      const whenLine = (Email.longDate(ev.sort_date) || ev.when) + ', ' + Email.fmtRange(ev.start_time, ev.minutes);
       const n = seats.rows.length;
       notify(
         'Reminders sent (' + w.kind + '): ' + ev.title + ', ' + whenLine,

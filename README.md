@@ -1,6 +1,6 @@
 # The AI Homebrew Club
 
-A modern revival of the **Homebrew Computer Club** (1975–1986) — the Menlo Park garage meetup where Steve Wozniak demoed the Apple I and handed out its schematics for free — rebuilt for the age of AI. The club runs free one-hour meetups (the **AI Brown Bag**) in central Maine where neighbors teach neighbors to put AI to work.
+A modern revival of the **Homebrew Computer Club** (1975–1986) — the Menlo Park garage meetup where Steve Wozniak demoed the Apple I and handed out its schematics for free — rebuilt for the age of AI. The club runs free meetups (the **AI Brown Bag**) in Maine, one chapter per town, where neighbors teach neighbors to put AI to work.
 
 > Give to help others.
 
@@ -17,7 +17,8 @@ Zero-build GitHub Pages site at **aihomebrewclub.com** (see `CNAME`). Plain HTML
 | `index.html` | The invitation. Fills its meetup card live from the calendar — no dates in static HTML |
 | `rsvp.html` | Seat reservation; where every QR and shared link lands. `?event=<id>` per meetup, bare URL resolves to the next upcoming one; `?cancel=<id>` from emails; `?ref=` tracks what fills seats |
 | `events.html` | The circuit: a hand-drawn Maine map with a pin per chapter town, plus a month calendar of every meetup (town positions live in `CITY_POINTS` in config.js) |
-| `waterville.html` | The chapter page: live agendas, seat counts, per-event QR, the record of past meetups |
+| `waterville.html` | Chapter 01, Waterville: the next meetup with its live agenda, seat count and per-event QR, plus the record of past meetups |
+| `portland.html` | Chapter 02, Portland: the same live card and record, plus how that table runs (once a month, two hours, eight seats, project-based) |
 | `recipes.html` | Public prompt library, managed from the admin console |
 | `lend.html` | Venue offers — how new chapters start |
 
@@ -43,9 +44,22 @@ Every page is self-contained HTML with a small page-specific `<style>`/`<script>
 
 Load order contract for gated pages: `club.css` in `<head>` → inline gate markup → page content/styles → page script → `window.AIHC_PAGE = {deck:'<id>'}` → `config.js` → `club.js` last (page scripts poll for `window.AIHC`).
 
+### Adding a chapter
+
+A chapter is one public page plus a few registrations. `portland.html` is the template (Chapter 02); `waterville.html` is the original.
+
+1. Copy `portland.html` to `<town>.html`: set `CITY` in its script, the folio (Chapter NN), the copy, and the masthead's `here` link.
+2. `assets/config.js`: add the town to `CITY_POINTS` (x/y on the map's 400×520 viewBox, label, page), to `DECKS` (the members' nav), and to `ROOT_PAGES`.
+3. `assets/site.js`: add `<town>.html` to `PAGE_IDS`.
+4. Add the town's link to every public masthead (index, events, waterville, portland, recipes, lend; rsvp's carries `data-city` so the page can mark the meetup's own chapter).
+5. `server/server.js`: add the town to `CHAPTERS` so confirmations, reminders and calendar invites name the right page and place.
+6. Bump `?v=` on config.js and site.js everywhere they load. Then create the first meetup in the console with that city (`city` is what ties an event to its page) and open a `#<town>` room in the clubhouse so run sheets share there automatically.
+
 ### Backend
 
-One Heroku app (URL in `assets/config.js`), not in this repo. Endpoints used: `GET /events`, `GET /recipes`, `GET/POST /rsvp`, `POST /venues`, `GET/POST /notes`, `GET/POST /posts`, `GET/POST /chat` + `WS /chat/ws`, `GET /attendees`, `GET /rsvps`, `POST /agenda` (incl. `action:'replace'` — the whole run sheet in one transaction), `GET/POST /channels`, `GET/POST /blocks` (the run-sheet block library), `POST /agenda-draft` (AI lineup proposal), `POST /recipes-draft` (AI recipe proposals from the room's RSVP asks), `POST /admin-secret` (self-serve admin-word rotation). Traffic: `POST /hits` (public, cookieless page-view beacon fired from `assets/config.js`; stores page, referrer host, `?ref=` tag, device class, language — never IPs, UAs, or cookies; honors DNT/GPC; bots and >60/min per IP dropped) and `GET /hits/summary?days=N` (admin; feeds the console's `#traffic` panel).
+One Heroku app (URL in `assets/config.js`), source in `server/`. Endpoints used: `GET /events`, `GET /recipes`, `GET/POST /rsvp`, `POST /venues`, `GET/POST /notes`, `GET/POST /posts`, `GET/POST /chat` + `WS /chat/ws`, `GET /attendees`, `GET /rsvps`, `POST /agenda` (incl. `action:'replace'` — the whole run sheet in one transaction), `GET/POST /channels`, `GET/POST /blocks` (the run-sheet block library), `POST /agenda-draft` (AI lineup proposal), `POST /recipes-draft` (AI recipe proposals from the room's RSVP asks), `POST /admin-secret` (self-serve admin-word rotation). Traffic: `POST /hits` (public, cookieless page-view beacon fired from `assets/config.js`; stores page, referrer host, `?ref=` tag, device class, language — never IPs, UAs, or cookies; honors DNT/GPC; bots and >60/min per IP dropped) and `GET /hits/summary?days=N` (admin; feeds the console's `#traffic` panel).
+
+**Events carry their length.** `aihc_events.minutes` (default 60) sets the calendar invite's end time, the reminders' end time and range, and the "one hour"/"two hours" copy on the RSVP page and the invite ticket; the console's Length field writes it. `CHAPTERS` in server.js maps a city to its public page and its name in mail ("Portland, Maine"); a city not in the map falls back to the circuit and "Maine".
 
 **The run-sheet builder:** meetup content lives as reusable blocks (`aihc_blocks`: title, kind demo/talk/task/admin, minutes, the prompt/script, presenter notes, links) managed in the console's "block shelf" panel. Each event's Agenda panel builds a lineup from those blocks with auto-computed `t` labels (clock times when the event has a `start_time`, else `0:00`-style offsets) and saves through `POST /agenda {action:'replace'}`. The "Draft it for me" button calls `POST /agenda-draft`, which asks `claude-opus-5` (via `@anthropic-ai/sdk`) for a lineup constrained to a JSON schema; it appears only when the server has `ANTHROPIC_API_KEY` set (`heroku config:set ANTHROPIC_API_KEY=<key> -a aihc-notes`) and never writes anything itself — the admin edits, then writes. Writing an agenda can also post the run sheet to the clubhouse (the channel matching the event's city — `#waterville` — else `#general`) so members see it. The recipe box has its own drafter: `POST /recipes-draft` reads the box (no duplicates) and the last 30 RSVPs' "what do you do / what do you want help with" lines (anonymized — names and contacts never leave the server) and proposes 3 recipes the admin can add or edit. Both AI endpoints stream whitespace while the model thinks to dodge Heroku's 30-second H12 router timeout — keep that drip in any new long-running endpoint.
 
@@ -85,7 +99,7 @@ then open `http://localhost:8000` (`localhost` is in `SITE_HOSTS`, so nav behave
 
 Push to `master`; GitHub Pages serves the root. Two cautions:
 
-- GitHub Pages caches assets ~10 minutes. After editing an already-deployed shared asset (`site.css`, `club.js`, …), bump the `?v=N` query on its `<link>`/`<script>` tags (and the `@import` in club.css) if the change must land atomically with the HTML. Currently `site.css`/`site.js`/`club.css` `?v=4` and `config.js` `?v=5` (deck pages still reference the older tags until the decks move to the Bulletin).
+- GitHub Pages caches assets ~10 minutes. After editing an already-deployed shared asset (`site.css`, `club.js`, …), bump the `?v=N` query on its `<link>`/`<script>` tags (and the `@import` in club.css) if the change must land atomically with the HTML. Currently `site.css`/`club.css` `?v=4`, `site.js` `?v=5` and `config.js` `?v=6` (deck pages still reference the older tags until the decks move to the Bulletin).
 - Always push with git, never the GitHub web UI (25 MB upload cap; the walkthrough videos in `assets/` are larger).
 
 The three `assets/*.mp4` walkthrough videos (VS Code install, Claude Code install, working with Claude) are workshop material — nothing on the site links them.

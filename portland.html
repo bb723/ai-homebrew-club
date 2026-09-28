@@ -2,18 +2,20 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Waterville &middot; The AI Homebrew Club</title>
+<title>Portland &middot; The AI Homebrew Club</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<meta property="og:title" content="The AI Brown Bag in Waterville">
-<meta property="og:description" content="The next meetup, the agenda, and every meetup held here. Free, one hour, no vendors.">
+<meta name="description" content="The AI Homebrew Club in Portland, Maine: a small table, once a month, for people building with AI. Eight seats, two hours, project-based. Free, no vendors.">
+<meta property="og:title" content="The AI Homebrew Club in Portland">
+<meta property="og:description" content="A small table, once a month, for people building with AI. Eight seats, two hours, project-based. Free, no vendors.">
 <meta property="og:image" content="https://aihomebrewclub.com/invite-card.png">
-<meta property="og:url" content="https://aihomebrewclub.com/waterville.html">
+<meta property="og:url" content="https://aihomebrewclub.com/portland.html">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="assets/site.css?v=4">
 <style>
-  /* Chapter 01 - Waterville: the next meetup as one raised card, the QR beside it, the record below. */
+  /* Chapter 02 - Portland: the next meetup as one raised card, the QR beside it,
+     how this table runs, and the record below. */
   .page-head .hand{max-width:24ch; text-align:right}
   main.wrap{padding-bottom:64px}
   .sec{margin:0 0 12px}
@@ -32,6 +34,21 @@
   .qr .none{font-family:var(--font-mono); font-size:11px; color:var(--ink-3); line-height:1.5}
   .agenda-empty{font-style:italic; color:var(--ink-3); font-size:14px}
   .empty{color:var(--ink-3); font-style:italic; font-size:14px}
+  .empty a{font-weight:600}
+
+  /* ---- this table: cadence, seats, the work ---- */
+  .facts{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:16px}
+  .fact{padding:20px 22px 22px; display:flex; flex-direction:column; gap:8px}
+  .fact .n{font-family:var(--font-display); font-size:clamp(1.35rem,2.1vw,1.7rem); font-weight:700; letter-spacing:-.02em; line-height:1.1; text-wrap:balance}
+  .fact .d{font-size:14px; color:var(--ink-2); line-height:1.5}
+
+  /* ---- the session: the run of a typical two hours, and the rooms between ---- */
+  .flow{display:grid; grid-template-columns:1fr 340px; overflow:hidden; margin-bottom:28px}
+  .flow .l{padding:24px 30px 26px; min-width:0; display:flex; flex-direction:column; gap:10px}
+  .flow .l .callsheet .row{grid-template-columns:56px 1fr}
+  .flow .r{border-left:1px solid var(--rule); background:var(--paper-2); padding:24px 26px; display:flex; flex-direction:column; gap:12px}
+  .flow .rooms{display:grid; grid-template-columns:auto 1fr; gap:8px 10px; align-items:baseline}
+  .flow .rooms .tag{font-weight:600}
 
   /* ---- the record ---- */
   .past .p{display:grid; grid-template-columns:150px 1fr auto; gap:20px; padding:16px 20px; align-items:baseline; border-top:1px solid var(--rule)}
@@ -41,18 +58,19 @@
   .past .p .t b{color:var(--ink)}
   .past details{grid-column:3; text-align:right}
   .past details[open]{grid-column:1 / -1; text-align:left}
-  .past details summary{font-size:13px; font-weight:600; color:var(--teal-deep); cursor:pointer; list-style:none; text-decoration:underline; text-underline-offset:3px; text-decoration-color:rgba(85,124,75,.4)}
+  .past details summary{font-size:13px; font-weight:600; color:var(--accent-deep); cursor:pointer; list-style:none; text-decoration:underline; text-underline-offset:3px; text-decoration-color:color-mix(in srgb, var(--accent) 45%, transparent)}
   .past details summary::-webkit-details-marker{display:none}
-  .past details summary:hover{color:var(--tangerine)}
+  .past details summary:hover{color:var(--accent)}
   .past details .callsheet{margin-top:8px}
 
   @media (max-width:900px){
     .page-head .hand{text-align:left}
-    .next{grid-template-columns:1fr}
-    .next .r{border-left:0; border-top:1px solid var(--rule)}
+    .next,.flow{grid-template-columns:1fr}
+    .next .r,.flow .r{border-left:0; border-top:1px solid var(--rule)}
+    .facts{grid-template-columns:1fr}
   }
   @media (max-width:640px){
-    .next .l{padding:20px 18px 22px}
+    .next .l,.flow .l{padding:20px 18px 22px}
     .past .p{grid-template-columns:1fr; gap:6px}
   }
 </style>
@@ -64,8 +82,8 @@
   <span class="est">Maine &middot; est. 2026, after 1975</span>
   <nav>
     <a href="events.html">The circuit</a>
-    <a class="here" href="waterville.html">Waterville</a>
-    <a href="portland.html">Portland</a>
+    <a href="waterville.html">Waterville</a>
+    <a class="here" href="portland.html">Portland</a>
     <a href="recipes.html">The recipe box</a>
     <a href="lend.html">Lend a room</a>
     <a class="members" href="members.html">Members&rsquo; room</a>
@@ -76,9 +94,9 @@
 <main class="wrap">
   <div class="page-head">
     <div class="fx col gap12">
-      <p class="folio"><b>Chapter 01</b> &middot; Waterville, Maine</p>
-      <h1 class="display-xl">Waterville.</h1>
-      <p class="lede">Neighbors teaching neighbors to put AI to work. Free, and it always will be.</p>
+      <p class="folio"><b>Chapter 02</b> &middot; Portland, Maine</p>
+      <h1 class="display-xl">Portland.</h1>
+      <p class="lede">A small table, once a month, for people building with AI. Bring the project you are working on and leave with it further along. Free, and it always will be.</p>
     </div>
     <p class="hand">Scan to RSVP, or screenshot this and text a neighbor.</p>
   </div>
@@ -86,13 +104,43 @@
   <p class="folio sec" id="nextH"><b>The next meetup</b></p>
   <div id="nextWrap"><p class="empty">Checking the calendar&hellip;</p></div>
 
+  <p class="folio sec"><b>This table</b> &middot; how Portland runs</p>
+  <div class="facts">
+    <div class="card fact"><span class="folio">Cadence</span><span class="n">Once a month. Two hours.</span><span class="d">Late afternoon, after the workday winds down. The date and the hour land on this page first.</span></div>
+    <div class="card fact"><span class="folio">Seats</span><span class="n">Eight chairs.</span><span class="d">Small on purpose, so everyone gets airtime and a hand. If the table fills, the waitlist works, and a second table can open.</span></div>
+    <div class="card fact"><span class="folio">The work</span><span class="n">Projects, not lectures.</span><span class="d">Bring something real you are building, or want to. We work it together, show the stack live, and write down what worked.</span></div>
+  </div>
+
+  <div class="card flow">
+    <div class="l">
+      <span class="folio">The session &middot; two hours</span>
+      <div class="callsheet">
+        <div class="row"><span class="t">0:00</span><span><span class="ti">Round the table.</span> <span class="d">Who you are, what you are building, where you are stuck.</span></span></div>
+        <div class="row"><span class="t">0:20</span><span><span class="ti">The stack, live.</span> <span class="d">One of us walks through a real setup end to end, warts and all. Ask anything.</span></span></div>
+        <div class="row"><span class="t">1:00</span><span><span class="ti">Build together.</span> <span class="d">Pair up on the projects in the room. Try it, break it, write down what happened.</span></span></div>
+        <div class="row"><span class="t">1:45</span><span><span class="ti">The close.</span> <span class="d">Everyone answers one question: what will you actually try before next month?</span></span></div>
+      </div>
+      <p class="small">The first few sessions will be a little choppy while the table finds its shape. That is the point. The tools are new enough that we learn them together, peer to peer.</p>
+    </div>
+    <div class="r">
+      <span class="folio">Between meetups</span>
+      <p class="body">The table keeps talking in the clubhouse, the club&rsquo;s own chat. Two rooms belong to Portland:</p>
+      <div class="rooms">
+        <span class="tag tag-teal">#portland</span><span class="small">Dates, run sheets, and who is bringing what.</span>
+        <span class="tag tag-teal">#portland-projects</span><span class="small">The build logs: what you tried, what broke, what worked.</span>
+      </div>
+      <p class="small">Come once and you are a member. Your key to the clubhouse is handed out at the table.</p>
+      <a class="btn btn-secondary btn-sm" href="members.html" style="align-self:flex-start">The members&rsquo; room</a>
+    </div>
+  </div>
+
   <div class="past">
     <p class="folio sec" id="pastH" hidden><b>The record</b> &middot; every meetup held here</p>
     <div id="pastWrap"></div>
   </div>
 </main>
 
-<footer class="slim"><span class="folio">Free, one hour, no vendors</span><span class="folio"><a href="recipes.html">The recipes</a> &middot; <a href="lend.html?ref=town">Lend a room</a> &middot; <a href="events.html">The circuit</a></span></footer>
+<footer class="slim"><span class="folio">Free, once a month, no vendors</span><span class="folio"><a href="recipes.html">The recipes</a> &middot; <a href="lend.html?ref=town">Lend a room</a> &middot; <a href="events.html">The circuit</a></span></footer>
 </div>
 
 <script src="assets/qrlib.js"></script>
@@ -104,7 +152,7 @@
   var BASE = window.AIHC_CONFIG.API_BASE;
   var esc = window.AIHC_UI.esc;
   var fmtTime = window.AIHC_UI.fmtTime;
-  var CITY = 'waterville';
+  var CITY = 'portland';
 
   function qrSvg(url){
     try{
@@ -128,7 +176,7 @@
     return 'The agenda' + (n ? ' · ' + n + ' minutes' : '');
   }
   function agendaHtml(items){
-    if (!items || !items.length) return '<p class="agenda-empty">Agenda coming soon. It always fits in one hour.</p>';
+    if (!items || !items.length) return '<p class="agenda-empty">Agenda coming soon. It always fits in the session.</p>';
     return '<span class="folio">' + agendaLabel(items) + '</span><div class="callsheet">' + items.map(function(a){
       return '<div class="row"><span class="t">' + esc(a.t) + '</span><span><span class="ti">' + esc(a.title) + '</span>' +
         (a.detail ? ' <span class="d">' + esc(a.detail) + '</span>' : '') + '</span></div>';
@@ -156,7 +204,8 @@
     var past = events.filter(function(e){ return e.status === 'past'; });
     var nw = document.getElementById('nextWrap');
     if (!up.length){
-      nw.innerHTML = '<p class="empty">Nothing on the calendar yet. The next date lands here first.</p>';
+      nw.innerHTML = '<p class="empty">The first Portland date is being set. It lands here first, and in the clubhouse. ' +
+        'Want a heads-up? <a href="members.html">The members&rsquo; room</a> has the door.</p>';
     } else {
       nw.innerHTML = up.map(function(e){
         var rsvpUrl = 'https://aihomebrewclub.com/rsvp.html?event=' + encodeURIComponent(e.id) + '&ref=qr';

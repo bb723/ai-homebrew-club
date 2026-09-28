@@ -26,7 +26,7 @@ function fmtTime(t) {
   h = h % 12 || 12;
   return h + ':' + String(m).padStart(2, '0') + ' ' + ap;
 }
-/* "10:30" -> "11:30" (meetups run one hour) */
+/* "10:30" -> "11:30" (meetups run one hour unless the event says otherwise) */
 function endTime(t, minutes) {
   if (!/^\d{1,2}:\d{2}$/.test(t || '')) return '';
   const [h, m] = t.split(':').map(Number);
@@ -82,7 +82,7 @@ function hem() {
 
 /* one branded page. spec:
    { title, preheader, folio: [{text, strong}], headline, greeting, lede,
-     ticket: [{k, v, html}], agendaLabel, agenda: [{t, title, detail}],
+     ticket: [{k, v, html}], agendaLabel, agenda: [{t, title, detail}], place ('Portland, Maine'),
      buttons: [{label, href, primary}], notes: [{text, label, href}], signoff: [lines] } */
 function renderEmail(spec) {
   const body = 'font-family:' + FONT_BODY + ';color:' + B.ink + ';';
@@ -146,7 +146,7 @@ function renderEmail(spec) {
       '<tr><td style="padding:0">' + hem() + '</td></tr>' +
     '</table>' +
     '<p style="margin:18px 0 0;' + mono + 'line-height:1.7;text-align:center">' +
-      '<a href="' + SITE + '" style="color:' + B.ink3 + ';text-decoration:none">aihomebrewclub.com</a> &middot; Waterville, Maine &middot; Free, and it always will be' +
+      '<a href="' + SITE + '" style="color:' + B.ink3 + ';text-decoration:none">aihomebrewclub.com</a> &middot; ' + esc(spec.place || 'Maine') + ' &middot; Free, and it always will be' +
     '</p>' +
     '</td></tr></table></body></html>';
 }
@@ -157,8 +157,10 @@ function renderEmail(spec) {
 function reminderEmail({ kind, ev, rsvp, agenda, taken, links, now }) {
   const is1h = kind === '1h';
   const time = fmtTime(ev.start_time);
-  const out = fmtTime(endTime(ev.start_time));
-  const range = fmtRange(ev.start_time);
+  const minutes = parseInt(ev.minutes, 10) || 60;
+  const place = ev.place || 'Maine';
+  const out = fmtTime(endTime(ev.start_time, minutes));
+  const range = fmtRange(ev.start_time, minutes);
   const date = longDate(ev.sort_date) || ev.when;
   const day = dayWord(ev.sort_date, now) || ev.when;
   const name = String(rsvp.name || 'neighbor').trim();
@@ -191,8 +193,9 @@ function reminderEmail({ kind, ev, rsvp, agenda, taken, links, now }) {
 
   const html = renderEmail({
     title: subject,
+    place,
     preheader: date + ', ' + range + '. ' + ev.location + '.',
-    folio: [{ text: is1h ? 'One hour to go' : day + ' at ' + time, strong: true }, { text: ev.title }, { text: 'Waterville, Maine' }],
+    folio: [{ text: is1h ? 'One hour to go' : day + ' at ' + time, strong: true }, { text: ev.title }, { text: place }],
     headline,
     greeting: 'Hey ' + first + ',',
     lede,
@@ -203,11 +206,11 @@ function reminderEmail({ kind, ev, rsvp, agenda, taken, links, now }) {
       { k: 'Your seat', v: seatLine },
       { k: 'Cost', v: 'Free. Coffee on.' },
     ],
-    agendaLabel: 'The hour · ' + range,
+    agendaLabel: (minutes === 60 ? 'The hour' : 'The session') + ' · ' + range,
     agenda: agenda || [],
     buttons,
     notes,
-    signoff: ['Coffee is on.', 'The AI Homebrew Club', 'Waterville, Maine'],
+    signoff: ['Coffee is on.', 'The AI Homebrew Club', place],
   });
 
   const text =
@@ -218,7 +221,7 @@ function reminderEmail({ kind, ev, rsvp, agenda, taken, links, now }) {
     'Bring: ' + bring + '\n' +
     'Your seat: ' + seatLine + '\n' +
     'Cost: free. Coffee on.\n' +
-    ((agenda && agenda.length) ? '\nThe hour:\n' + agenda.map(a => '  ' + a.t + '  ' + a.title).join('\n') + '\n' : '') +
+    ((agenda && agenda.length) ? '\n' + (minutes === 60 ? 'The hour' : 'The session') + ':\n' + agenda.map(a => '  ' + a.t + '  ' + a.title).join('\n') + '\n' : '') +
     (links.calendar ? '\nAdd it to your calendar: ' + links.calendar : '') +
     '\nDirections: ' + maps + '\n' +
     notes.map(n => '\n' + n.text + ' ' + n.href).join('') +

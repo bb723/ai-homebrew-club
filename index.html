@@ -109,10 +109,11 @@
 <div class="frame">
 <header class="masthead">
   <a class="brand" href="index.html"><span class="logo" data-size="32" aria-hidden="true"></span><span>The AI Homebrew Club</span></a>
-  <span class="est">Central Maine &middot; est. 2026, after 1975</span>
+  <span class="est">Maine &middot; est. 2026, after 1975</span>
   <nav>
     <a href="events.html">The circuit</a>
     <a href="waterville.html">Waterville</a>
+    <a href="portland.html">Portland</a>
     <a href="recipes.html">The recipe box</a>
     <a href="lend.html">Lend a room</a>
     <a class="members" href="members.html">Members&rsquo; room</a>
@@ -137,7 +138,7 @@
     <aside class="card-raised ticket" aria-label="The next meetup">
       <div class="top">
         <span class="folio"><b id="invTitle">The next AI Brown Bag</b></span>
-        <span class="folio">Waterville</span>
+        <span class="folio" id="invTown">Waterville</span>
       </div>
       <div class="date">
         <span class="big" id="invWhen">The next date lands on <a href="waterville.html">the Waterville page</a> first</span>
@@ -295,7 +296,7 @@
         <p class="body">Bricks Coworking &amp; Innovation Space &middot; Hathaway Creative Center &middot; 10 Water St, Waterville</p>
         <div class="fx gap12 fwrap" style="margin-top:6px"><a class="btn btn-primary" href="rsvp.html?ref=home" id="footRsvp">Save my seat</a><a class="btn btn-secondary" href="lend.html?ref=home">Lend a room</a></div>
       </div>
-      <div class="flist"><h4>The club</h4><a href="events.html">The circuit</a><a href="waterville.html">Waterville</a><a href="recipes.html">The recipe box</a><a href="members.html">Members&rsquo; room</a></div>
+      <div class="flist"><h4>The club</h4><a href="events.html">The circuit</a><a href="waterville.html">Waterville</a><a href="portland.html">Portland</a><a href="recipes.html">The recipe box</a><a href="members.html">Members&rsquo; room</a></div>
       <div class="flist"><h4>Start a chapter</h4><a href="lend.html?ref=home">Got a room to lend? Start a chapter.</a><a href="events.html">Every meetup, mapped.</a></div>
       <div class="flist"><h4>Always</h4><a href="recipes.html">The recipes are free. They always will be.</a><a href="#the-hour">No tickets, no vendors.</a><a href="members.html">Been to a meetup? The members&rsquo; room is open.</a></div>
     </div>
@@ -308,8 +309,8 @@
 </footer>
 </div>
 
-<script src="assets/config.js?v=5"></script>
-<script src="assets/site.js?v=4"></script>
+<script src="assets/config.js?v=6"></script>
+<script src="assets/site.js?v=5"></script>
 <script>
 (function(){
   'use strict';
@@ -354,11 +355,13 @@
       if (!up.length) return;
       var e = up[0];
       if (e.title) $('invTitle').textContent = e.title;
+      var pt = window.AIHC_CONFIG.CITY_POINTS[e.city];
+      if (pt) $('invTown').textContent = pt.label;
       if (e.location) $('invWhere').textContent = e.location;
       if (e.when){
         var t = fmtTime(e.start_time);
         $('invWhen').textContent = e.when;
-        $('invTime').textContent = t ? t + ' · one hour' : 'Time announced soon';
+        $('invTime').textContent = t ? t + ' · ' + UI.lengthPhrase(e.minutes) : 'Time announced soon';
       }
       $('invSeats').innerHTML = seatMeter(e);
       var full = !(e.left > 0);

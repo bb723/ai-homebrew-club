@@ -13,6 +13,7 @@ This is production for a real club — RSVPs and invites email real people. Test
 
 - **Zero-build, forever.** Plain HTML + shared assets. No bundler, framework, or package manager for the site.
 - **Never change:** `text/plain` POST bodies (CORS-preflight dodge), localStorage key names (`aihc_viewer_v1` etc.), `DECK_ID` strings, slide ids in invest/charter (they're server-side note keys). Full invariants list in **README.md** — read it before structural changes.
+- **A new chapter is one page plus config.** Copy `portland.html`, then add the town to `CITY_POINTS`, `DECKS` and `ROOT_PAGES` (config.js), `PAGE_IDS` (site.js), the public mastheads, and `CHAPTERS` in `server/server.js`. Checklist: README, "Adding a chapter".
 - **Cache-bust shared assets:** after editing `assets/*.js|css`, bump the `?v=N` on every tag that loads it.
 - **No third-party analytics.** Traffic is the first-party beacon in `assets/config.js` (POST /hits) — deliberate. Keep tagging handed-out links with `?ref=`.
 

@@ -15,7 +15,12 @@
     h = h % 12 || 12;
     return h + ':' + parts[1] + ' ' + ap;
   }
-  window.AIHC_UI = { $: $, esc: esc, fmtTime: fmtTime };
+  /* 60 -> 'one hour', 120 -> 'two hours', 90 -> '90 minutes': a meetup's length, for copy */
+  function lengthPhrase(m){
+    m = parseInt(m, 10) || 60;
+    return m === 60 ? 'one hour' : m === 120 ? 'two hours' : m === 180 ? 'three hours' : m + ' minutes';
+  }
+  window.AIHC_UI = { $: $, esc: esc, fmtTime: fmtTime, lengthPhrase: lengthPhrase };
 
   CFG.paintLogos(document);
   CFG.paintLevels(document, 60, 84);
@@ -40,7 +45,7 @@
   try { session = JSON.parse(localStorage.getItem('aihc_member_v1') || 'null'); } catch(e){}
   if (!viewer || !viewer.name) return;
 
-  var PAGE_IDS = {'': 'home', 'index.html': 'home', 'waterville.html': 'waterville', 'events.html': 'events',
+  var PAGE_IDS = {'': 'home', 'index.html': 'home', 'waterville.html': 'waterville', 'portland.html': 'portland', 'events.html': 'events',
                   'recipes.html': 'recipes', 'chat.html': 'chat', 'feed.html': 'feed', 'members.html': 'members'};
   var file = location.pathname.split('/').pop();
   var current = PAGE_IDS.hasOwnProperty(file) ? PAGE_IDS[file] : null;

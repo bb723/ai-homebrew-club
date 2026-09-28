@@ -69,6 +69,9 @@
                 <label>Start time <span class="opt">&middot; unlocks reminders + calendar invites</span>
                   <input type="time" id="eTime" class="mono">
                 </label>
+                <label>Length <span class="opt">&middot; minutes</span>
+                  <input type="number" id="eLen" class="mono" value="60" min="15" max="480" step="5">
+                </label>
                 <label>Seats
                   <input type="number" id="eCap" class="mono" value="8" min="1" max="200">
                 </label>
@@ -76,7 +79,8 @@
                   <input type="text" id="eLoc" placeholder="the parlor at the rectory, Ticonic Commons, Waterville" maxlength="300">
                 </label>
                 <label>City <span class="opt">&middot; one page per city</span>
-                  <input type="text" id="eCity" value="waterville" maxlength="40">
+                  <input type="text" id="eCity" value="waterville" maxlength="40" list="cityList">
+                  <datalist id="cityList"><option value="waterville"><option value="portland"></datalist>
                 </label>
                 <label>Status
                   <select id="eStatus"><option value="upcoming">Upcoming</option><option value="past">Past</option></select>
@@ -868,6 +872,7 @@
       $('formTitle').textContent = 'Edit meetup';
       $('eTitle').value = e.title; $('eWhen').value = e.when; $('eSort').value = e.sort_date;
       $('eTime').value = e.start_time || '';
+      $('eLen').value = e.minutes || 60;
       $('eLoc').value = e.location; $('eCap').value = e.capacity; $('eCity').value = e.city;
       $('eStatus').value = e.status; $('eId').value = e.id;
       $('eAnnounce').checked = false;
@@ -888,7 +893,7 @@
       var pt = CFG.CITY_POINTS && CFG.CITY_POINTS[e.city];
       $('dhPublic').href = '../' + ((pt && pt.page) || 'waterville.html');
       $('dhSub').innerHTML =
-        '<span class="mono">' + esc(e.when) + (e.start_time ? ' · ' + esc(fmtT(0, e.start_time)) : '') + '</span>' +
+        '<span class="mono">' + esc(e.when) + (e.start_time ? ' · ' + esc(fmtT(0, e.start_time)) : '') + (e.minutes && +e.minutes !== 60 ? ' · ' + esc(e.minutes) + ' min' : '') + '</span>' +
         '<span>' + esc(e.location) + '</span>' +
         '<span class="tag tag-teal">' + esc(e.city) + '</span>' +
         (e.status === 'past' ? '<span class="tag tag-plain">Past</span>' : '<span class="tag tag-tang">Upcoming</span>');
@@ -986,7 +991,7 @@
       var id = ($('eId').value.trim() || slugFrom());
       var e = {
         id: id, title: $('eTitle').value.trim(), when: $('eWhen').value.trim(),
-        sort_date: $('eSort').value, start_time: $('eTime').value,
+        sort_date: $('eSort').value, start_time: $('eTime').value, minutes: $('eLen').value,
         location: $('eLoc').value.trim(),
         capacity: $('eCap').value, city: $('eCity').value.trim() || 'waterville',
         status: $('eStatus').value
@@ -1049,7 +1054,7 @@
       $('eSave').textContent = 'Save meetup';
       $('eResched').hidden = true;
       $('evForm').reset();
-      $('eCap').value = 8; $('eCity').value = 'waterville';
+      $('eCap').value = 8; $('eLen').value = 60; $('eCity').value = 'waterville';
       delete $('eId').dataset.touched;
       if (clearQr !== false){ $('qrOut').innerHTML = ''; qrId = ''; }
       $('eMsg').textContent = '';
@@ -2162,7 +2167,7 @@ window.AIHC_PAGE = {
   }
 };
 </script>
-<script src="../assets/config.js?v=4"></script>
+<script src="../assets/config.js?v=6"></script>
 <script src="../assets/club.js?v=3"></script>
 </body>
 </html>

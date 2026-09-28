@@ -51,7 +51,7 @@
           <span id="nmMeter"></span>
           <div class="fx gap10 fwrap acts-row">
             <a class="btn btn-primary" id="nmGo" href="events.html">See the circuit</a>
-            <a class="btn btn-secondary" href="waterville.html">The run sheet</a>
+            <a class="btn btn-secondary" id="nmSheet" href="events.html">The run sheet</a>
             <a class="btn btn-ghost" id="nmCal" href="events.html" target="_blank" rel="noopener" hidden>Add to calendar</a>
           </div>
         </div>
@@ -222,7 +222,9 @@
           var p = e.start_time.split(':'); var h = parseInt(p[0], 10);
           t = (h % 12 || 12) + ':' + p[1] + ' ' + (h >= 12 ? 'pm' : 'am');
         }
-        if (e.city) $('nmCity').textContent = ' \u00b7 ' + e.city;
+        var pt = ((window.AIHC_CONFIG && window.AIHC_CONFIG.CITY_POINTS) || {})[e.city];
+        if (e.city) $('nmCity').textContent = ' \u00b7 ' + (pt ? pt.label : e.city);
+        if (pt && pt.page) $('nmSheet').href = pt.page;
         $('nmWhen').textContent = e.when + (t ? ' \u00b7 ' + t : '');
         $('nmWhere').textContent = e.title + ' \u2014 ' + e.location;
         $('nmMeter').innerHTML = seatMeter(e);
@@ -243,7 +245,7 @@
 </script>
 
 <script>window.AIHC_PAGE = {deck: 'members', gate: 'member'};</script>
-<script src="assets/config.js?v=5"></script>
+<script src="assets/config.js?v=6"></script>
 <script src="assets/club.js?v=3"></script>
 </body>
 </html>
