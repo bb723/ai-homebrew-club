@@ -221,8 +221,9 @@
     events.forEach(function(e){
       var t = towns[e.city] || (towns[e.city] = {city: e.city, upcoming: 0, left: 0, next: ''});
       if (e.status === 'upcoming'){
-        t.upcoming++; t.left += (e.left || 0);
-        if (!t.next || e.sort_date < t.next) t.next = e.sort_date;
+        t.upcoming++;
+        /* the pin and the chapter row speak for the next meetup, not the whole series */
+        if (!t.next || e.sort_date < t.next){ t.next = e.sort_date; t.left = e.left || 0; }
       }
     });
     var missing = [];

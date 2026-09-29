@@ -19,6 +19,8 @@ Zero-build GitHub Pages site at **aihomebrewclub.com** (see `CNAME`). Plain HTML
 | `events.html` | The circuit: a hand-drawn Maine map with a pin per chapter town, plus a month calendar of every meetup (town positions live in `CITY_POINTS` in config.js) |
 | `waterville.html` | Chapter 01, Waterville: the next meetup with its live agenda, seat count and per-event QR, plus the record of past meetups |
 | `portland.html` | Chapter 02, Portland: the same live card and record, plus how that table runs (once a month, two hours, eight seats, project-based) |
+
+Both chapter pages render a series the same way: the next meetup is the raised card with the QR; every later upcoming meetup in that town is a row under "Coming up" with its own RSVP button. The circuit's pin and chapter row report the next meetup's seats, not the series total.
 | `recipes.html` | Public prompt library, managed from the admin console |
 | `lend.html` | Venue offers — how new chapters start |
 

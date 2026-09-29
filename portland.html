@@ -34,6 +34,14 @@
   .qr .none{font-family:var(--font-mono); font-size:11px; color:var(--ink-3); line-height:1.5}
   .agenda-empty{font-style:italic; color:var(--ink-3); font-size:14px}
   .empty{color:var(--ink-3); font-style:italic; font-size:14px}
+
+  /* ---- the rest of the series: one row per date ---- */
+  .later{margin-bottom:28px}
+  .later .p{display:grid; grid-template-columns:150px 1fr auto; gap:20px; padding:14px 20px; align-items:center; border-top:1px solid var(--rule)}
+  .later .p:first-child{border-top:0}
+  .later .p .w{font-family:var(--font-display); font-weight:700; font-size:16px}
+  .later .p .t{font-size:14px; color:var(--ink-2); display:flex; flex-direction:column; gap:2px}
+  .later .p .t b{color:var(--ink)}
   .empty a{font-weight:600}
 
   /* ---- this table: cadence, seats, the work ---- */
@@ -72,6 +80,7 @@
   @media (max-width:640px){
     .next .l,.flow .l{padding:20px 18px 22px}
     .past .p{grid-template-columns:1fr; gap:6px}
+    .later .p{grid-template-columns:1fr; gap:8px}
   }
 </style>
 </head>
@@ -198,6 +207,22 @@
     return '<span class="seats' + (left > 0 ? '' : ' full') + '"><span class="row">' + sq + '</span><span class="n">' + n + '</span></span>';
   }
 
+  /* the rest of the series: one row per date, so the page stays one page */
+  function later(list){
+    return '<p class="folio sec"><b>Coming up</b> &middot; the same table, once a month</p>' +
+      '<div class="card later">' + list.map(function(e){
+        var t = e.start_time ? ' · ' + fmtTime(e.start_time) : '';
+        var left = e.left > 0 ? e.left + ' of ' + e.capacity + ' left' : 'Full · waitlist open';
+        return '<div class="p">' +
+          '<span class="w">' + esc(e.when) + '</span>' +
+          '<span class="t"><span><b>' + esc(e.title) + '</b>' + esc(t) + '</span><span class="small">' + esc(e.location) + '</span></span>' +
+          '<span class="fx ac gap12 fwrap"><span class="mono-s ink3">' + esc(left) + '</span>' +
+            '<a class="btn btn-secondary btn-sm" href="rsvp.html?event=' + encodeURIComponent(e.id) + '&ref=town">' +
+              (e.left > 0 ? 'Save my seat' : 'Join the waitlist') + '</a></span>' +
+        '</div>';
+      }).join('') + '</div>';
+  }
+
   function render(events){
     var up = events.filter(function(e){ return e.status === 'upcoming'; })
       .sort(function(a, b){ return a.sort_date < b.sort_date ? -1 : 1; });
@@ -207,7 +232,7 @@
       nw.innerHTML = '<p class="empty">The first Portland date is being set. It lands here first, and in the clubhouse. ' +
         'Want a heads-up? <a href="members.html">The members&rsquo; room</a> has the door.</p>';
     } else {
-      nw.innerHTML = up.map(function(e){
+      nw.innerHTML = [up[0]].map(function(e){
         var rsvpUrl = 'https://aihomebrewclub.com/rsvp.html?event=' + encodeURIComponent(e.id) + '&ref=qr';
         var timeBit = e.start_time ? ' · ' + fmtTime(e.start_time) : '';
         var qr = qrSvg(rsvpUrl);
@@ -235,7 +260,7 @@
             '<span class="small">Scan to RSVP, or screenshot this and text a neighbor.</span>' +
           '</div>' +
         '</div>';
-      }).join('');
+      }).join('') + (up.length > 1 ? later(up.slice(1)) : '');
     }
     if (past.length){
       document.getElementById('pastH').hidden = false;
