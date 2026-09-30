@@ -4,7 +4,8 @@
   "description": "Shared deck comments for the AI Homebrew Club",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node test/reminders.test.js"
   },
   "engines": {
     "node": "22.x"

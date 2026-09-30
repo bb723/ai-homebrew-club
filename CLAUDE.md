@@ -48,4 +48,5 @@ If those env vars are absent, the session was started in the wrong environment â
 ## Local dev
 
 - Site: `python -m http.server 8000` from the repo root.
+- Server tests: `cd server && npm test` runs the real reminder loop against an in-memory club (fake Postgres, capturing mailer, real email templates). No network, nothing sent. Run it before pushing anything that touches reminders.
 - Server: `cd server && npm install && node server.js` (needs the env vars above; usually easier to read logs on Heroku than run it locally).
