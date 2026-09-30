@@ -112,6 +112,7 @@
               <div class="acts">
                 <button class="btn btn-secondary btn-sm" id="dhQr" type="button">RSVP QR</button>
                 <a class="btn btn-secondary btn-sm" id="dhPublic" href="../waterville.html" target="_blank" rel="noopener">Open public page</a>
+                <a class="btn btn-secondary btn-sm" id="dhFlyer" href="../flyer.html" target="_blank" rel="noopener">Flyer</a>
                 <button class="btn btn-ghost btn-sm" id="dhDel" type="button">Delete</button>
               </div>
             </div>
@@ -892,6 +893,7 @@
       $('dhTitle').textContent = e.title;
       var pt = CFG.CITY_POINTS && CFG.CITY_POINTS[e.city];
       $('dhPublic').href = '../' + ((pt && pt.page) || 'waterville.html');
+      $('dhFlyer').href = '../flyer.html?event=' + encodeURIComponent(e.id);
       $('dhSub').innerHTML =
         '<span class="mono">' + esc(e.when) + (e.start_time ? ' · ' + esc(fmtT(0, e.start_time)) : '') + (e.minutes && +e.minutes !== 60 ? ' · ' + esc(e.minutes) + ' min' : '') + '</span>' +
         '<span>' + esc(e.location) + '</span>' +

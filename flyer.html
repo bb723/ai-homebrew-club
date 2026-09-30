@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Flyer &middot; The AI Homebrew Club</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<meta property="og:title" content="You&rsquo;re invited: the AI Homebrew Club">
+<meta property="og:description" content="A free meetup for people putting AI to work. Save a seat.">
+<meta property="og:image" content="https://aihomebrewclub.com/share-card.png">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="assets/site.css?v=4">
+<style>
+  /* The flyer: one Letter sheet per meetup, filled from the calendar like every other page.
+     flyer.html?event=<id> for one meetup, ?city=<town> for that town's next one, bare for the
+     next one anywhere. Print it (or Save as PDF) to hand out; on a phone it is a tappable
+     invitation. ?bare=1 drops the toolbar and the backdrop for image export. */
+
+  /* a flyer is always paper: pin the light tokens even when the device is in dark mode */
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#F4F0E6; --paper-2:#EBE6D9; --card:#FBF9F4;
+      --ink:#191919; --ink-2:#4B4A45; --ink-3:#77746B;
+      --rule:rgba(25,25,25,.16); --rule-2:rgba(25,25,25,.36);
+      --accent:#1F4C9C; --accent-deep:#173A78; --accent-wash:#E3EAF6; --on-accent:#FFFFFF;
+      --alert:#B3261E; --alert-wash:#F6E2DF; --live:#2F7A4E;
+    }
+  }
+  @page{ size:Letter; margin:0 }
+  html,body{background:var(--paper-2)}
+
+  /* ---- the screen-only toolbar ---- */
+  .bar{width:min(8.5in, calc(100% - 16px)); margin:14px auto 0; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap}
+  .bar .folio b{color:var(--accent)}
+
+  /* ---- the sheet: 8.5 x 11, sized in points so print and screen agree ---- */
+  .sheet{width:8.5in; height:11in; margin:12px auto 40px; padding:.5in .7in .42in; background:#fff; color:var(--ink);
+    display:flex; flex-direction:column; gap:.2in; overflow:hidden; box-shadow:0 12px 40px rgba(0,0,0,.14);
+    -webkit-print-color-adjust:exact; print-color-adjust:exact}
+  .sheet .folio{font-size:8.5pt}
+  .screen-only{display:inline} .print-only{display:none}
+
+  .fm{display:flex; align-items:center; justify-content:space-between; gap:16px; padding-bottom:.13in; border-bottom:1.5pt solid var(--ink)}
+  .fm .brand{display:flex; align-items:center; gap:10px; font-family:var(--font-display); font-weight:700; font-size:17pt; letter-spacing:-.01em; white-space:nowrap}
+
+  .hero{display:flex; flex-direction:column; gap:.09in}
+  .hero h1{font-size:54pt; line-height:.98; letter-spacing:-.03em; font-weight:700; margin-top:.02in}
+  .hero .kicker{font-size:21pt; line-height:1.2}
+  .hero .lede{font-size:12.5pt; line-height:1.5; max-width:none; margin-top:.03in}
+
+  .grid{display:grid; grid-template-columns:1fr 2.5in; gap:.2in; align-items:stretch}
+  .ticket{display:flex; flex-direction:column; overflow:hidden}
+  .ticket .top{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:8pt 14pt; background:var(--paper-2); border-bottom:1px dashed var(--rule-2)}
+  .ticket .date{padding:13pt 14pt 5pt; display:flex; flex-direction:column; gap:3pt}
+  .ticket .date .big{font-family:var(--font-display); font-size:25pt; font-weight:700; letter-spacing:-.02em; line-height:1.05}
+  .ticket .date .time{font-family:var(--font-mono); font-size:12pt; color:var(--ink-2)}
+  .ticket .rows{display:flex; flex-direction:column; padding:5pt 14pt 7pt}
+  .ticket .rows .r{display:grid; grid-template-columns:.6in 1fr; gap:10pt; padding:6.5pt 0; border-top:1px dashed var(--rule-2); font-size:10.5pt; line-height:1.4}
+  .ticket .rows .r .k{font-family:var(--font-mono); font-size:8pt; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); padding-top:2pt}
+
+  .qrbox{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6pt; text-align:center;
+    background:var(--paper-2); border:1px solid var(--rule); border-top:3px solid var(--ink); border-radius:var(--r-2);
+    padding:10pt 12pt; color:var(--ink); font-weight:400}
+  .qrbox:hover{color:var(--ink)}
+  .qrbox .qr{width:1.92in; height:1.92in; background:#fff; border:1px solid var(--rule); border-radius:6px; padding:.1in; line-height:0; display:block}
+  .qrbox .qr svg{width:100%; height:100%; display:block}
+  .qrbox .how{font-family:var(--font-display); font-style:italic; font-size:11.5pt; line-height:1.3; color:var(--ink-2)}
+  .qrbox .url{font-family:var(--font-mono); font-size:9.5pt; font-weight:600; color:var(--accent-deep)}
+
+  .run{display:flex; flex-direction:column; gap:2pt}
+  /* two columns, read down then across: the first half of the session on the left */
+  .run .callsheet{display:grid; grid-template-columns:1fr 1fr; grid-auto-flow:column; column-gap:.3in}
+  .run .callsheet .row{grid-template-columns:.62in 1fr; gap:10pt; padding:5pt 0; border-bottom:0; border-top:1px dashed var(--rule-2)}
+  .run .callsheet .t{font-size:9.5pt}
+  .run .callsheet .ti{display:block; font-size:11pt}
+  .run .callsheet .d{display:block; font-size:9.5pt; line-height:1.4; margin-top:1pt}
+  .run .more{font-size:10.5pt; color:var(--ink-2)}
+
+  .ff{margin-top:auto; padding-top:.11in; border-top:1.5pt solid var(--ink); display:flex; align-items:baseline; justify-content:space-between; gap:16px}
+  .ff > span{white-space:nowrap}
+  .ff .kicker{font-size:12pt}
+  .ff .kicker .by{font-style:normal; font-family:var(--font-body); font-size:9pt; font-weight:500; color:var(--ink-3)}
+
+  /* the last resort when a long run sheet still will not fit: a smaller headline and tighter rows */
+  .sheet.tight{gap:.15in}
+  .sheet.tight .hero h1{font-size:44pt}
+  .sheet.tight .hero .kicker{font-size:17pt}
+  .sheet.tight .run .callsheet .row{padding:4pt 0}
+
+  .none{margin:auto; text-align:center; max-width:34ch; font-family:var(--font-display); font-style:italic; font-size:16pt; color:var(--ink-2)}
+
+  /* image export and paper share one face: no toolbar, no backdrop, the paper wording */
+  body.bare{background:#fff}
+  body.bare .bar{display:none}
+  body.bare .sheet{margin:0; box-shadow:none}
+  body.bare .screen-only{display:none} body.bare .print-only{display:inline}
+  @media print{
+    html,body{background:#fff}
+    .bar{display:none}
+    .sheet{margin:0; box-shadow:none; zoom:1 !important}
+    .screen-only{display:none} .print-only{display:inline}
+  }
+</style>
+</head>
+<body>
+<div class="bar">
+  <span class="folio"><b>Flyer</b><span id="barWhat"></span></span>
+  <span class="fx gap10 ac">
+    <a class="btn btn-primary btn-sm" id="barRsvp" href="rsvp.html">Save my seat</a>
+    <button class="btn btn-secondary btn-sm" id="barPrint" type="button">Print or save as PDF</button>
+  </span>
+</div>
+
+<div class="sheet" id="sheet">
+  <header class="fm">
+    <span class="brand"><span class="logo" data-size="34" aria-hidden="true"></span><span>The AI Homebrew Club</span></span>
+    <span class="folio">Free &middot; no tickets &middot; no vendors</span>
+  </header>
+
+  <section class="hero">
+    <p class="folio" id="fChapter"><b>The AI Homebrew Club</b> &middot; Maine</p>
+    <h1>You&rsquo;re invited.</h1>
+    <p class="kicker" id="fKicker">Neighbors teaching neighbors to put AI to work.</p>
+    <p class="lede" id="fLede">Checking the calendar&hellip;</p>
+  </section>
+
+  <section class="grid" id="fGrid" hidden>
+    <div class="card-raised ticket">
+      <div class="top">
+        <span class="folio"><b id="fTitle">The next meetup</b></span>
+        <span class="folio" id="fSeatsShort"></span>
+      </div>
+      <div class="date">
+        <span class="big" id="fWhen"></span>
+        <span class="time" id="fTime"></span>
+      </div>
+      <div class="rows">
+        <div class="r"><span class="k">Where</span><span id="fWhere"></span></div>
+        <div class="r"><span class="k">Bring</span><span id="fBring"></span></div>
+        <div class="r"><span class="k">Cost</span><span>Free. No tickets, no vendors.</span></div>
+        <div class="r"><span class="k">Seats</span><span id="fSeats"></span></div>
+      </div>
+    </div>
+    <a class="qrbox" id="fQrLink" href="rsvp.html" aria-label="Save your seat">
+      <span class="folio"><b>Save your seat</b></span>
+      <span class="qr" id="fQr"></span>
+      <span class="how print-only">Point your phone camera here.</span>
+      <span class="how screen-only">Tap here, or scan it with another phone.</span>
+      <span class="url" id="fUrl">aihomebrewclub.com</span>
+    </a>
+  </section>
+
+  <section class="run" id="fRun" hidden>
+    <p class="folio" id="fRunLabel"><b>The run sheet</b></p>
+    <div class="callsheet" id="fAgenda"></div>
+  </section>
+
+  <footer class="ff">
+    <span class="kicker">&ldquo;Give to help others.&rdquo; <span class="by">the Homebrew Computer Club, 1975</span></span>
+    <span class="folio">aihomebrewclub.com</span>
+  </footer>
+</div>
+
+<script src="assets/qrlib.js"></script>
+<script src="assets/config.js?v=6"></script>
+<script src="assets/site.js?v=5"></script>
+<script>
+(function(){
+  'use strict';
+  var CFG = window.AIHC_CONFIG, UI = window.AIHC_UI;
+  var $ = UI.$, esc = UI.esc, fmtTime = UI.fmtTime;
+  var q = new URLSearchParams(location.search);
+  var EVENT = q.get('event') || '';
+  var CITY = (q.get('city') || '').toLowerCase().replace(/[^a-z0-9-]/g, '');
+  if (q.get('bare')) document.body.classList.add('bare');
+
+  /* what each table is, in the flyer's own words; a town not listed gets the club's general pitch */
+  var COPY = {
+    waterville: {
+      kicker: 'One hour, and one problem off your plate.',
+      lede: 'Neighbors teaching neighbors to put AI to work. Bring one real task that is eating your week; somebody sits with you until it is done.',
+      bring: 'A laptop or phone, and one real task.'
+    },
+    portland: {
+      kicker: 'Two hours, and your project further along.',
+      lede: 'A small table, once a month, for people building with AI. Bring the project you are working on and leave with it further along.',
+      bring: 'A laptop and one real project.'
+    }
+  };
+  var GENERAL = {
+    kicker: 'Neighbors teaching neighbors to put AI to work.',
+    lede: 'Bring one real task that is eating your week; somebody sits with you until it is done.',
+    bring: 'A laptop or just your phone, and one real task.'
+  };
+  var NUM = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve'];
+
+  /* "16:00" + 120 -> "4:00 to 6:00 pm"; "11:30" + 60 -> "11:30 am to 12:30 pm" */
+  function endTime(t, minutes){
+    var p = t.split(':');
+    var end = ((+p[0]) * 60 + (+p[1]) + minutes) % 1440;
+    return Math.floor(end / 60) + ':' + String(end % 60).padStart(2, '0');
+  }
+  function fmtRange(t, minutes){
+    var a = fmtTime(t), b = a ? fmtTime(endTime(t, minutes)) : '';
+    if (!a || !b) return a;
+    return a.slice(-2) === b.slice(-2) ? a.slice(0, -3) + ' to ' + b : a + ' to ' + b;
+  }
+  function qrSvg(url){
+    try{
+      var qr = qrcode(0, 'M');
+      qr.addData(url);
+      qr.make();
+      return qr.createSvgTag({cellSize: 4, margin: 0, scalable: true})
+        .replace(/#000000|black/gi, '#191919')
+        .replace(/#ffffff|white/gi, '#FFFFFF');
+    } catch(e){ return ''; }
+  }
+
+  function paint(e){
+    var towns = Object.keys(CFG.CITY_POINTS);
+    var pt = CFG.CITY_POINTS[e.city];
+    var copy = COPY[e.city] || GENERAL;
+    var minutes = parseInt(e.minutes, 10) || 60;
+    var cap = Math.max(0, parseInt(e.capacity, 10) || 0);
+    var range = fmtRange(e.start_time, minutes);
+    var rsvp = 'https://aihomebrewclub.com/rsvp.html?event=' + encodeURIComponent(e.id);
+
+    document.title = 'Flyer: ' + e.title + ' · The AI Homebrew Club';
+    $('barWhat').textContent = ' · ' + e.title + ', ' + e.when;
+    $('barRsvp').href = 'rsvp.html?event=' + encodeURIComponent(e.id) + '&ref=flyer-link';
+
+    $('fChapter').innerHTML = pt
+      ? '<b>Chapter ' + String(towns.indexOf(e.city) + 1).padStart(2, '0') + '</b> &middot; ' + esc(pt.label) + ', Maine'
+      : '<b>The AI Homebrew Club</b> &middot; Maine';
+    $('fKicker').textContent = copy.kicker;
+    $('fLede').textContent = copy.lede + ' Free, and it always will be.';
+
+    $('fTitle').textContent = e.title;
+    $('fSeatsShort').textContent = cap ? 'Free · ' + cap + ' seats' : 'Free';
+    $('fWhen').textContent = e.when;
+    $('fTime').textContent = range || 'Time announced soon';
+    $('fWhere').textContent = e.location.charAt(0).toUpperCase() + e.location.slice(1) + '.';
+    $('fBring').textContent = copy.bring;
+    $('fSeats').textContent = cap ? (NUM[cap] || cap) + ' chairs, first come, first served.' : 'First come, first served.';
+
+    /* the printed code and the on-screen tap carry different ref tags, so the book shows which one filled seats */
+    $('fQr').innerHTML = qrSvg(rsvp + '&ref=flyer');
+    $('fQrLink').href = 'rsvp.html?event=' + encodeURIComponent(e.id) + '&ref=flyer-link';
+    $('fUrl').textContent = 'aihomebrewclub.com/' + (pt && pt.page ? pt.page.replace(/\.html$/, '') : 'rsvp');
+    $('fGrid').hidden = false;
+
+    var items = e.agenda || [];
+    if (items.length){
+      $('fRunLabel').innerHTML = '<b>' + (minutes === 60 ? 'The hour' : 'The session') + '</b>' + (range ? ' &middot; ' + esc(range) : '');
+      $('fRun').hidden = false;
+      fitRun(items);
+      /* the web fonts change every line break: measure again once they have landed */
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ fitRun(items); });
+    }
+  }
+
+  /* one page, always. The run sheet gives ground in steps until the sheet stops overflowing:
+     full detail, then each item's first sentence, then titles only, then the compact face. */
+  function firstSentence(text){
+    var t = String(text || '');
+    var i = t.search(/[.!?](\s|$)/);
+    return i === -1 ? t : t.slice(0, i + 1);
+  }
+  function runHtml(items, level){
+    return items.map(function(a){
+      var d = level === 0 ? (a.detail || '') : level === 1 ? firstSentence(a.detail) : '';
+      return '<div class="row"><span class="t">' + esc(a.t || '') + '</span><span><span class="ti">' + esc(a.title || '') + '</span>' +
+        (d ? '<span class="d">' + esc(d) + '</span>' : '') + '</span></div>';
+    }).join('');
+  }
+  function overflowing(){
+    var sheet = $('sheet');
+    return sheet.scrollHeight > sheet.clientHeight + 1;
+  }
+  function fitRun(items){
+    var sheet = $('sheet');
+    sheet.classList.remove('tight');
+    $('fAgenda').style.gridTemplateRows = 'repeat(' + Math.ceil(items.length / 2) + ', auto)';
+    var level = 0;
+    $('fAgenda').innerHTML = runHtml(items, level);
+    while (overflowing() && level < 2){ level++; $('fAgenda').innerHTML = runHtml(items, level); }
+    if (overflowing()) sheet.classList.add('tight');
+  }
+
+  function none(msg){
+    $('fLede').textContent = msg;
+  }
+
+  fetch(CFG.API_BASE + '/events' + (CITY ? '?city=' + encodeURIComponent(CITY) : ''))
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var all = (d && d.events) || [];
+      var e = EVENT
+        ? all.filter(function(x){ return x.id === EVENT; })[0]
+        : all.filter(function(x){ return x.status === 'upcoming'; })
+            .sort(function(a, b){ return a.sort_date < b.sort_date ? -1 : 1; })[0];
+      if (e) paint(e);
+      else none(EVENT ? 'That meetup is not on the calendar.' : 'Nothing on the calendar yet. The next date lands at aihomebrewclub.com first.');
+    })
+    .catch(function(){ none('Could not reach the calendar. Try again in a minute.'); });
+
+  $('barPrint').addEventListener('click', function(){ window.print(); });
+
+  /* on a phone the sheet is wider than the screen: scale the whole page of paper down to fit */
+  function fit(){
+    var s = Math.min(1, (window.innerWidth - 16) / 816);
+    $('sheet').style.zoom = document.body.classList.contains('bare') ? '' : String(s);
+  }
+  fit();
+  window.addEventListener('resize', fit);
+})();
+</script>
+</body>
+</html>

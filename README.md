@@ -16,9 +16,12 @@ Zero-build GitHub Pages site at **aihomebrewclub.com** (see `CNAME`). Plain HTML
 |---|---|
 | `index.html` | The invitation. Fills its meetup card live from the calendar — no dates in static HTML |
 | `rsvp.html` | Seat reservation; where every QR and shared link lands. `?event=<id>` per meetup, bare URL resolves to the next upcoming one; `?cancel=<id>` from emails; `?ref=` tracks what fills seats |
+| `flyer.html` | A print-ready Letter flyer for any meetup, filled from the calendar: `?event=<id>`, `?city=<town>` for that town's next one, bare for the next anywhere. Print it (or Save as PDF) to hand out; on a phone it is a tappable invitation. The printed QR carries `ref=flyer`, the on-screen tap `ref=flyer-link`. Opened from the console's Flyer button; not in the public nav, not indexed |
 | `events.html` | The circuit: a hand-drawn Maine map with a pin per chapter town, plus a month calendar of every meetup (town positions live in `CITY_POINTS` in config.js) |
 | `waterville.html` | Chapter 01, Waterville: the next meetup with its live agenda, seat count and per-event QR, plus the record of past meetups |
 | `portland.html` | Chapter 02, Portland: the same live card and record, plus how that table runs (once a month, two hours, eight seats, project-based) |
+
+Link previews on every page use `share-card.png`, an evergreen card with no date or town on it (the dated `invite-card.png` from the first meetup stays in the repo only for old cached links).
 
 Both chapter pages render a series the same way: the next meetup is the raised card with the QR; every later upcoming meetup in that town is a row under "Coming up" with its own RSVP button. The circuit's pin and chapter row report the next meetup's seats, not the series total.
 | `recipes.html` | Public prompt library, managed from the admin console |
