@@ -17,6 +17,7 @@ Zero-build GitHub Pages site at **aihomebrewclub.com** (see `CNAME`). Plain HTML
 | `index.html` | The invitation. Fills its meetup card live from the calendar — no dates in static HTML |
 | `rsvp.html` | Seat reservation; where every QR and shared link lands. `?event=<id>` per meetup, bare URL resolves to the next upcoming one; `?cancel=<id>` from emails; `?ref=` tracks what fills seats |
 | `flyer.html` | A print-ready Letter flyer for any meetup, filled from the calendar: `?event=<id>`, `?city=<town>` for that town's next one, bare for the next anywhere. Print it (or Save as PDF) to hand out; on a phone it is a tappable invitation. The printed QR carries `ref=flyer`, the on-screen tap `ref=flyer-link`. Opened from the console's Flyer button; not in the public nav, not indexed |
+| `card.html` | The same meetup as a phone-sized picture (1080 x 1350) to text or post: the ticket and the short URL, no QR. Same `?event=` / `?city=` rules; screenshot it at that size. Opened from the console's Card button |
 | `events.html` | The circuit: a hand-drawn Maine map with a pin per chapter town, plus a month calendar of every meetup (town positions live in `CITY_POINTS` in config.js) |
 | `waterville.html` | Chapter 01, Waterville: the next meetup with its live agenda, seat count and per-event QR, plus the record of past meetups |
 | `portland.html` | Chapter 02, Portland: the same live card and record, plus how that table runs (once a month, two hours, eight seats, project-based) |

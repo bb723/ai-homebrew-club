@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Card &middot; The AI Homebrew Club</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/site.css?v=4">
+<style>
+  /* The card: a phone-sized invitation (1080 x 1350, the 4:5 that texts and feeds like) for one
+     meetup, filled from the calendar. card.html?event=<id>, ?city=<town> for that town's next
+     one, bare for the next anywhere. Screenshot it at 1080 x 1350 and text the picture; the
+     short URL on it is the whole call to action, so there is no QR to squint at. */
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#F4F0E6; --paper-2:#EBE6D9; --card:#FBF9F4;
+      --ink:#191919; --ink-2:#4B4A45; --ink-3:#77746B;
+      --rule:rgba(25,25,25,.16); --rule-2:rgba(25,25,25,.36);
+      --accent:#1F4C9C; --accent-deep:#173A78; --accent-wash:#E3EAF6; --on-accent:#FFFFFF;
+    }
+  }
+  html,body{margin:0; background:var(--paper)}
+  .card{width:1080px; height:1350px; padding:72px 80px 64px; box-sizing:border-box; display:flex; flex-direction:column; gap:34px; color:var(--ink); background:var(--paper); overflow:hidden}
+  .top{display:flex; align-items:center; justify-content:space-between; gap:24px; padding-bottom:26px; border-bottom:4px solid var(--ink)}
+  .brand{display:flex; align-items:center; gap:18px; font-family:var(--font-display); font-weight:700; font-size:40px; letter-spacing:-.01em; white-space:nowrap}
+  .card .folio{font-size:22px; letter-spacing:.14em}
+  .hero{display:flex; flex-direction:column; gap:14px}
+  .hero h1{font-size:118px; line-height:.96; letter-spacing:-.035em; font-weight:700}
+  .hero .kicker{font-size:44px; line-height:1.2}
+  .ticket{display:flex; flex-direction:column; overflow:hidden; border-top-width:7px; border-radius:8px}
+  .ticket .th{display:flex; align-items:center; justify-content:space-between; gap:20px; padding:20px 34px; background:var(--paper-2); border-bottom:2px dashed var(--rule-2)}
+  .ticket .when{padding:30px 34px 10px; display:flex; flex-direction:column; gap:6px}
+  .ticket .big{font-family:var(--font-display); font-weight:700; font-size:64px; letter-spacing:-.02em; line-height:1.05}
+  .ticket .time{font-family:var(--font-mono); font-size:32px; color:var(--ink-2)}
+  .ticket .rows{padding:8px 34px 24px; display:flex; flex-direction:column}
+  .ticket .r{display:grid; grid-template-columns:150px 1fr; gap:24px; padding:18px 0; border-top:2px dashed var(--rule-2); font-size:28px; line-height:1.35}
+  .ticket .r .k{font-family:var(--font-mono); font-size:20px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); padding-top:6px}
+  .cta{margin-top:auto; background:var(--accent); color:var(--on-accent); border-radius:8px; padding:30px 34px; display:flex; flex-direction:column; gap:8px}
+  .cta .l{font-family:var(--font-mono); font-size:20px; letter-spacing:.14em; text-transform:uppercase; opacity:.85}
+  .cta .u{font-family:var(--font-mono); font-size:42px; font-weight:600; letter-spacing:-.01em}
+  .none{margin:auto; text-align:center; font-family:var(--font-display); font-style:italic; font-size:34px; color:var(--ink-2); max-width:20ch}
+</style>
+</head>
+<body>
+<div class="card" id="card">
+  <div class="top">
+    <span class="brand"><span class="logo" data-size="64" aria-hidden="true"></span><span>The AI Homebrew Club</span></span>
+    <span class="folio">Free &middot; no vendors</span>
+  </div>
+
+  <div class="hero">
+    <p class="folio" id="cChapter"><b>The AI Homebrew Club</b> &middot; Maine</p>
+    <h1>You&rsquo;re invited.</h1>
+    <p class="kicker" id="cKicker">Neighbors teaching neighbors to put AI to work.</p>
+  </div>
+
+  <div class="card-raised ticket" id="cTicket" hidden>
+    <div class="th">
+      <span class="folio"><b id="cTitle">The next meetup</b></span>
+      <span class="folio" id="cSeatsShort"></span>
+    </div>
+    <div class="when">
+      <span class="big" id="cWhen"></span>
+      <span class="time" id="cTime"></span>
+    </div>
+    <div class="rows">
+      <div class="r"><span class="k">Where</span><span id="cWhere"></span></div>
+      <div class="r"><span class="k">Bring</span><span id="cBring"></span></div>
+      <div class="r"><span class="k">Seats</span><span id="cSeats"></span></div>
+    </div>
+  </div>
+
+  <p class="none" id="cNone" hidden></p>
+
+  <div class="cta" id="cCta" hidden>
+    <span class="l">Save a seat</span>
+    <span class="u" id="cUrl">aihomebrewclub.com</span>
+  </div>
+</div>
+
+<script src="assets/config.js?v=6"></script>
+<script src="assets/site.js?v=5"></script>
+<script>
+(function(){
+  'use strict';
+  var CFG = window.AIHC_CONFIG, UI = window.AIHC_UI;
+  var $ = UI.$, esc = UI.esc, fmtTime = UI.fmtTime;
+  var q = new URLSearchParams(location.search);
+  var EVENT = q.get('event') || '';
+  var CITY = (q.get('city') || '').toLowerCase().replace(/[^a-z0-9-]/g, '');
+
+  var COPY = {
+    waterville: { kicker: 'One hour, and one problem off your plate.', bring: 'A laptop or phone, and one real task.' },
+    portland: { kicker: 'Two hours, and your project further along.', bring: 'A laptop and one real project.' }
+  };
+  var GENERAL = { kicker: 'Neighbors teaching neighbors to put AI to work.', bring: 'A laptop or phone, and one real task.' };
+  var NUM = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve'];
+
+  function endTime(t, minutes){
+    var p = t.split(':');
+    var end = ((+p[0]) * 60 + (+p[1]) + minutes) % 1440;
+    return Math.floor(end / 60) + ':' + String(end % 60).padStart(2, '0');
+  }
+  function fmtRange(t, minutes){
+    var a = fmtTime(t), b = a ? fmtTime(endTime(t, minutes)) : '';
+    if (!a || !b) return a;
+    return a.slice(-2) === b.slice(-2) ? a.slice(0, -3) + ' to ' + b : a + ' to ' + b;
+  }
+
+  function paint(e){
+    var towns = Object.keys(CFG.CITY_POINTS);
+    var pt = CFG.CITY_POINTS[e.city];
+    var copy = COPY[e.city] || GENERAL;
+    var minutes = parseInt(e.minutes, 10) || 60;
+    var cap = Math.max(0, parseInt(e.capacity, 10) || 0);
+    var range = fmtRange(e.start_time, minutes);
+
+    document.title = 'Card: ' + e.title + ' · The AI Homebrew Club';
+    $('cChapter').innerHTML = pt
+      ? '<b>Chapter ' + String(towns.indexOf(e.city) + 1).padStart(2, '0') + '</b> &middot; ' + esc(pt.label) + ', Maine'
+      : '<b>The AI Homebrew Club</b> &middot; Maine';
+    $('cKicker').textContent = copy.kicker;
+    $('cTitle').textContent = e.title;
+    $('cSeatsShort').textContent = cap ? 'Free · ' + cap + ' seats' : 'Free';
+    $('cWhen').textContent = e.when;
+    $('cTime').textContent = range || 'Time announced soon';
+    $('cWhere').textContent = e.location.charAt(0).toUpperCase() + e.location.slice(1) + '.';
+    $('cBring').textContent = copy.bring;
+    $('cSeats').textContent = cap ? (NUM[cap] || cap) + ' chairs, first come, first served.' : 'First come, first served.';
+    $('cUrl').textContent = 'aihomebrewclub.com/' + (pt && pt.page ? pt.page.replace(/\.html$/, '') : 'rsvp');
+    $('cTicket').hidden = false;
+    $('cCta').hidden = false;
+  }
+  function none(msg){
+    $('cNone').textContent = msg;
+    $('cNone').hidden = false;
+  }
+
+  fetch(CFG.API_BASE + '/events' + (CITY ? '?city=' + encodeURIComponent(CITY) : ''))
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var all = (d && d.events) || [];
+      var e = EVENT
+        ? all.filter(function(x){ return x.id === EVENT; })[0]
+        : all.filter(function(x){ return x.status === 'upcoming'; })
+            .sort(function(a, b){ return a.sort_date < b.sort_date ? -1 : 1; })[0];
+      if (e) paint(e);
+      else none(EVENT ? 'That meetup is not on the calendar.' : 'Nothing on the calendar yet.');
+    })
+    .catch(function(){ none('Could not reach the calendar. Try again in a minute.'); });
+})();
+</script>
+</body>
+</html>
