@@ -21,24 +21,29 @@
     }
   }
   html,body{margin:0; background:var(--paper)}
-  .card{width:1080px; height:1350px; padding:72px 80px 64px; box-sizing:border-box; display:flex; flex-direction:column; gap:34px; color:var(--ink); background:var(--paper); overflow:hidden}
+  .card{width:1080px; height:1350px; padding:64px 80px 60px; box-sizing:border-box; display:flex; flex-direction:column; gap:28px; color:var(--ink); background:var(--paper); overflow:hidden}
   .top{display:flex; align-items:center; justify-content:space-between; gap:24px; padding-bottom:26px; border-bottom:4px solid var(--ink)}
   .brand{display:flex; align-items:center; gap:18px; font-family:var(--font-display); font-weight:700; font-size:40px; letter-spacing:-.01em; white-space:nowrap}
   .card .folio{font-size:22px; letter-spacing:.14em}
-  .hero{display:flex; flex-direction:column; gap:14px}
-  .hero h1{font-size:118px; line-height:.96; letter-spacing:-.035em; font-weight:700}
+  .hero{display:flex; flex-direction:column; gap:10px}
+  .hero h1{font-size:104px; line-height:.96; letter-spacing:-.035em; font-weight:700}
   .hero .kicker{font-size:44px; line-height:1.2}
   .ticket{display:flex; flex-direction:column; overflow:hidden; border-top-width:7px; border-radius:8px}
   .ticket .th{display:flex; align-items:center; justify-content:space-between; gap:20px; padding:20px 34px; background:var(--paper-2); border-bottom:2px dashed var(--rule-2)}
-  .ticket .when{padding:30px 34px 10px; display:flex; flex-direction:column; gap:6px}
+  .ticket .when{padding:24px 34px 8px; display:flex; flex-direction:column; gap:6px}
   .ticket .big{font-family:var(--font-display); font-weight:700; font-size:64px; letter-spacing:-.02em; line-height:1.05}
   .ticket .time{font-family:var(--font-mono); font-size:32px; color:var(--ink-2)}
   .ticket .rows{padding:8px 34px 24px; display:flex; flex-direction:column}
-  .ticket .r{display:grid; grid-template-columns:150px 1fr; gap:24px; padding:18px 0; border-top:2px dashed var(--rule-2); font-size:28px; line-height:1.35}
+  .ticket .r{display:grid; grid-template-columns:150px 1fr; gap:24px; padding:15px 0; border-top:2px dashed var(--rule-2); font-size:28px; line-height:1.35}
   .ticket .r .k{font-family:var(--font-mono); font-size:20px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); padding-top:6px}
-  .cta{margin-top:auto; background:var(--accent); color:var(--on-accent); border-radius:8px; padding:30px 34px; display:flex; flex-direction:column; gap:8px}
+  /* the call to action: the short URL for typing, a code a friend can scan off this screen, and the how */
+  .cta{margin-top:auto; background:var(--accent); color:var(--on-accent); border-radius:8px; padding:26px 30px; display:grid; grid-template-columns:1fr auto; gap:28px; align-items:center}
+  .cta .txt{display:flex; flex-direction:column; gap:8px; min-width:0}
   .cta .l{font-family:var(--font-mono); font-size:20px; letter-spacing:.14em; text-transform:uppercase; opacity:.85}
-  .cta .u{font-family:var(--font-mono); font-size:42px; font-weight:600; letter-spacing:-.01em}
+  .cta .u{font-family:var(--font-mono); font-size:35px; font-weight:600; letter-spacing:-.01em}
+  .cta .how{font-size:21px; line-height:1.35; opacity:.92; margin-top:4px}
+  .cta .qr{width:196px; height:196px; background:#fff; border-radius:8px; padding:12px; box-sizing:border-box; line-height:0; display:block}
+  .cta .qr svg{width:100%; height:100%; display:block}
   .none{margin:auto; text-align:center; font-family:var(--font-display); font-style:italic; font-size:34px; color:var(--ink-2); max-width:20ch}
 </style>
 </head>
@@ -74,11 +79,16 @@
   <p class="none" id="cNone" hidden></p>
 
   <div class="cta" id="cCta" hidden>
-    <span class="l">Save a seat</span>
-    <span class="u" id="cUrl">aihomebrewclub.com</span>
+    <div class="txt">
+      <span class="l">Save a seat</span>
+      <span class="u" id="cUrl">aihomebrewclub.com</span>
+      <span class="how">Tap the link in this text, or have a friend scan the code. Name, email, cell. Done.</span>
+    </div>
+    <span class="qr" id="cQr"></span>
   </div>
 </div>
 
+<script src="assets/qrlib.js"></script>
 <script src="assets/config.js?v=6"></script>
 <script src="assets/site.js?v=5"></script>
 <script>
@@ -108,6 +118,17 @@
     return a.slice(-2) === b.slice(-2) ? a.slice(0, -3) + ' to ' + b : a + ' to ' + b;
   }
 
+  function qrSvg(url){
+    try{
+      var qr = qrcode(0, 'M');
+      qr.addData(url);
+      qr.make();
+      return qr.createSvgTag({cellSize: 4, margin: 0, scalable: true})
+        .replace(/#000000|black/gi, '#191919')
+        .replace(/#ffffff|white/gi, '#FFFFFF');
+    } catch(err){ return ''; }
+  }
+
   function paint(e){
     var towns = Object.keys(CFG.CITY_POINTS);
     var pt = CFG.CITY_POINTS[e.city];
@@ -129,6 +150,8 @@
     $('cBring').textContent = copy.bring;
     $('cSeats').textContent = cap ? (NUM[cap] || cap) + ' chairs, first come, first served.' : 'First come, first served.';
     $('cUrl').textContent = 'aihomebrewclub.com/' + (pt && pt.page ? pt.page.replace(/\.html$/, '') : 'rsvp');
+    /* a friend scanning this card off someone's screen is its own door: tagged ref=card */
+    $('cQr').innerHTML = qrSvg('https://aihomebrewclub.com/rsvp.html?event=' + encodeURIComponent(e.id) + '&ref=card');
     $('cTicket').hidden = false;
     $('cCta').hidden = false;
   }
