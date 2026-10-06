@@ -111,7 +111,7 @@
         <div class="field"><label for="fEmail">Email <span class="opt">&middot; for the welcome note</span></label><input class="input" type="text" id="fEmail" maxlength="160" autocomplete="email" inputmode="email"></div>
         <div class="field"><label for="fPhone">Cell phone <span class="opt">&middot; for day-of texts</span></label><input class="input mono" type="text" id="fPhone" maxlength="40" autocomplete="tel" inputmode="tel"></div>
         <div class="field"><label for="fBiz">Business or trade <span class="opt">&middot; optional</span></label><input class="input" type="text" id="fBiz" maxlength="160" autocomplete="organization"></div>
-        <div class="field"><label for="fGuest">Bringing a neighbor? <span class="opt">&middot; saves them a seat</span></label><input class="input" type="text" id="fGuest" maxlength="80" autocomplete="off" placeholder="Their name"></div>
+        <div class="field"><label for="fGuest">Bringing a neighbor? <span class="opt">&middot; their name saves them a seat</span></label><input class="input" type="text" id="fGuest" maxlength="80" autocomplete="off" placeholder="Their name, or leave blank"></div>
         <div class="field span"><label for="fNote">One task eating your week <span class="opt">&middot; optional, we may work it live</span></label><textarea class="input textarea" id="fNote" maxlength="500"></textarea></div>
       </div>
       <label class="hp">Website<input type="text" id="fWebsite" tabindex="-1" autocomplete="off"></label>
@@ -310,6 +310,11 @@
       .catch(function(){ $('seatPill').innerHTML = '<span class="n">First come, first served</span>'; });
   }
 
+  /* the neighbor field answered with a word instead of a name is nobody */
+  function guestName(){
+    var g = $('fGuest').value.trim();
+    return /^(no|nope|none|nah|not?|n\/a|na|-|x|me|myself|just me|solo)\.?$/i.test(g) ? '' : g;
+  }
   function doSubmit(extra){
     var err = $('fErr');
     if (!EVENT){
@@ -320,7 +325,7 @@
     var payload = {
       event: EVENT, name: $('fName').value.trim(), email: $('fEmail').value.trim(),
       phone: $('fPhone').value.trim(), biz: $('fBiz').value.trim(),
-      guest: $('fGuest').value.trim(), note: $('fNote').value.trim(),
+      guest: guestName(), note: $('fNote').value.trim(),
       website: $('fWebsite').value, ref: REF
     };
     for (var k in extra){ payload[k] = extra[k]; }
@@ -336,6 +341,13 @@
         $('rsvpForm').style.display = 'none';
         $('pairChoice').style.display = 'none';
         $(d.status === 'seat' ? 'doneSeat' : 'doneWait').style.display = 'block';
+        if (d.already){
+          /* the book already had this person: say so instead of pretending a new seat appeared */
+          var panel = $(d.status === 'seat' ? 'doneSeat' : 'doneWait');
+          panel.querySelector('h2').textContent = d.status === 'seat' ? 'You already have a seat.' : 'You are already on the waitlist.';
+          panel.querySelector('.note').textContent = 'We found your earlier reservation for ' + ((evData && evData.when) || 'this meetup') +
+            ' under the same email or phone, so nothing new was added. Your confirmation and calendar invite are in your inbox from the first time.';
+        }
         wireShare();
         refresh();
       } else if (d && d.error === 'one-seat-left'){

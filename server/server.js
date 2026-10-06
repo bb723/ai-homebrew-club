@@ -342,6 +342,12 @@ async function init() {
     ON aihc_members (lower(email)) WHERE status = 'active' AND email <> ''
   `);
   await pool.query('ALTER TABLE aihc_rsvps ADD COLUMN IF NOT EXISTS attended boolean NOT NULL DEFAULT false');
+  /* one live reservation per email per meetup, enforced by the database too. Older data could
+     hold a repeat, so a failure here only logs; the check in POST /rsvp still stands. */
+  try {
+    await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS aihc_rsvps_one_per_email
+      ON aihc_rsvps (event, lower(email)) WHERE status IN ('seat', 'waitlist') AND email <> ''`);
+  } catch (err) { console.error('one-per-email index not created:', err.message); }
   /* invites: the console's "fill the table" mailer. one row per (event, email) so
      the book remembers who was asked and when, and never double-mails by accident */
   await pool.query(`
@@ -587,6 +593,23 @@ async function waitlistSize(event) {
 function cleanRef(v) {
   return String(v || '').trim().toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 40);
 }
+/* the reservation a person already holds for a meetup: the same email (any case) or the
+   same phone (digits only, last ten), seated or waiting. Cancelled and rescheduled rows do
+   not count, so a change of heart can come back. null when they hold none. */
+async function findReservation(event, email, phone) {
+  const em = String(email || '').trim().toLowerCase();
+  const digits = String(phone || '').replace(/[^0-9]/g, '');
+  const tail = digits.length >= 7 ? digits.slice(-10) : '';
+  if (!em && !tail) return null;
+  const q = await pool.query(
+    `SELECT id, name, email, phone, status, ts, ref, guest_name FROM aihc_rsvps
+     WHERE event = $1 AND status IN ('seat', 'waitlist')
+       AND (($2 <> '' AND lower(email) = $2) OR ($3 <> '' AND right(translate(phone, ' ()-.+', ''), 10) = $3))
+     ORDER BY ts LIMIT 1`,
+    [event, em, tail]
+  );
+  return q.rows[0] || null;
+}
 function shareUrl(eventId, rsvpId) {
   return 'https://aihomebrewclub.com/rsvp.html?event=' + eventId + '&ref=n-' + rsvpId;
 }
@@ -738,11 +761,24 @@ app.post('/rsvp', async (req, res) => {
   const contact = legacy || (email + ' · ' + phone);
   const biz = String(body.biz || '').trim().slice(0, 160);
   const note = String(body.note || '').trim().slice(0, 500);
-  const guest = String(body.guest || '').trim().slice(0, 80);
+  /* "Bringing a neighbor?" answered with a word instead of a name is nobody, not a second chair */
+  const guestRaw = String(body.guest || '').trim().slice(0, 80);
+  const guest = /^(no|nope|none|nah|not?|n\/a|na|-|x|me|myself|just me|solo)\.?$/i.test(guestRaw) ? '' : guestRaw;
   const ref = cleanRef(body.ref);
   try {
     const ev = await getEvent(key);
     if (!ev) return res.status(404).json({ error: 'no such event' });
+    /* one reservation per person per meetup: a repeat gets the first one back, and nothing is added */
+    const existing = await findReservation(key, email, phone);
+    if (existing) {
+      notify(
+        'RSVP repeated: ' + name + ' already has ' + (existing.status === 'seat' ? 'a seat' : 'a waitlist spot') + ' (' + existing.id + ')',
+        name + ' sent another RSVP for ' + ev.when + ' and got the first one back. Nothing was added.\nEmail: ' + (email || '-') + '\nPhone: ' + (phone || '-') +
+        '\nFirst reservation: ' + existing.name + ', ' + existing.ts + ', heard via ' + (existing.ref || '-')
+      );
+      const held = await seatsTaken(key);
+      return res.json({ ok: true, status: existing.status, left: Math.max(0, ev.capacity - held), id: existing.id, share: shareUrl(key, existing.id), already: true });
+    }
     const taken = await seatsTaken(key);
     const party = guest ? 2 : 1;
     const left = ev.capacity - taken;
