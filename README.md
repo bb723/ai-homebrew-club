@@ -22,7 +22,7 @@ Zero-build GitHub Pages site at **aihomebrewclub.com** (see `CNAME`). Plain HTML
 | `waterville.html` | Chapter 01, Waterville: the next meetup with its live agenda, seat count and per-event QR, plus the record of past meetups |
 | `portland.html` | Chapter 02, Portland: the same live card and record, plus how that table runs (once a month, two hours, eight seats, project-based) |
 
-Link previews on every page use `share-card.png`, an evergreen card with no date or town on it (the dated `invite-card.png` from the first meetup stays in the repo only for old cached links).
+Link previews on every page use `share-card.png`, an evergreen card with no date or town on it; `portland.html` uses `share-card-portland.png` (chapter, cadence, venue, still no date) (the dated `invite-card.png` from the first meetup stays in the repo only for old cached links).
 
 Both chapter pages render a series the same way: the next meetup is the raised card with the QR; every later upcoming meetup in that town is a row under "Coming up" with its own RSVP button. The circuit's pin and chapter row report the next meetup's seats, not the series total.
 | `recipes.html` | Public prompt library, managed from the admin console |
