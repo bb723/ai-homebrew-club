@@ -353,7 +353,10 @@ function nextTableEmail({ ev, person, taken, agenda, links }) {
     : 'First come, first served.';
   const subject = 'The next ' + town + ' table is on the calendar: ' + ev.when;
   const headline = ev.when + '.';
-  const lede = 'You have sat with us before, so you hear first: the next ' + town + ' meetup is on the calendar. ' +
+  const opener = person.sat === false
+    ? 'You are on the ' + town + ' list, so you hear first: '
+    : 'You have sat with us before, so you hear first: ';
+  const lede = opener + 'the next ' + town + ' meetup is on the calendar. ' +
     (left > 0 ? left + ' of ' + cap + ' chairs are open, and it takes ten seconds to take one.' : 'The table is already full, but seats open up and the waitlist moves.');
 
   const where = whereRow(ev);

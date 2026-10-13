@@ -258,6 +258,15 @@
             <h2>The roster</h2>
             <p class="quiet">Everyone who has sat at a table, by town. Whoever sat at the last table gets a chair held at the next one (two hours after a meetup ends, the book closes by itself and the chairs carry over); the rest hear once when a new table is on the calendar. Pause someone and they are left alone until you resume them, or until they use the link in their own email.</p>
           </div>
+          <form class="card" id="roAdd" style="padding:14px 16px; margin-bottom:14px">
+            <div class="fx gap10 fwrap ac">
+              <input type="text" id="roName" placeholder="Name" style="width:200px">
+              <input type="email" id="roEmail" placeholder="Email" style="width:240px">
+              <select id="roCity" style="width:160px"><option value="waterville">Waterville</option></select>
+              <button class="btn btn-primary btn-sm" type="submit">Add to the roster</button>
+            </div>
+            <p class="fine" style="margin-top:8px">They hear when the next table is on the calendar and again a week out. A chair is only held for people who sat at the last table.</p>
+          </form>
           <div class="card rowlist" id="roList"><div class="r one"><span class="quiet">Loading&hellip;</span></div></div>
         </div>
       </section>
@@ -2004,6 +2013,10 @@
         .then(function(d){
           roster = (d && d.roster) || [];
           setCount('roster', roster.filter(function(r){ return r.status === 'in'; }).length);
+          /* the town picker follows the calendar */
+          var sel = $('roCity'), keep = sel.value, cities = [];
+          events.forEach(function(e){ if (cities.indexOf(e.city) < 0) cities.push(e.city); });
+          if (cities.length){ sel.innerHTML = cities.sort().map(function(c){ return '<option value="' + esc(c) + '">' + esc(c.charAt(0).toUpperCase() + c.slice(1)) + '</option>'; }).join(''); if (cities.indexOf(keep) >= 0) sel.value = keep; }
           var towns = {};
           roster.forEach(function(r){ (towns[r.city] = towns[r.city] || []).push(r); });
           var names = Object.keys(towns).sort();
@@ -2039,6 +2052,17 @@
       });
     });
     window.addEventListener('hashchange', function(){ if (parseHash().view === 'roster') loadRoster(); });
+    $('roAdd').addEventListener('submit', function(ev){
+      ev.preventDefault();
+      var name = $('roName').value.trim(), email = $('roEmail').value.trim(), city = $('roCity').value;
+      if (!name || email.indexOf('@') === -1){ A.toast('A name and a real email, please.'); return; }
+      post('/roster', {action: 'add', city: city, email: email, name: name}).then(function(d){
+        if (!(d && d.ok)){ A.toast('That did not save.'); return; }
+        A.toast(name + ' is on the ' + city + ' roster.');
+        $('roName').value = ''; $('roEmail').value = '';
+        loadRoster();
+      });
+    });
 
     /* the clubhouse: rooms and light moderation */
     var chans = [];

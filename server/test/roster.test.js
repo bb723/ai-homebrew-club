@@ -326,6 +326,14 @@ async function scenario(name, fn) {
     expect(world.notes.some(n => n.subject.startsWith('The roster heard:') && n.text.includes('Olive Older')), 'admin note for the roster missing');
   });
 
+  await scenario('someone added by hand hears about the next table without being told they sat with us', async () => {
+    world.events = [eventAt('n', 72)];
+    world.roster = [{ city: 'waterville', email: 'hand@example.test', name: 'Hal Handadded', phone: '', biz: '', token: 'tok-hal', status: 'in', last_event: '', ts: '2026-02-11T00:00:00Z' }];
+    await runRoster(AT);
+    expect(world.sent.length === 1 && world.sent[0].to === 'hand@example.test', 'Hal should get the next-table note, got ' + world.sent.map(m => m.to));
+    expect(world.sent[0].text.includes('You are on the Waterville list') && !world.sent[0].text.includes('sat with us'), 'wrong opener: ' + world.sent[0].text.slice(0, 160));
+  });
+
   await scenario('one week out, the whole town hears, each in their own words, once', async () => {
     const ev = eventAt('w', 156);   /* six and a half days out: inside the [7d, 6d] window */
     world.events = [ev];

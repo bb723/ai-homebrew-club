@@ -2376,7 +2376,7 @@ async function runRoster(at) {
       for (const p of roster.rows) {
         if (onBook.has(p.email) || asked.has(p.email) || declined.has(p.email)) continue;
         const m = Email.nextTableEmail({
-          ev, person: { name: p.name, email: p.email }, taken, agenda: agenda.rows,
+          ev, person: { name: p.name, email: p.email, sat: !!p.last_event }, taken, agenda: agenda.rows,
           links: { rsvp: rsvpLink(next.id, 'roster', p.name, p.email), calendar, optout: rosterUrl('optout', p.token) },
         });
         mailTo(p.email, m.subject, m.text, undefined, m.html, { cc: true });
@@ -2522,6 +2522,17 @@ app.post('/roster', async (req, res) => {
     if (body.action === 'remove') {
       await pool.query('DELETE FROM aihc_roster WHERE email = $1', [email]);
       return res.json({ ok: true });
+    }
+    /* add by hand: on the town's list from now on, no chair held until they sit at a table */
+    if (body.action === 'add') {
+      const city = String(body.city || 'waterville').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 40);
+      const name = String(body.name || '').trim().slice(0, 80);
+      if (!city || email.indexOf('@') === -1) return res.status(400).json({ error: 'city and a real email required' });
+      await pool.query(
+        "INSERT INTO aihc_roster (city, email, name, phone, biz, token, status, last_event, ts) VALUES ($1,$2,$3,$4,'',$5,'in','',$6) " +
+        "ON CONFLICT (city, email) DO UPDATE SET name = CASE WHEN EXCLUDED.name <> '' THEN EXCLUDED.name ELSE aihc_roster.name END, status = 'in'",
+        [city, email, name, String(body.phone || '').trim().slice(0, 40), newToken(), new Date().toISOString()]);
+      return res.json({ ok: true, city, email, name });
     }
     res.status(400).json({ error: 'unknown action' });
   } catch (err) {
