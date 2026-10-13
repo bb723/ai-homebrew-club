@@ -2241,14 +2241,20 @@ async function markOnce(event, kind) {
 /* every five minutes, after the reminders:
    1. a meetup is 'past' two hours after it ends, so the pages and the bare rsvp link move on by themselves;
    2. everyone who has held a seat at a town's past tables is on that town's roster;
-   3. whoever sat at the last table has a chair at the next one (a waitlist spot if it is full), with a note
-      saying so. If the host marked attendance for the last table, only those marked attended carry;
-   4. the rest of the roster hears once that the next table is on the calendar, with a one-tap seat link.
+   3. whoever sat at the last table has a chair at the next one (a waitlist spot if it is full), with a
+      thank-you note saying so. If the host marked attendance for the last table, only those marked carry;
+   4. the rest of the roster hears once that the next table is on the calendar, with a one-tap seat link;
+   5. one week out, everyone in the town hears again: the seated that their chair is saved, the waitlist
+      that they are still in line, the rest how many chairs are open.
+   Mail goes out between 9 am and 8 pm Maine time, so an evening table's notes land the next morning.
    A table that starts within a day is left alone: too late to hold chairs for. */
-async function runRoster() {
+async function runRoster(at) {
   if (!mailer) return;
-  const nowMs = Date.now();
-  const today = Email.maineToday();
+  const now = at || new Date();
+  const nowMs = now.getTime();
+  const today = Email.maineToday(now);
+  const hour = Email.maineHour(now);
+  const canMail = hour >= 9 && hour < 20;
   const up = await pool.query("SELECT * FROM aihc_events WHERE status = 'upcoming' /*q:open-events*/");
   for (const row of up.rows) {
     const end = eventEndMs(row);
@@ -2293,6 +2299,7 @@ async function runRoster() {
     if (!next) continue;
     const nextStart = eventStartUtc(next);
     if (nextStart && nextStart.getTime() - nowMs < 24 * 3600000) continue;
+    if (!canMail) continue;
     const ev = eventView(next);
     const outs = new Set((await pool.query("SELECT email FROM aihc_roster WHERE status = 'out' /*q:opted-out*/")).rows.map(r => r.email));
     const agenda = await pool.query('SELECT t, title, detail FROM aihc_agenda_items WHERE event = $1 ORDER BY pos /*q:agenda*/', [next.id]);
@@ -2300,6 +2307,9 @@ async function runRoster() {
     if (last && next.sort_date > last.sort_date && await markOnce(next.id, 'carry:' + last.id)) {
       const seated = await pool.query("SELECT * FROM aihc_rsvps WHERE event = $1 AND status = 'seat' ORDER BY ts /*q:last-seats*/", [last.id]);
       const tookAttendance = seated.rows.some(r => r.attended);
+      /* within a few days of the table it is the thank-you note; later, the held chair */
+      const fresh = Email.daysBetween(last.sort_date, today) <= 3;
+      const recap = (await pool.query('SELECT title FROM aihc_agenda_items WHERE event = $1 ORDER BY pos /*q:last-agenda*/', [last.id])).rows.map(r => r.title);
       const held = [], waiting = [], skipped = [];
       const seen = new Set();
       for (const r of seated.rows) {
@@ -2321,7 +2331,7 @@ async function runRoster() {
         const tok = await pool.query('SELECT token FROM aihc_roster WHERE city = $1 AND email = $2 /*q:token*/', [city, em]);
         const m = Email.holdEmail({
           ev, rsvp: { id, name: r.name, guest_name: r.guest_name || '', status },
-          last: { title: last.title, when: last.when_text },
+          last: { title: last.title, when: last.when_text }, fresh, recap,
           taken: await seatsTaken(next.id), agenda: agenda.rows,
           links: {
             calendar, cancel: cancelUrl(next.id, id), share: shareUrl(next.id, id),
@@ -2340,7 +2350,8 @@ async function runRoster() {
       }
       notify('Chairs held over: ' + next.title + ', ' + next.when_text,
         'Whoever sat at ' + last.title + ' (' + last.when_text + ')' + (tookAttendance ? ' and was marked attended' : '') +
-        ' now has a chair at ' + next.title + ' (' + next.when_text + '), and a note saying so. You were cc\'d on each one.\n\n' +
+        ' now has a chair at ' + next.title + ' (' + next.when_text + '), and a ' + (fresh ? 'thank-you note' : 'note') +
+        ' saying so. You were cc\'d on each one.\n\n' +
         'Held (' + held.length + '):' + (held.length ? '\n  ' + held.join('\n  ') : ' none') +
         '\n\nWaitlisted, the table was full (' + waiting.length + '):' + (waiting.length ? '\n  ' + waiting.join('\n  ') : ' none') +
         '\n\nSkipped (' + skipped.length + '):' + (skipped.length ? '\n  ' + skipped.join('\n  ') : ' none') +
@@ -2357,10 +2368,13 @@ async function runRoster() {
       const asked = new Set((await pool.query(
         "SELECT lower(email) AS e FROM aihc_invites WHERE event = $1 AND by NOT LIKE 'note:%' /*q:asked*/", [next.id]
       )).rows.map(r => r.e));
+      const declined = new Set((await pool.query(
+        "SELECT lower(email) AS e FROM aihc_rsvps WHERE event = $1 AND status IN ('cancelled','rescheduled') AND email <> '' /*q:declined*/", [next.id]
+      )).rows.map(r => r.e));
       const sent = [];
       const taken = await seatsTaken(next.id);
       for (const p of roster.rows) {
-        if (onBook.has(p.email) || asked.has(p.email)) continue;
+        if (onBook.has(p.email) || asked.has(p.email) || declined.has(p.email)) continue;
         const m = Email.nextTableEmail({
           ev, person: { name: p.name, email: p.email }, taken, agenda: agenda.rows,
           links: { rsvp: rsvpLink(next.id, 'roster', p.name, p.email), calendar, optout: rosterUrl('optout', p.token) },
@@ -2378,6 +2392,56 @@ async function runRoster() {
           '\nConsole: https://aihomebrewclub.com/deck/admin.html#meetups');
       }
     }
+  }
+  /* 5. one week out: the whole town hears, once per table */
+  if (!canMail) return;
+  const soon = await pool.query("SELECT * FROM aihc_events WHERE status = 'upcoming' AND start_time <> '' /*q:week-events*/");
+  for (const row of soon.rows) {
+    const start = eventStartUtc(row);
+    if (!start) continue;
+    const from = start.getTime() - 7 * 86400000, until = start.getTime() - 6 * 86400000;
+    if (nowMs < from || nowMs >= until) continue;
+    if (!await markOnce(row.id, '7d')) continue;
+    const ev = eventView(row);
+    const agenda = await pool.query('SELECT t, title, detail FROM aihc_agenda_items WHERE event = $1 ORDER BY pos /*q:agenda*/', [row.id]);
+    const calendar = gcalUrl(ev, row.id);
+    const book = await pool.query("SELECT * FROM aihc_rsvps WHERE event = $1 AND status IN ('seat','waitlist') ORDER BY ts /*q:book*/", [row.id]);
+    const declined = new Set((await pool.query(
+      "SELECT lower(email) AS e FROM aihc_rsvps WHERE event = $1 AND status IN ('cancelled','rescheduled') AND email <> '' /*q:declined*/", [row.id]
+    )).rows.map(r => r.e));
+    const roster = await pool.query("SELECT * FROM aihc_roster WHERE city = $1 AND status = 'in' ORDER BY ts /*q:roster-in*/", [row.city]);
+    const taken = await seatsTaken(row.id);
+    const seen = new Set();
+    const sent = { seat: [], waitlist: [], open: [] };
+    for (const r of book.rows) {
+      const em = String(r.email || '').trim().toLowerCase();
+      if (!em || seen.has(em)) continue;
+      seen.add(em);
+      const m = Email.weekBeforeEmail({
+        ev, person: { name: r.name, guest_name: r.guest_name || '' }, kind: r.status === 'seat' ? 'seat' : 'waitlist', taken, agenda: agenda.rows,
+        links: { calendar, cancel: cancelUrl(row.id, r.id), share: shareUrl(row.id, r.id) },
+      });
+      mailTo(r.email, m.subject, m.text, undefined, m.html, { cc: true });
+      sent[r.status === 'seat' ? 'seat' : 'waitlist'].push(r.name + ' <' + r.email + '>');
+    }
+    for (const p of roster.rows) {
+      if (seen.has(p.email) || declined.has(p.email)) continue;
+      seen.add(p.email);
+      const m = Email.weekBeforeEmail({
+        ev, person: { name: p.name }, kind: 'open', taken, agenda: agenda.rows,
+        links: { calendar, rsvp: rsvpLink(row.id, 'week', p.name, p.email), optout: rosterUrl('optout', p.token) },
+      });
+      mailTo(p.email, m.subject, m.text, undefined, m.html, { cc: true });
+      sent.open.push(p.name + ' <' + p.email + '>');
+    }
+    const n = sent.seat.length + sent.waitlist.length + sent.open.length;
+    const list = (title, arr) => '\n\n' + title + ' (' + arr.length + '):' + (arr.length ? '\n  ' + arr.join('\n  ') : ' none');
+    notify('One week out: ' + row.title + ', ' + row.when_text,
+      'The week-before note went to ' + n + ' ' + (n === 1 ? 'person' : 'people') + ' in ' + Email.townOf(chapterOf(row.city).label) +
+      ' for ' + row.title + ' (' + row.when_text + '). You were cc\'d on each one.' +
+      list('Seated, "your chair is saved"', sent.seat) + list('Waitlist, "still in line"', sent.waitlist) +
+      list('Roster, "' + Math.max(0, row.capacity - taken) + ' chairs open"', sent.open) +
+      '\n\n' + taken + ' of ' + row.capacity + ' chairs spoken for. Console: https://aihomebrewclub.com/deck/admin.html#meetups');
   }
 }
 

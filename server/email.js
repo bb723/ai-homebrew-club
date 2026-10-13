@@ -66,6 +66,21 @@ function dayWord(sortDate, now) {
   if (diff === 1) return 'Tomorrow';
   return DAYS[d.getUTCDay()];
 }
+/* the hour on Maine's clock, 0-23 */
+function maineHour(now) {
+  return parseInt(new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour: 'numeric', hourCycle: 'h23' })
+    .format(now || new Date()), 10);
+}
+/* whole days from a to b, both YYYY-MM-DD; NaN when either is not a date */
+function daysBetween(a, b) {
+  const da = ymd(a), db = ymd(b);
+  return da && db ? Math.round((db.getTime() - da.getTime()) / 86400000) : NaN;
+}
+/* "2026-11-10" -> "Tuesday" */
+function weekday(sortDate) {
+  const d = ymd(sortDate);
+  return d ? DAYS[d.getUTCDay()] : '';
+}
 function mapsUrl(location) {
   return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(location || '');
 }
@@ -240,10 +255,11 @@ function reminderEmail({ kind, ev, rsvp, agenda, taken, links, now }) {
   return { subject, text, html };
 }
 
-/* the standing seat: whoever sat at the last table has a chair at the next one.
+/* the standing seat: whoever sat at the last table has a chair at the next one. Sent fresh
+   (within a few days of the last table) it is the thank-you note; later, it is the held chair.
    { ev, rsvp: {id, name, guest_name, status: 'seat'|'waitlist'}, last: {title, when},
-     taken, agenda, links: {calendar, cancel, share, optout} } */
-function holdEmail({ ev, rsvp, last, taken, agenda, links }) {
+     fresh, recap: [titles], taken, agenda, links: {calendar, cancel, share, optout} } */
+function holdEmail({ ev, rsvp, last, fresh, recap, taken, agenda, links }) {
   const place = ev.place || 'Maine';
   const town = townOf(place);
   const w = whenLine(ev);
@@ -256,15 +272,22 @@ function holdEmail({ ev, rsvp, last, taken, agenda, links }) {
   const seatLine = seated
     ? (pair ? 'Held for ' + name + ' and ' + rsvp.guest_name + '.' : 'Held for ' + name + '.') + tableLine
     : 'Waitlist, first in line. The moment a chair opens it is yours.';
-  const subject = seated
-    ? 'Your chair is held: ' + ev.title + ', ' + ev.when
-    : 'First in line: ' + ev.title + ', ' + ev.when;
-  const headline = seated ? 'Your chair is held.' : 'First in line.';
-  const lede = seated
-    ? 'You sat with us on ' + last.when + ', so we held ' + (pair ? 'two chairs, yours and ' + rsvp.guest_name + '\'s,' : 'your chair') +
-      ' for the next ' + town + ' table. No need to RSVP. It is yours unless you tell us otherwise.'
-    : 'You sat with us on ' + last.when + ', and the next ' + town + ' table filled before we could seat you. ' +
-      'You are at the top of the waitlist; the moment a chair opens it is yours, and we will email you.';
+  const chairs = pair ? 'two chairs, yours and ' + rsvp.guest_name + '\'s,' : 'your chair';
+  const worked = (recap || []).filter(Boolean).slice(0, 6);
+  const recapLine = worked.length ? ' On the sheet: ' + worked.join('; ') + '.' : '';
+  const subject = fresh
+    ? (seated ? 'Thanks for coming. Your chair is held for ' + ev.when + '.' : 'Thanks for coming. You are first in line for ' + ev.when + '.')
+    : (seated ? 'Your chair is held: ' + ev.title + ', ' + ev.when : 'First in line: ' + ev.title + ', ' + ev.when);
+  const headline = fresh ? 'Thanks for coming.' : (seated ? 'Your chair is held.' : 'First in line.');
+  const lede = fresh
+    ? 'Good to have you at the table on ' + last.when + '.' + recapLine +
+      (seated
+        ? ' We held ' + chairs + ' for the next ' + town + ' table: ' + ev.when + ', ' + w.range + '. No need to RSVP. It is yours unless you tell us otherwise.'
+        : ' The next ' + town + ' table filled first, so you are at the top of the waitlist for ' + ev.when + '; the moment a chair opens it is yours, and we will email you.')
+    : (seated
+        ? 'You sat with us on ' + last.when + ', so we held ' + chairs + ' for the next ' + town + ' table. No need to RSVP. It is yours unless you tell us otherwise.'
+        : 'You sat with us on ' + last.when + ', and the next ' + town + ' table filled before we could seat you. ' +
+          'You are at the top of the waitlist; the moment a chair opens it is yours, and we will email you.');
 
   const where = whereRow(ev);
   const buttons = [];
@@ -280,7 +303,7 @@ function holdEmail({ ev, rsvp, last, taken, agenda, links }) {
   const html = renderEmail({
     title: subject, place,
     preheader: w.both + '. ' + ev.location + '.',
-    stamp: seated ? 'Chair held' : 'First in line',
+    stamp: fresh ? 'Thanks for coming' : (seated ? 'Chair held' : 'First in line'),
     dateline: ev.title + ' · ' + town,
     headline,
     greeting: 'Hey ' + first + ',',
@@ -377,7 +400,94 @@ function nextTableEmail({ ev, person, taken, agenda, links }) {
   return { subject, text, html };
 }
 
+/* one week out, to everyone in the town: the seated hear their chair is saved, the waitlist
+   that they are still in line, the rest how many chairs are open.
+   { ev, person: {name, guest_name}, kind: 'seat'|'waitlist'|'open', taken, agenda,
+     links: {calendar, cancel, share, rsvp, optout} } */
+function weekBeforeEmail({ ev, person, kind, taken, agenda, links }) {
+  const place = ev.place || 'Maine';
+  const w = whenLine(ev);
+  const day = weekday(ev.sort_date) || ev.when;
+  const name = String(person.name || 'neighbor').trim();
+  const first = name.split(/\s+/)[0];
+  const pair = !!person.guest_name;
+  const cap = +ev.capacity || 0;
+  const left = cap ? Math.max(0, cap - (taken || 0)) : 0;
+  const seated = kind === 'seat', waiting = kind === 'waitlist';
+  const seatLine = seated
+    ? (pair ? 'Saved for ' + name + ' and ' + person.guest_name + '.' : 'Saved for ' + name + '.') + (cap ? ' ' + Math.min(taken || 0, cap) + ' of ' + cap + ' chairs spoken for.' : '')
+    : waiting
+      ? 'You are on the waitlist. If a chair opens it is yours, and we will email you.'
+      : (left > 0 ? left + ' of ' + cap + ' open, first come, first served.' : 'Full. The waitlist moves, and it is worth joining.');
+  const subject = seated
+    ? 'One week out: your ' + (pair ? 'chairs are' : 'chair is') + ' saved for ' + ev.when
+    : waiting
+      ? 'One week out: you are on the waitlist for ' + ev.when
+      : 'One week out: ' + (left > 0 ? left + ' chair' + (left === 1 ? '' : 's') + ' open for ' : 'the table is full for ') + ev.when;
+  const headline = 'Next ' + day + '.';
+  const lede = seated
+    ? ev.title + ' is a week out: ' + ev.when + ', ' + w.range + '. Your ' + (pair ? 'chairs are' : 'chair is') + ' saved. If plans changed, free ' +
+      (pair ? 'them' : 'it') + ' now so a neighbor can have ' + (pair ? 'them' : 'it') + '.'
+    : waiting
+      ? ev.title + ' is a week out: ' + ev.when + ', ' + w.range + '. You are still on the waitlist, and chairs do open up in the last week.'
+      : ev.title + ' is a week out: ' + ev.when + ', ' + w.range + '. ' +
+        (left > 0 ? left + ' of ' + cap + ' chairs are open, and it takes ten seconds to take one.' : 'The table is full, but seats open up and the waitlist moves.');
+
+  const where = whereRow(ev);
+  const buttons = [];
+  if (seated || waiting) {
+    if (links.calendar) buttons.push({ label: 'Add to calendar', href: links.calendar, primary: true });
+    buttons.push({ label: 'Directions', href: where.maps, primary: !links.calendar });
+  } else {
+    buttons.push({ label: left > 0 ? 'Save my seat' : 'Join the waitlist', href: links.rsvp, primary: true });
+    if (links.calendar) buttons.push({ label: 'Add to calendar', href: links.calendar });
+  }
+  const notes = [];
+  if (seated && links.cancel) notes.push({ text: 'Plans changed? Free your chair for a neighbor:', label: 'give up my chair', href: links.cancel });
+  if (waiting && links.cancel) notes.push({ text: 'Rather not wait? Leave the line here:', label: 'leave the waitlist', href: links.cancel });
+  if ((seated || waiting) && links.share) notes.push({ text: 'Know a neighbor who should be at this table? Send them your link:', label: 'your invite link', href: links.share });
+  if (kind === 'open') notes.push({ text: 'Know a neighbor who should be at this table? Forward this note; the link works for anyone.' });
+  if (links.optout) notes.push({ text: 'Would you rather not hear about meetups?', label: 'stop these notes', href: links.optout });
+
+  const html = renderEmail({
+    title: subject, place,
+    preheader: w.both + '. ' + ev.location + '.',
+    stamp: 'One week out',
+    dateline: ev.title + ' · ' + townOf(place),
+    headline,
+    greeting: 'Hey ' + first + ',',
+    lede,
+    ticket: [
+      { k: 'Meetup', html: '<b style="font-weight:700">' + esc(ev.title) + '</b>' },
+      { k: 'When', html: esc(w.date) + '<br><b style="font-weight:700">' + esc(w.range) + '</b>' },
+      where,
+      { k: seated ? 'Your seat' : 'Seats', v: seatLine },
+      { k: 'Bring', v: BRING },
+    ],
+    agendaLabel: (w.minutes === 60 ? 'The hour' : 'The session') + ' · ' + w.range,
+    agenda: agenda || [],
+    buttons, notes,
+    signoff: ['See you at the table.', 'The AI Homebrew Club', place],
+  });
+
+  const text =
+    'Hey ' + first + ',\n\n' + headline + ' ' + lede + '\n\n' +
+    ev.title + '\n' +
+    'When: ' + w.both + '\n' +
+    'Where: ' + ev.location + '\n' +
+    (seated ? 'Your seat: ' : 'Seats: ') + seatLine + '\n' +
+    'Bring: ' + BRING + '\n' +
+    agendaText(agenda, w.minutes) +
+    (kind === 'open' ? '\n' + (left > 0 ? 'Save your seat' : 'Join the waitlist') + ' (takes ten seconds): ' + links.rsvp + '\n' : '\n') +
+    (links.calendar ? 'Add it to your calendar: ' + links.calendar + '\n' : '') +
+    'Directions: ' + where.maps + '\n' +
+    notes.map(n => '\n' + n.text + (n.href ? ' ' + n.href : '')).join('') +
+    signoffText(place);
+
+  return { subject, text, html };
+}
+
 module.exports = {
-  esc, fmtTime, endTime, fmtRange, longDate, maineToday, dayWord, mapsUrl, townOf,
-  renderEmail, reminderEmail, holdEmail, nextTableEmail,
+  esc, fmtTime, endTime, fmtRange, longDate, maineToday, maineHour, daysBetween, weekday, dayWord, mapsUrl, townOf,
+  renderEmail, reminderEmail, holdEmail, nextTableEmail, weekBeforeEmail,
 };

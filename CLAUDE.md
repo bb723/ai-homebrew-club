@@ -23,7 +23,7 @@ This is production for a real club — RSVPs and invites email real people. Test
 - **The frontend POSTs `text/plain` bodies** — don't add strict content-type checks or break the permissive parsing.
 - **Keep the H12 dodge:** AI-drafter endpoints drip whitespace while the model thinks so Heroku's 30s router timeout doesn't kill them.
 - **Seeding must stay idempotent:** agendas seed only when an event has no run sheet (reboots must not resurrect placeholders).
-- **The roster runs itself.** Meetups close two hours after they end, the last table's seat holders get chairs at the next one, and the rest of the town's roster hears once (README, "The roster"). Do not flip events to past by hand or re-seat people: schedule the next table in the console and the loop does the rest within five minutes. Mark attendance before a table closes if only those who came should carry.
+- **The roster runs itself.** Meetups close two hours after they end, the last table's seat holders get chairs at the next one (as a thank-you note), the rest of the town's roster hears once, and the whole town hears again one week out; nothing goes out before 9 am or after 8 pm Maine time (README, "The roster"). Do not flip events to past by hand or re-seat people: schedule the next table in the console and the loop does the rest within five minutes. Mark attendance before a table closes if only those who came should carry.
 
 ## Repo rules
 
