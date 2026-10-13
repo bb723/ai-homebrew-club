@@ -251,6 +251,17 @@
         </div>
       </section>
 
+      <!-- ============ THE ROSTER ============ -->
+      <section class="view" id="v-roster" hidden>
+        <div class="page">
+          <div class="ph">
+            <h2>The roster</h2>
+            <p class="quiet">Everyone who has sat at a table, by town. Whoever sat at the last table gets a chair held at the next one (two hours after a meetup ends, the book closes by itself and the chairs carry over); the rest hear once when a new table is on the calendar. Pause someone and they are left alone until you resume them, or until they use the link in their own email.</p>
+          </div>
+          <div class="card rowlist" id="roList"><div class="r one"><span class="quiet">Loading&hellip;</span></div></div>
+        </div>
+      </section>
+
       <!-- ============ CLUBHOUSE ROOMS ============ -->
       <section class="view" id="v-channels" hidden>
         <div class="page">
@@ -693,7 +704,7 @@
   /* ---- the sidebar bridge: club.js repaints the nav on unlock; these keep the
      console group's counts and .here mark in step (called from AIHC_PAGE.onSideNav) ---- */
   var NAV = { view: 'meetups', counts: {} };
-  (function(){ var v = (location.hash || '').replace(/^#/, '').split('/')[0]; if (/^(meetups|members|venues|channels|recipes|blocks|word|traffic)$/.test(v)) NAV.view = v; })();
+  (function(){ var v = (location.hash || '').replace(/^#/, '').split('/')[0]; if (/^(meetups|members|venues|roster|channels|recipes|blocks|word|traffic)$/.test(v)) NAV.view = v; })();
   function markHere(){
     var el = document.getElementById('sideNav');
     if (!el) return;
@@ -761,7 +772,7 @@
     }
 
     /* ---------- the router: one view at a time, the hash is the state ---------- */
-    var VIEWS = {meetups: 'Meetups', members: 'Members & keys', venues: 'Rooms offered', channels: 'Clubhouse rooms', recipes: 'Recipe box', blocks: 'The block shelf', word: 'The admin word', traffic: 'Traffic'};
+    var VIEWS = {meetups: 'Meetups', members: 'Members & keys', venues: 'Rooms offered', roster: 'The roster', channels: 'Clubhouse rooms', recipes: 'Recipe box', blocks: 'The block shelf', word: 'The admin word', traffic: 'Traffic'};
     function parseHash(){
       var h = (location.hash || '#meetups').replace(/^#/, '');
       var p = h.split('/');
@@ -1986,6 +1997,49 @@
     $('vnList').addEventListener('click', onVenueAct);
     $('evOffer').addEventListener('click', onVenueAct);
 
+    /* the roster: who sat where, and a switch per person */
+    var roster = [];
+    function loadRoster(){
+      get('/roster?secret=' + encodeURIComponent(A.secret))
+        .then(function(d){
+          roster = (d && d.roster) || [];
+          setCount('roster', roster.filter(function(r){ return r.status === 'in'; }).length);
+          var towns = {};
+          roster.forEach(function(r){ (towns[r.city] = towns[r.city] || []).push(r); });
+          var names = Object.keys(towns).sort();
+          $('roList').innerHTML = names.length ? names.map(function(city){
+            var rows = towns[city];
+            var ev = events.find(function(e){ return e.city === city && e.status === 'upcoming'; });
+            return '<div class="r one"><span class="nm">' + esc(city.charAt(0).toUpperCase() + city.slice(1)) +
+              ' <span class="quiet">&middot; ' + rows.length + ' on the roster' + (ev ? ' &middot; next table ' + esc(ev.when) : ' &middot; nothing on the calendar') + '</span></span></div>' +
+              rows.map(function(r){
+                var last = events.find(function(e){ return e.id === r.last_event; });
+                return '<div class="r">' +
+                  '<span class="who"><span class="nm">' + esc(r.name || r.email) +
+                    '<span class="tag ' + (r.status === 'in' ? 'tag-teal' : 'tag-plain') + '">' + (r.status === 'in' ? 'chair held' : 'paused') + '</span></span>' +
+                  '<span class="m">' + esc(r.email) + (r.phone ? ' &middot; ' + esc(r.phone) : '') + (r.biz ? ' &middot; ' + esc(r.biz) : '') +
+                    (last ? ' &middot; last sat ' + esc(last.when) : '') + '</span></span>' +
+                  '<span class="acts">' +
+                  (r.status === 'in'
+                    ? '<button class="btn btn-ghost btn-sm" data-ro="out" data-email="' + esc(r.email) + '" type="button">Pause</button>'
+                    : '<button class="btn btn-secondary btn-sm" data-ro="in" data-email="' + esc(r.email) + '" type="button">Resume</button>') +
+                  '<button class="btn btn-ghost btn-sm" data-ro="remove" data-email="' + esc(r.email) + '" type="button">Remove</button>' +
+                  '</span></div>';
+              }).join('');
+          }).join('') : '<div class="empty-row">Nobody yet. The roster fills itself from past meetups, a few minutes after each one closes.</div>';
+        });
+    }
+    $('roList').addEventListener('click', function(ev){
+      var b = ev.target.closest('[data-ro]'); if (!b) return;
+      var act = b.getAttribute('data-ro'), email = b.getAttribute('data-email');
+      if (act === 'remove' && !window.confirm('Take ' + email + ' off the roster? They can come back by sitting at a table.')) return;
+      post('/roster', {action: act, email: email}).then(function(){
+        A.toast(act === 'in' ? 'Resumed.' : act === 'out' ? 'Paused.' : 'Removed.');
+        loadRoster();
+      });
+    });
+    window.addEventListener('hashchange', function(){ if (parseHash().view === 'roster') loadRoster(); });
+
     /* the clubhouse: rooms and light moderation */
     var chans = [];
     var editingChan = null;
@@ -2142,6 +2196,7 @@
     loadRecipes();
     loadMembers();
     loadVenues();
+    loadRoster();
     loadChannels();
     loadBlocks();
     if (parseHash().view === 'traffic') loadTraffic();
@@ -2159,6 +2214,7 @@ window.AIHC_PAGE = {
       {id: 'meetups',  title: 'Meetups',          href: '#meetups',  k: '', here: true},
       {id: 'members',  title: 'Members &amp; keys', href: '#members',  k: ''},
       {id: 'venues',   title: 'Rooms offered',    href: '#venues',   k: ''},
+      {id: 'roster',   title: 'The roster',       href: '#roster',   k: ''},
       {id: 'channels', title: 'Clubhouse rooms',  href: '#channels'},
       {id: 'recipes',  title: 'Recipe box',       href: '#recipes'},
       {id: 'blocks',   title: 'The block shelf',  href: '#blocks',   k: ''},

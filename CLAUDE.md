@@ -23,6 +23,7 @@ This is production for a real club — RSVPs and invites email real people. Test
 - **The frontend POSTs `text/plain` bodies** — don't add strict content-type checks or break the permissive parsing.
 - **Keep the H12 dodge:** AI-drafter endpoints drip whitespace while the model thinks so Heroku's 30s router timeout doesn't kill them.
 - **Seeding must stay idempotent:** agendas seed only when an event has no run sheet (reboots must not resurrect placeholders).
+- **The roster runs itself.** Meetups close two hours after they end, the last table's seat holders get chairs at the next one, and the rest of the town's roster hears once (README, "The roster"). Do not flip events to past by hand or re-seat people: schedule the next table in the console and the loop does the rest within five minutes. Mark attendance before a table closes if only those who came should carry.
 
 ## Repo rules
 
@@ -48,5 +49,5 @@ If those env vars are absent, the session was started in the wrong environment �
 ## Local dev
 
 - Site: `python -m http.server 8000` from the repo root.
-- Server tests: `cd server && npm test` runs the real reminder loop and the real POST /rsvp handler against an in-memory club (fake Postgres, capturing mailer, real email templates). No network, nothing sent. Run it before pushing anything that touches reminders or reservations.
+- Server tests: `cd server && npm test` runs the real reminder loop, the real POST /rsvp handler and the real roster loop against an in-memory club (fake Postgres, capturing mailer, real email templates). No network, nothing sent. Run it before pushing anything that touches reminders or reservations.
 - Server: `cd server && npm install && node server.js` (needs the env vars above; usually easier to read logs on Heroku than run it locally).

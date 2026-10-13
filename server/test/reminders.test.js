@@ -68,7 +68,7 @@ const pool = {
     throw new Error('unexpected query: ' + sql);
   },
 };
-const mailTo = (to, subject, text, attachments, html) => { world.sent.push({ to, subject, text, html }); };
+const mailTo = (to, subject, text, attachments, html, opts) => { world.sent.push({ to, subject, text, html, cc: !!(opts && opts.cc) }); };
 const notify = (subject, text) => { world.notes.push({ subject, text }); };
 
 const make = new Function('pool', 'Email', 'mailTo', 'notify', 'mailer', 'ADMIN_SECRET', 'adminHash', 'fmtTime',
@@ -120,6 +120,7 @@ async function scenario(name, fn) {
     await runReminders();
     expect(world.sent.length === 2, 'expected 2 reminder emails, got ' + world.sent.length);
     expect(world.sent.map(m => m.to).join(',') === 'ada@example.test,ben@example.test', 'wrong recipients: ' + world.sent.map(m => m.to));
+    expect(world.sent.every(m => m.cc), 'every reminder should cc the host');
     expect(world.sent[1].subject.includes('your seats are saved'), 'the pair should read "seats are": ' + world.sent[1].subject);
     const range = Email.fmtRange(ev.start_time, 120);
     expect(world.sent[0].text.includes(range), 'two-hour range "' + range + '" missing from the email');

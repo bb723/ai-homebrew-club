@@ -29,6 +29,8 @@ function ai() {
 
 /* email notifications: no-op until BREVO_SMTP_KEY is configured */
 const NOTIFY_EMAIL = process.env.NOTIFY_EMAIL || '';
+/* where this server answers, for the links in roster mail (opt out, opt back in) */
+const API_BASE = String(process.env.PUBLIC_URL || 'https://aihc-notes-690dcde965fd.herokuapp.com').replace(/\/$/, '');
 const mailer = process.env.BREVO_SMTP_KEY && process.env.BREVO_SMTP_USER
   ? nodemailer.createTransport({
       host: 'smtp-relay.brevo.com',
@@ -45,10 +47,14 @@ function notify(subject, text) {
     .sendMail({ from: `"The AI Homebrew Club" <${NOTIFY_EMAIL}>`, to: NOTIFY_EMAIL, subject, text })
     .catch(err => console.error('mail failed:', err.message));
 }
-function mailTo(to, subject, text, attachments, html) {
+function mailTo(to, subject, text, attachments, html, opts) {
   if (!mailer || !to) return;
+  const msg = { from: '"The AI Homebrew Club" <' + NOTIFY_EMAIL + '>', to, subject, text, html, attachments };
+  if (NOTIFY_EMAIL) msg.replyTo = NOTIFY_EMAIL;
+  /* the host rides along on reminders and roster mail, so there is never any doubt they went out */
+  if (opts && opts.cc && NOTIFY_EMAIL && String(to).trim().toLowerCase() !== NOTIFY_EMAIL.toLowerCase()) msg.cc = NOTIFY_EMAIL;
   mailer
-    .sendMail({ from: `"The AI Homebrew Club" <${NOTIFY_EMAIL}>`, to, subject, text, html, attachments })
+    .sendMail(msg)
     .catch(err => console.error('mail failed:', err.message));
 }
 
@@ -348,6 +354,16 @@ async function init() {
     await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS aihc_rsvps_one_per_email
       ON aihc_rsvps (event, lower(email)) WHERE status IN ('seat', 'waitlist') AND email <> ''`);
   } catch (err) { console.error('one-per-email index not created:', err.message); }
+  /* the roster: everyone who has sat at a town's table, one row per town, with a token that
+     signs their opt-out link. 'in' keeps a chair at the next table and hears about new ones;
+     'out' is left alone until the same link brings them back. */
+  await pool.query(
+    "CREATE TABLE IF NOT EXISTS aihc_roster (" +
+    " city text NOT NULL, email text NOT NULL, name text NOT NULL DEFAULT '', phone text NOT NULL DEFAULT ''," +
+    " biz text NOT NULL DEFAULT '', token text NOT NULL, status text NOT NULL DEFAULT 'in'," +
+    " last_event text NOT NULL DEFAULT '', ts text NOT NULL, PRIMARY KEY (city, email))"
+  );
+  await pool.query('CREATE UNIQUE INDEX IF NOT EXISTS aihc_roster_token ON aihc_roster (token)');
   /* invites: the console's "fill the table" mailer. one row per (event, email) so
      the book remembers who was asked and when, and never double-mails by accident */
   await pool.query(`
@@ -2171,7 +2187,7 @@ async function runReminders() {
           kind: w.kind, ev, rsvp: s, agenda: agenda.rows, taken, now: sentAt,
           links: { calendar, share: w.kind === '12h' ? shareUrl(row.id, s.id) : '', cancel: cancelUrl(row.id, s.id) },
         });
-        mailTo(s.email, m.subject, m.text, undefined, m.html);
+        mailTo(s.email, m.subject, m.text, undefined, m.html, { cc: true });
       }
       const whenLine = (Email.longDate(ev.sort_date) || ev.when) + ', ' + Email.fmtRange(ev.start_time, ev.minutes);
       const n = seats.rows.length;
@@ -2181,12 +2197,279 @@ async function runReminders() {
         'The ' + w.kind + ' reminder went to ' + n + ' seated RSVP' + (n === 1 ? '' : 's') +
         (n ? ':\n' + seats.rows.map(s => '  ' + s.name + (s.guest_name ? ' +1 (' + s.guest_name + ')' : '') + ' <' + s.email + '>').join('\n') : '.') +
         (quiet.rows.length ? '\n\nNo email on file, not sent: ' + quiet.rows.map(r => r.name).join(', ') : '') +
-        '\n\n' + taken + ' of ' + ev.capacity + ' chairs spoken for. Who is coming: https://aihomebrewclub.com/deck/admin.html'
+        '\n\n' + taken + ' of ' + ev.capacity + ' chairs spoken for.' + (n ? ' You were cc\'d on each one.' : '') +
+        ' Who is coming: https://aihomebrewclub.com/deck/admin.html'
       );
     }
   }
 }
-cron.schedule('*/5 * * * *', () => { runReminders().catch(err => console.error('reminders failed:', err.message)); });
+/* ---- the roster: who sat at the last table keeps a chair at the next one ---- */
+/* an event row the way the mail templates see it */
+function eventView(row) {
+  return {
+    id: row.id, title: row.title, when: row.when_text, location: row.location, capacity: row.capacity,
+    sort_date: row.sort_date, start_time: row.start_time, minutes: row.minutes, city: row.city,
+    place: chapterOf(row.city).label,
+  };
+}
+/* when a meetup is over, in ms: start plus length, or the end of its day when it has no clock time */
+function eventEndMs(row) {
+  const start = eventStartUtc(row);
+  if (start) return start.getTime() + eventMinutes(row) * 60000;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(String(row.sort_date || ''))) {
+    const eod = eventStartUtc({ sort_date: row.sort_date, start_time: '23:59' });
+    return eod ? eod.getTime() : null;
+  }
+  return null;
+}
+function rosterUrl(kind, token) {
+  return API_BASE + '/roster/' + kind + '?t=' + encodeURIComponent(token);
+}
+function rsvpLink(eventId, ref, name, email) {
+  return 'https://aihomebrewclub.com/rsvp.html?event=' + encodeURIComponent(eventId) + '&ref=' + ref +
+    (name ? '&name=' + encodeURIComponent(name) : '') + (email ? '&email=' + encodeURIComponent(email) : '');
+}
+/* one-time markers share the reminder ledger: true the first time, false ever after */
+async function markOnce(event, kind) {
+  const q = await pool.query(
+    'INSERT INTO aihc_reminders (event, kind, ts) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING RETURNING event',
+    [event, kind, new Date().toISOString()]
+  );
+  return q.rows.length > 0;
+}
+
+/* every five minutes, after the reminders:
+   1. a meetup is 'past' two hours after it ends, so the pages and the bare rsvp link move on by themselves;
+   2. everyone who has held a seat at a town's past tables is on that town's roster;
+   3. whoever sat at the last table has a chair at the next one (a waitlist spot if it is full), with a note
+      saying so. If the host marked attendance for the last table, only those marked attended carry;
+   4. the rest of the roster hears once that the next table is on the calendar, with a one-tap seat link.
+   A table that starts within a day is left alone: too late to hold chairs for. */
+async function runRoster() {
+  if (!mailer) return;
+  const nowMs = Date.now();
+  const today = Email.maineToday();
+  const up = await pool.query("SELECT * FROM aihc_events WHERE status = 'upcoming' /*q:open-events*/");
+  for (const row of up.rows) {
+    const end = eventEndMs(row);
+    if (end == null || nowMs < end + 2 * 3600000) continue;
+    await pool.query("UPDATE aihc_events SET status = 'past' WHERE id = $1 AND status = 'upcoming' /*q:close-event*/", [row.id]);
+  }
+  const towns = await pool.query('SELECT DISTINCT city FROM aihc_events /*q:towns*/');
+  for (const t of towns.rows) {
+    const city = t.city;
+    const town = Email.townOf(chapterOf(city).label);
+    const sat = await pool.query(
+      "SELECT r.name, r.email, r.phone, r.biz, r.event FROM aihc_rsvps r JOIN aihc_events e ON e.id = r.event " +
+      "WHERE e.city = $1 AND e.status = 'past' AND r.status = 'seat' AND r.email <> '' ORDER BY e.sort_date, r.ts /*q:sat-here*/", [city]);
+    for (const r of sat.rows) {
+      const em = String(r.email).trim().toLowerCase();
+      if (!em || em.indexOf('@') === -1) continue;
+      await pool.query(
+        "INSERT INTO aihc_roster (city, email, name, phone, biz, token, status, last_event, ts) VALUES ($1,$2,$3,$4,$5,$6,'in',$7,$8) " +
+        "ON CONFLICT (city, email) DO UPDATE SET name = EXCLUDED.name, " +
+        "phone = CASE WHEN EXCLUDED.phone <> '' THEN EXCLUDED.phone ELSE aihc_roster.phone END, " +
+        "biz = CASE WHEN EXCLUDED.biz <> '' THEN EXCLUDED.biz ELSE aihc_roster.biz END, " +
+        "last_event = EXCLUDED.last_event /*q:roster-upsert*/",
+        [city, em, String(r.name || '').slice(0, 80), String(r.phone || '').slice(0, 40), String(r.biz || '').slice(0, 160),
+         newToken(), r.event, new Date().toISOString()]);
+    }
+    const lastQ = await pool.query("SELECT * FROM aihc_events WHERE city = $1 AND status = 'past' ORDER BY sort_date DESC, ts DESC LIMIT 1 /*q:last-table*/", [city]);
+    const nextQ = await pool.query("SELECT * FROM aihc_events WHERE city = $1 AND status = 'upcoming' AND sort_date >= $2 ORDER BY sort_date ASC, ts ASC LIMIT 1 /*q:next-table*/", [city, today]);
+    const last = lastQ.rows[0] || null;
+    const next = nextQ.rows[0] || null;
+    if (last && !next) {
+      /* the book closed and nothing follows it yet: one nudge, then quiet */
+      if (await markOnce(last.id, 'closed')) {
+        const n = await seatsTaken(last.id);
+        notify('The book closed: ' + last.title + ', ' + last.when_text,
+          n + ' chair' + (n === 1 ? ' was' : 's were') + ' taken at ' + last.title + ' (' + last.when_text + ').\n\n' +
+          'There is no next ' + town + ' meetup on the calendar yet. Put one up in the console and everyone who sat at ' +
+          'this table gets a chair held at it, with a note saying so; the rest of the ' + town + ' roster hears the date.\n\n' +
+          'Console: https://aihomebrewclub.com/deck/admin.html#meetups');
+      }
+      continue;
+    }
+    if (!next) continue;
+    const nextStart = eventStartUtc(next);
+    if (nextStart && nextStart.getTime() - nowMs < 24 * 3600000) continue;
+    const ev = eventView(next);
+    const outs = new Set((await pool.query("SELECT email FROM aihc_roster WHERE status = 'out' /*q:opted-out*/")).rows.map(r => r.email));
+    const agenda = await pool.query('SELECT t, title, detail FROM aihc_agenda_items WHERE event = $1 ORDER BY pos /*q:agenda*/', [next.id]);
+    const calendar = gcalUrl(ev, next.id);
+    if (last && next.sort_date > last.sort_date && await markOnce(next.id, 'carry:' + last.id)) {
+      const seated = await pool.query("SELECT * FROM aihc_rsvps WHERE event = $1 AND status = 'seat' ORDER BY ts /*q:last-seats*/", [last.id]);
+      const tookAttendance = seated.rows.some(r => r.attended);
+      const held = [], waiting = [], skipped = [];
+      const seen = new Set();
+      for (const r of seated.rows) {
+        const label = r.name + (r.guest_name ? ' +1 (' + r.guest_name + ')' : '');
+        if (tookAttendance && !r.attended) { skipped.push(label + ': not marked attended'); continue; }
+        const em = String(r.email || '').trim().toLowerCase();
+        if (!em) { skipped.push(label + ': no email on file'); continue; }
+        if (seen.has(em)) continue;
+        seen.add(em);
+        if (outs.has(em)) { skipped.push(label + ': asked us not to'); continue; }
+        if (await findReservation(next.id, r.email, r.phone)) { skipped.push(label + ': already on the book'); continue; }
+        const taken = await seatsTaken(next.id);
+        const status = next.capacity - taken >= partySize(r) ? 'seat' : 'waitlist';
+        const id = 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+        await pool.query(
+          'INSERT INTO aihc_rsvps (id, event, name, contact, email, phone, biz, note, status, ts, ref, guest_name) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)',
+          [id, next.id, r.name, r.contact || (r.email + ' \u00b7 ' + (r.phone || '')), r.email, r.phone || '', r.biz || '', '',
+           status, new Date().toISOString(), 'standing', r.guest_name || '']);
+        const tok = await pool.query('SELECT token FROM aihc_roster WHERE city = $1 AND email = $2 /*q:token*/', [city, em]);
+        const m = Email.holdEmail({
+          ev, rsvp: { id, name: r.name, guest_name: r.guest_name || '', status },
+          last: { title: last.title, when: last.when_text },
+          taken: await seatsTaken(next.id), agenda: agenda.rows,
+          links: {
+            calendar, cancel: cancelUrl(next.id, id), share: shareUrl(next.id, id),
+            optout: tok.rows.length ? rosterUrl('optout', tok.rows[0].token) : '',
+          },
+        });
+        mailTo(r.email, m.subject, m.text, undefined, m.html, { cc: true });
+        (status === 'seat' ? held : waiting).push(label + ' <' + r.email + '>');
+      }
+      const taken = await seatsTaken(next.id);
+      if (held.length) {
+        await addFeedPost('carry-' + next.id, '',
+          'Chairs held over from ' + last.when_text + ' for ' + next.when_text + ': ' +
+          held.map(h => h.replace(/ <[^>]*>$/, '')).join(', ') + '. ' + taken + ' of ' + next.capacity + ' seats spoken for.',
+          '#rsvp', false, new Date().toISOString());
+      }
+      notify('Chairs held over: ' + next.title + ', ' + next.when_text,
+        'Whoever sat at ' + last.title + ' (' + last.when_text + ')' + (tookAttendance ? ' and was marked attended' : '') +
+        ' now has a chair at ' + next.title + ' (' + next.when_text + '), and a note saying so. You were cc\'d on each one.\n\n' +
+        'Held (' + held.length + '):' + (held.length ? '\n  ' + held.join('\n  ') : ' none') +
+        '\n\nWaitlisted, the table was full (' + waiting.length + '):' + (waiting.length ? '\n  ' + waiting.join('\n  ') : ' none') +
+        '\n\nSkipped (' + skipped.length + '):' + (skipped.length ? '\n  ' + skipped.join('\n  ') : ' none') +
+        '\n\n' + taken + ' of ' + next.capacity + ' chairs spoken for.' +
+        (tookAttendance ? '' : '\n\nNobody was marked attended for ' + last.when_text + ', so everyone on its book carried over. ' +
+          'Mark attendance in the console before a table closes and only those who came will carry.') +
+        '\nConsole: https://aihomebrewclub.com/deck/admin.html#meetups');
+    }
+    if (await markOnce(next.id, 'roster')) {
+      const roster = await pool.query("SELECT * FROM aihc_roster WHERE city = $1 AND status = 'in' ORDER BY ts /*q:roster-in*/", [city]);
+      const onBook = new Set((await pool.query(
+        "SELECT lower(email) AS e FROM aihc_rsvps WHERE event = $1 AND status IN ('seat','waitlist') AND email <> '' /*q:on-book*/", [next.id]
+      )).rows.map(r => r.e));
+      const asked = new Set((await pool.query(
+        "SELECT lower(email) AS e FROM aihc_invites WHERE event = $1 AND by NOT LIKE 'note:%' /*q:asked*/", [next.id]
+      )).rows.map(r => r.e));
+      const sent = [];
+      const taken = await seatsTaken(next.id);
+      for (const p of roster.rows) {
+        if (onBook.has(p.email) || asked.has(p.email)) continue;
+        const m = Email.nextTableEmail({
+          ev, person: { name: p.name, email: p.email }, taken, agenda: agenda.rows,
+          links: { rsvp: rsvpLink(next.id, 'roster', p.name, p.email), calendar, optout: rosterUrl('optout', p.token) },
+        });
+        mailTo(p.email, m.subject, m.text, undefined, m.html, { cc: true });
+        await pool.query('INSERT INTO aihc_invites (id, event, email, name, by, ts) VALUES ($1,$2,$3,$4,$5,$6)',
+          ['rt' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), next.id, p.email, p.name, 'roster', new Date().toISOString()]);
+        sent.push(p.name + ' <' + p.email + '>');
+      }
+      if (sent.length) {
+        notify('The roster heard: ' + next.title + ', ' + next.when_text,
+          sent.length + ' past attendee' + (sent.length === 1 ? '' : 's') + ' in ' + town + ' got the note that ' + next.title +
+          ' (' + next.when_text + ') is on the calendar, with a one-tap link to save a seat. You were cc\'d on each one.\n\n  ' +
+          sent.join('\n  ') + '\n\nWhoever sat at the last table got a held chair instead (separate note).' +
+          '\nConsole: https://aihomebrewclub.com/deck/admin.html#meetups');
+      }
+    }
+  }
+}
+
+/* the links in roster mail. a token is unguessable and names one person in one town;
+   opting out (or back in) covers every town they are on, so one click is enough. Opting out
+   stops future holds and notes; a chair already held stays theirs until they give it up. */
+function rosterPage(title, bodyHtml) {
+  const serif = "'IBM Plex Serif', Georgia, 'Times New Roman', serif";
+  const sans = "'IBM Plex Sans', -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif";
+  const mono = "'IBM Plex Mono', Menlo, Consolas, 'Courier New', monospace";
+  return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+    '<title>' + Email.esc(title) + ' \u00b7 The AI Homebrew Club</title></head>' +
+    '<body style="margin:0;background:#F4F0E6;color:#191919;font-family:' + sans + '">' +
+    '<div style="max-width:560px;margin:0 auto;padding:36px 24px 48px">' +
+    '<p style="margin:0 0 26px;padding-bottom:10px;border-bottom:1.5px solid #191919;font-family:' + serif + ';font-size:19px;font-weight:700">The AI Homebrew Club</p>' +
+    '<h1 style="margin:0 0 12px;font-family:' + serif + ';font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.02em">' + Email.esc(title) + '</h1>' +
+    bodyHtml +
+    '<p style="margin:28px 0 0;padding-top:12px;border-top:1.5px solid #191919;font-family:' + mono + ';font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#77746B">' +
+    '<a href="https://aihomebrewclub.com" style="color:#77746B;text-decoration:none">aihomebrewclub.com</a> &middot; Free, and it always will be</p>' +
+    '</div></body></html>';
+}
+app.get('/roster/:kind(optout|optin)', async (req, res) => {
+  const t = String(req.query.t || '').slice(0, 80);
+  const p = s => '<p style="margin:0 0 12px;font-size:17px;line-height:1.5">' + s + '</p>';
+  res.type('html');
+  if (!/^[a-f0-9]{48}$/.test(t)) {
+    return res.status(400).send(rosterPage('That link is not one of ours.',
+      p('If you meant to change how we hold your chair, reply to any club email and we will sort it by hand.')));
+  }
+  try {
+    const q = await pool.query('SELECT email, name FROM aihc_roster WHERE token = $1', [t]);
+    if (!q.rows.length) {
+      return res.status(404).send(rosterPage('That link has expired.',
+        p('Reply to any club email and we will sort it by hand.')));
+    }
+    const { email, name } = q.rows[0];
+    const out = req.params.kind === 'optout';
+    await pool.query('UPDATE aihc_roster SET status = $1 WHERE email = $2', [out ? 'out' : 'in', email]);
+    notify('Roster: ' + name + (out ? ' opted out' : ' opted back in'),
+      name + ' <' + email + '> ' + (out
+        ? 'asked us not to hold a chair or send meetup notes. Any chair already held stays theirs until they give it up.'
+        : 'is back on the roster: a chair at the next table, and the notes.'));
+    res.send(rosterPage(out ? 'Done. We will not hold a chair for you.' : 'Welcome back.',
+      out
+        ? p('No more held chairs or meetup notes for <b>' + Email.esc(email) + '</b>. Any chair we are already holding stays yours until you give it up with the link in that email.') +
+          p('You are always welcome to save a seat yourself at <a href="https://aihomebrewclub.com/rsvp.html?ref=optout" style="color:#173A78;font-weight:600">aihomebrewclub.com/rsvp</a>.') +
+          p('Changed your mind? <a href="' + Email.esc(rosterUrl('optin', t)) + '" style="color:#173A78;font-weight:600">Hold my chair again.</a>')
+        : p('<b>' + Email.esc(email) + '</b> is back on the roster: a chair held at the next table you sat at, and a note when a new one is on the calendar.')));
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(rosterPage('Something broke on our end.', p('Reply to any club email and we will sort it by hand.')));
+  }
+});
+/* the roster, admin side: who is on it, and a switch per person */
+app.get('/roster', async (req, res) => {
+  const who = await gate(req, res, null, 'admin'); if (!who) return;
+  try {
+    const q = await pool.query('SELECT city, email, name, phone, biz, status, last_event, ts FROM aihc_roster ORDER BY city, name');
+    res.json({ roster: q.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'db' });
+  }
+});
+app.post('/roster', async (req, res) => {
+  let body = req.body;
+  if (typeof body === 'string') {
+    try { body = JSON.parse(body); } catch { return res.status(400).json({ error: 'bad json' }); }
+  }
+  const who = await gate(req, res, body, 'admin'); if (!who) return;
+  const email = String(body.email || '').trim().toLowerCase().slice(0, 160);
+  if (!email) return res.status(400).json({ error: 'email required' });
+  try {
+    if (body.action === 'in' || body.action === 'out') {
+      await pool.query('UPDATE aihc_roster SET status = $1 WHERE email = $2', [body.action, email]);
+      return res.json({ ok: true, status: body.action });
+    }
+    if (body.action === 'remove') {
+      await pool.query('DELETE FROM aihc_roster WHERE email = $1', [email]);
+      return res.json({ ok: true });
+    }
+    res.status(400).json({ error: 'unknown action' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'db' });
+  }
+});
+
+cron.schedule('*/5 * * * *', () => {
+  runReminders().catch(err => console.error('reminders failed:', err.message))
+    .then(() => runRoster()).catch(err => console.error('roster failed:', err.message));
+});
 
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server, path: '/chat/ws' });
