@@ -2095,7 +2095,8 @@
             var wasAsked = !!next && asked.some(function(a){ return a.event === next.id; });
             return '<div class="r one"><span class="nm">' + esc(city.charAt(0).toUpperCase() + city.slice(1)) +
               ' <span class="quiet">&middot; ' + rows.length + (rows.length === 1 ? ' holds' : ' hold') + ' the room' +
-              (next ? ' &middot; next table ' + esc(next.when) + (wasAsked ? ', asked to confirm' : ', not asked yet') : ' &middot; nothing on the calendar') + '</span></span></div>' +
+              (next ? ' &middot; next table ' + esc(next.when) + (wasAsked ? ', asked to confirm' : ', not asked yet') : ' &middot; nothing on the calendar') + '</span></span>' +
+              (next ? '<span class="acts"><button class="btn btn-secondary btn-sm" data-rmask="' + esc(city) + '" type="button">Ask them to confirm the next 5 tables</button></span>' : '') + '</div>' +
               rows.map(function(c){
                 var k = next ? checks.find(function(x){ return x.event === next.id && x.email === c.email; }) : null;
                 var tag = !next ? '' : k
@@ -2122,6 +2123,17 @@
       });
     });
     $('rmList').addEventListener('click', function(ev){
+      var a = ev.target.closest('[data-rmask]');
+      if (a){
+        var town = a.getAttribute('data-rmask');
+        if (!window.confirm('Email everyone who holds the ' + town + ' room one note covering the next 5 tables, with one-tap confirm links? Tables they already confirmed are left out.')) return;
+        post('/rooms', {action: 'ask', city: town, count: 5}).then(function(d){
+          if (!(d && d.ok)){ A.toast('That did not send.'); return; }
+          A.toast(d.sent.length ? 'Asked ' + d.sent.length + ' room holder' + (d.sent.length === 1 ? '' : 's') + '.' : 'Nothing to ask: every table is confirmed.');
+          loadRooms();
+        });
+        return;
+      }
       var b = ev.target.closest('[data-rm]'); if (!b) return;
       var email = b.getAttribute('data-email'), city = b.getAttribute('data-city');
       if (!window.confirm('Take ' + email + ' off the ' + city + ' room? They will not be asked to confirm it any more.')) return;

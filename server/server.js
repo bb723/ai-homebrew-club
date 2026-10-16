@@ -2319,7 +2319,7 @@ async function askRoom(row, ev, agenda, calendar, kind) {
   for (const h of holders.rows) {
     const c = byEmail.get(h.email);
     if (c && c.status === 'confirmed') { confirmed.push(h.name + ' <' + h.email + '>'); continue; }
-    if (c && c.status === 'problem') { flagged.push(h.name + ' <' + h.email + '>'); continue; }
+    if (c && c.status === 'problem') { flagged.push(h.name + ' <' + h.email + '>'); if (kind !== 'again') continue; }
     const m = Email.roomEmail({
       ev, person: { name: h.name }, kind, taken, agenda,
       links: { confirm: roomUrl('confirm', h.token, row.id), problem: roomUrl('problem', h.token, row.id), calendar },
@@ -2337,6 +2337,49 @@ async function askRoom(row, ev, agenda, calendar, kind) {
       '\n\nThe room status sits under the roster in the console: https://aihomebrewclub.com/deck/admin.html#roster');
   }
   return sent;
+}
+
+/* the room check for a run of tables, on demand from the console: each holder of the town is asked,
+   in one note, to confirm the next `count` tables they have not confirmed yet. The per-table marker
+   is spent for those tables so the loop does not ask again as each one comes up; the week-out nag
+   still goes to anyone who has not answered. */
+async function askRoomSeries(city, count) {
+  const holders = await pool.query('SELECT * FROM aihc_room_contacts WHERE city = $1 ORDER BY ts /*q:room-contacts*/', [city]);
+  if (!holders.rows.length) return { sent: [], tables: [] };
+  const today = Email.maineToday(new Date());
+  const upcoming = await pool.query(
+    "SELECT * FROM aihc_events WHERE city = $1 AND status = 'upcoming' AND sort_date >= $2 ORDER BY sort_date ASC, ts ASC LIMIT $3 /*q:coming-tables*/",
+    [city, today, Math.max(1, Math.min(12, parseInt(count, 10) || 5))]);
+  if (!upcoming.rows.length) return { sent: [], tables: [] };
+  const place = chapterOf(city).label;
+  const sent = [];
+  for (const h of holders.rows) {
+    const checks = await pool.query('SELECT event, status FROM aihc_room_checks WHERE email = $1 /*q:holder-checks*/', [h.email]);
+    const confirmed = new Set(checks.rows.filter(c => c.status === 'confirmed').map(c => c.event));
+    const tables = upcoming.rows.filter(r => !confirmed.has(r.id)).map(r => ({ ev: eventView(r), confirm: roomUrl('confirm', h.token, r.id) }));
+    if (!tables.length) continue;
+    const ids = tables.map(t => t.ev.id).join(',');
+    const m = tables.length === 1
+      ? Email.roomEmail({
+          ev: tables[0].ev, person: { name: h.name }, kind: 'ask', taken: await seatsTaken(tables[0].ev.id), agenda: [],
+          links: { confirm: tables[0].confirm, problem: roomUrl('problem', h.token, tables[0].ev.id), calendar: gcalUrl(tables[0].ev, tables[0].ev.id) },
+        })
+      : Email.roomSeriesEmail({
+          person: { name: h.name }, place, tables,
+          links: { confirmAll: roomUrl('confirm', h.token, ids), problem: roomUrl('problem', h.token, ids) },
+        });
+    mailTo(h.email, m.subject, m.text, undefined, m.html, { cc: true });
+    sent.push(h.name + ' <' + h.email + '>: ' + tables.map(t => t.ev.when).join(', '));
+  }
+  for (const r of upcoming.rows) await markOnce(r.id, 'room');
+  if (sent.length) {
+    notify('Room check sent for the next ' + upcoming.rows.length + ' ' + Email.townOf(place) + ' tables',
+      'Whoever holds the room in ' + Email.townOf(place) + ' was asked to confirm the next ' + upcoming.rows.length + ' tables (' +
+      upcoming.rows.map(r => r.when_text).join('; ') + '): one tap confirms them all, one line each confirms one, another flags a problem. ' +
+      'Tables they had already confirmed were left out. You were cc\'d on each one.\n\n  ' + sent.join('\n  ') +
+      '\n\nThe room status sits under the roster in the console: https://aihomebrewclub.com/deck/admin.html#roster');
+  }
+  return { sent, tables: upcoming.rows.map(r => r.id) };
 }
 
 /* every five minutes, after the reminders:
@@ -2384,6 +2427,8 @@ async function runRoster(at) {
     for (const r of people) {
       const em = String(r.email).trim().toLowerCase();
       if (!em || em.indexOf('@') === -1) continue;
+      /* the host is the club, not its audience: never on a roster */
+      if (NOTIFY_EMAIL && em === String(NOTIFY_EMAIL).trim().toLowerCase()) continue;
       await pool.query(
         "INSERT INTO aihc_roster (city, email, name, phone, biz, token, status, last_event, ts) VALUES ($1,$2,$3,$4,$5,$6,'in',$7,$8) " +
         "ON CONFLICT (city, email) DO UPDATE SET " +
@@ -2648,37 +2693,44 @@ app.post('/roster', async (req, res) => {
    table. Confirm or flag a problem; either is recorded per table and the host hears. */
 app.get('/room/:kind(confirm|problem)', async (req, res) => {
   const t = String(req.query.t || '').slice(0, 80);
-  const e = String(req.query.e || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 60);
+  const ids = [...new Set(String(req.query.e || '').toLowerCase().split(',').map(x => x.replace(/[^a-z0-9-]/g, '').slice(0, 60)).filter(Boolean))].slice(0, 12);
   const p = s => '<p style="margin:0 0 12px;font-size:17px;line-height:1.5">' + s + '</p>';
   res.type('html');
-  if (!/^[a-f0-9]{48}$/.test(t) || !e) {
+  if (!/^[a-f0-9]{48}$/.test(t) || !ids.length) {
     return res.status(400).send(rosterPage('That link is not one of ours.',
       p('If you meant to confirm a room, reply to the room-check email and we will note it by hand.')));
   }
   try {
     const q = await pool.query('SELECT city, email, name FROM aihc_room_contacts WHERE token = $1', [t]);
-    const ev = await getEvent(e);
-    if (!q.rows.length || !ev) {
+    const tables = [];
+    for (const id of ids) { const ev = await getEvent(id); if (ev) tables.push({ id, ev }); }
+    if (!q.rows.length || !tables.length) {
       return res.status(404).send(rosterPage('That link has expired.',
         p('Reply to the room-check email and we will note it by hand.')));
     }
     const { email, name } = q.rows[0];
     const ok = req.params.kind === 'confirm';
-    await pool.query(
-      'INSERT INTO aihc_room_checks (event, email, name, status, ts) VALUES ($1,$2,$3,$4,$5) ' +
-      'ON CONFLICT (event, email) DO UPDATE SET name = EXCLUDED.name, status = EXCLUDED.status, ts = EXCLUDED.ts',
-      [e, email, name, ok ? 'confirmed' : 'problem', new Date().toISOString()]);
-    const when = ev.when + (ev.start_time ? ', ' + Email.fmtRange(ev.start_time, eventMinutes(ev)) : '');
-    notify((ok ? 'Room confirmed: ' : 'Room problem flagged: ') + ev.title + ', ' + ev.when,
+    const whenOf = ev => ev.when + (ev.start_time ? ', ' + Email.fmtRange(ev.start_time, eventMinutes(ev)) : '');
+    for (const t of tables) {
+      await pool.query(
+        'INSERT INTO aihc_room_checks (event, email, name, status, ts) VALUES ($1,$2,$3,$4,$5) ' +
+        'ON CONFLICT (event, email) DO UPDATE SET name = EXCLUDED.name, status = EXCLUDED.status, ts = EXCLUDED.ts',
+        [t.id, email, name, ok ? 'confirmed' : 'problem', new Date().toISOString()]);
+    }
+    const one = tables.length === 1;
+    const lines = tables.map(t => t.ev.title + ' (' + whenOf(t.ev) + '): ' + t.ev.location);
+    notify((ok ? 'Room confirmed: ' : 'Room problem flagged: ') + (one ? tables[0].ev.title + ', ' + tables[0].ev.when : tables.length + ' tables, ' + tables[0].ev.when + ' to ' + tables[tables.length - 1].ev.when),
       name + ' <' + email + '> ' + (ok
-        ? 'confirmed the room for ' + ev.title + ' (' + when + '): ' + ev.location + '.'
-        : 'says something is off with the room for ' + ev.title + ' (' + when + '): ' + ev.location + '. Reply to them to sort it out; the week-before note will keep saying the room is not confirmed.') +
+        ? 'confirmed the room for' + (one ? ' ' + lines[0] : ':\n  ' + lines.join('\n  '))
+        : 'says something is off with the room for' + (one ? ' ' + lines[0] : ':\n  ' + lines.join('\n  ')) +
+          '\n\nReply to them to sort it out; the week-before note will keep saying the room is not confirmed, and they are asked again a week out.') +
       '\n\nRoom status: https://aihomebrewclub.com/deck/admin.html#roster');
-    res.send(rosterPage(ok ? 'Thanks, ' + Email.esc(name.split(/\s+/)[0] || 'there') + '. The room is confirmed.' : 'Thanks for flagging it.',
+    const list = tables.map(t => '<b>' + Email.esc(t.ev.title) + '</b>, ' + Email.esc(whenOf(t.ev))).join('<br>');
+    res.send(rosterPage(ok ? 'Thanks, ' + Email.esc(name.split(/\s+/)[0] || 'there') + '. ' + (one ? 'The room is confirmed.' : 'All ' + tables.length + ' are confirmed.') : 'Thanks for flagging it.',
       ok
-        ? p('<b>' + Email.esc(ev.location) + '</b> is down as booked for <b>' + Email.esc(ev.title) + '</b>, ' + Email.esc(when) + '.') +
+        ? p('<b>' + Email.esc(tables[0].ev.location) + '</b> is down as booked for:') + p(list) +
           p('If anything changes, reply to any club email and we will sort it by hand.')
-        : p('We will not assume the room is set for <b>' + Email.esc(ev.title) + '</b>, ' + Email.esc(when) + '.') +
+        : p('We will not assume the room is set for:') + p(list) +
           p('Reply to the room-check email with what is off (a different room, a clash, a cancellation) and the club will sort it with you.')));
   } catch (err) {
     console.error(err);
@@ -2707,8 +2759,14 @@ app.post('/rooms', async (req, res) => {
   const who = await gate(req, res, body, 'admin'); if (!who) return;
   const city = String(body.city || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 40);
   const email = String(body.email || '').trim().toLowerCase().slice(0, 160);
-  if (!city || !email) return res.status(400).json({ error: 'city and email required' });
+  if (!city) return res.status(400).json({ error: 'city required' });
   try {
+    /* ask: one note per holder covering the next few tables, from the console's button */
+    if (body.action === 'ask') {
+      const r = await askRoomSeries(city, body.count);
+      return res.json({ ok: true, sent: r.sent, tables: r.tables, mailed: !!mailer });
+    }
+    if (!email) return res.status(400).json({ error: 'email required' });
     if (body.action === 'remove') {
       await pool.query('DELETE FROM aihc_room_contacts WHERE city = $1 AND email = $2', [city, email]);
       return res.json({ ok: true });

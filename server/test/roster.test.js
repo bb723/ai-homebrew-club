@@ -46,6 +46,7 @@ const code = [
   lift('async function roomCount(', '}'),
   lift('async function roomStatusLine(', '}'),
   lift('async function askRoom(', '}'),
+  lift('async function askRoomSeries(', '}'),
   lift('async function runRoster(', '}'),
 ].join('\n\n');
 
@@ -106,6 +107,10 @@ const pool = {
     if (sql.includes('q:room-count')) return { rows: [{ n: world.rooms.filter(r => r.city === params[0]).length }] };
     if (sql.includes('q:room-contacts')) return { rows: world.rooms.filter(r => r.city === params[0]) };
     if (sql.includes('q:room-checks')) return { rows: world.checks.filter(c => c.event === params[0]) };
+    if (sql.includes('q:holder-checks')) return { rows: world.checks.filter(c => c.email === params[0]) };
+    if (sql.includes('q:coming-tables')) {
+      return { rows: world.events.filter(e => e.city === params[0] && e.status === 'upcoming' && e.sort_date >= params[1]).sort(byDate).slice(0, params[2]) };
+    }
     if (sql.includes('q:opted-out')) return { rows: world.roster.filter(r => r.city === params[0] && r.status === 'out').map(r => ({ name: r.name, email: r.email })) };
     if (sql.includes('q:last-seats')) return { rows: world.rsvps.filter(r => r.event === params[0] && r.status === 'seat') };
     if (sql.includes('q:agenda')) return { rows: world.agenda.filter(a => a.event === params[0]) };
@@ -148,9 +153,9 @@ const notify = (subject, text) => { world.notes.push({ subject, text }); };
 const newToken = () => crypto.randomBytes(24).toString('hex');
 const cardFor = async () => world.card;
 
-const make = new Function('pool', 'Email', 'mailTo', 'notify', 'mailer', 'newToken', 'API_BASE', 'fmtTime', 'cardFor',
-  code + '\nreturn { runRoster, eventStartUtc };');
-const { runRoster, eventStartUtc } = make(pool, Email, mailTo, notify, {}, newToken, 'https://api.example.test', Email.fmtTime, cardFor);
+const make = new Function('pool', 'Email', 'mailTo', 'notify', 'mailer', 'newToken', 'API_BASE', 'fmtTime', 'cardFor', 'NOTIFY_EMAIL',
+  code + '\nreturn { runRoster, eventStartUtc, askRoomSeries };');
+const { runRoster, eventStartUtc, askRoomSeries } = make(pool, Email, mailTo, notify, {}, newToken, 'https://api.example.test', Email.fmtTime, cardFor, 'club@example.test');
 
 /* the clock the loop runs on: a fixed instant today at a given Maine hour, so the scenarios
    never depend on when the suite happens to run */
@@ -516,6 +521,36 @@ async function scenario(name, fn) {
     expect(world.notes.some(n => n.subject.startsWith('Room check, one week out: Table w') && n.text.includes('Already confirmed (1)')), 'the room nag note is missing');
     await runRoster(AT);
     expect(world.sent.filter(m => m.subject.startsWith('One week out: please confirm the room')).length === 1, 'the nag goes once');
+  });
+
+  await scenario('the series check: one note per holder covering the next tables, skipping ones they confirmed, one tap for all', async () => {
+    world.events = [eventAt('n1', 72), eventAt('n2', 30 * 24), eventAt('n3', 60 * 24), eventAt('n4', 90 * 24)];
+    world.rooms = [
+      { city: 'waterville', email: 'sam@example.test', name: 'Sam Secretary', token: 'a'.repeat(48), ts: '2026-02-01T00:00:00Z' },
+      { city: 'waterville', email: 'host@example.test', name: 'Hal Host', token: 'b'.repeat(48), ts: '2026-02-01T00:00:01Z' },
+    ];
+    world.checks = [{ event: 'n1', email: 'sam@example.test', name: 'Sam Secretary', status: 'confirmed', ts: '2026-02-12T10:00:00Z' }];
+    const r = await askRoomSeries('waterville', 3);
+    expect(r.tables.join(',') === 'n1,n2,n3' && r.sent.length === 2, 'three tables, two holders, got ' + JSON.stringify(r));
+    const sam = world.sent.find(m => m.to === 'sam@example.test'), hal = world.sent.find(m => m.to === 'host@example.test');
+    expect(sam && sam.subject === 'Please confirm the room for the next 2 Waterville tables: Table day n2 to Table day n3', 'Sam already confirmed n1, so her note covers n2 and n3: ' + (sam || {}).subject);
+    expect(sam.text.includes('Yes, all 2 are booked: https://api.example.test/room/confirm?t=' + 'a'.repeat(48) + '&e=n2%2Cn3'), 'the one-tap link should name both tables: ' + sam.text);
+    expect(sam.text.includes('Yes, this one is booked: https://api.example.test/room/confirm?t=' + 'a'.repeat(48) + '&e=n2'), 'the per-table link is missing');
+    expect(sam.html.includes('Are these rooms booked?') && sam.html.includes('Yes, this one is booked') && sam.cc, 'wrong html or no cc');
+    expect(hal && hal.subject.includes('next 3 Waterville tables') && hal.text.includes('&e=n1%2Cn2%2Cn3'), 'Hal has confirmed nothing: all three');
+    expect(world.markers.has('n1|room') && world.markers.has('n2|room') && world.markers.has('n3|room') && !world.markers.has('n4|room'), 'the per-table markers for the covered tables should be spent');
+    expect(world.notes.some(n => n.subject === 'Room check sent for the next 3 Waterville tables' && n.text.includes('Sam Secretary <sam@example.test>: Table day n2, Table day n3')), 'the admin note is missing');
+    await runRoster(AT);
+    expect(world.sent.length === 2, 'the loop must not ask again for a table the series note covered, got ' + world.sent.map(m => m.subject));
+  });
+
+  await scenario("the host's own address never joins a roster, however it got on a book", async () => {
+    world.events = [pastTable('l', TODAY), eventAt('n', 72)];
+    world.rsvps = [seat('l', 'Brett Host', 'club@example.test'), seat('l', 'Ada Alpha', 'ada@example.test')];
+    world.invites = [{ id: 'iv9', event: 'l', email: 'Club@example.test', name: 'Brett', by: 'The club', ts: '2026-01-02T00:00:00Z' }];
+    await runRoster(AT);
+    expect(world.roster.map(r => r.email).join(',') === 'ada@example.test', 'only Ada belongs on the roster, got ' + world.roster.map(r => r.email));
+    expect(world.sent.length === 1 && world.sent[0].to === 'ada@example.test', 'only Ada should hear, got ' + world.sent.map(m => m.to));
   });
 
   console.log('\n' + label + ': ' + (failures ? failures + ' scenario(s) FAILED' : 'all scenarios passed'));

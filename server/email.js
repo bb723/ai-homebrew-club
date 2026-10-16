@@ -514,6 +514,72 @@ function weekBeforeEmail({ ev, person, kind, taken, agenda, links, card }) {
   return { subject, text, html };
 }
 
+/* the room check for a run of tables: are these rooms booked? One tap confirms them all, one
+   line per table confirms one, another flags a problem.
+   { person: {name}, place, tables: [{ev, confirm}], links: {confirmAll, problem} } */
+function roomSeriesEmail({ person, place, tables, links }) {
+  const town = townOf(place || 'Maine');
+  const name = String(person.name || 'there').trim();
+  const first = name.split(/\s+/)[0];
+  const n = tables.length;
+  const head = tables[0].ev, tail = tables[n - 1].ev;
+  const cap = +head.capacity || 0;
+  const sameRoom = tables.every(t => t.ev.location === head.location);
+  const subject = 'Please confirm the room for the next ' + n + ' ' + town + ' tables: ' + head.when + ' to ' + tail.when;
+  const headline = 'Are these rooms booked?';
+  const lede = 'The club has the next ' + n + ' ' + town + ' tables on the calendar' +
+    (sameRoom ? ', all at ' + head.location : '') + (cap ? ', for up to ' + cap + ' people' : '') + '. ' +
+    'You are one of the people who holds that booking, so please confirm them: one tap covers all ' + n + ', or confirm them one at a time below, ' +
+    'or tell us if anything is off. Everyone who holds the booking gets this note and confirms separately.';
+  const short = ev => {
+    const d = ymd(ev.sort_date);
+    return d ? MONTHS[d.getUTCMonth()].slice(0, 3) + ' ' + d.getUTCDate() : ev.when;
+  };
+  const link = 'color:' + B.accentDeep + ';font-weight:600;';
+  const ticket = tables.map(t => {
+    const w = whenLine(t.ev);
+    return { k: short(t.ev), html: '<b style="font-weight:700">' + esc(w.date) + '</b>' + (w.range ? ', ' + esc(w.range) : '') +
+      (sameRoom ? '' : '<br>' + esc(t.ev.location)) +
+      '<br><a href="' + esc(t.confirm) + '" style="' + link + '">Yes, this one is booked</a>' };
+  });
+  if (sameRoom) {
+    const maps = mapsUrl(head.location);
+    ticket.push({ k: 'Where', html: esc(head.location) + '<br><a href="' + esc(maps) + '" style="' + link + '">Directions</a>' });
+  }
+  const buttons = [
+    { label: 'Yes, all ' + n + ' are booked', href: links.confirmAll, primary: true },
+    { label: 'Something is off', href: links.problem },
+  ];
+  const notes = [{ text: 'Replying to this note reaches the club as well.' }];
+
+  const html = renderEmail({
+    title: subject, place,
+    preheader: n + ' tables, ' + head.when + ' to ' + tail.when + '. One tap confirms them all.',
+    stamp: 'Room check · ' + n + ' tables',
+    dateline: 'The next ' + n + ' tables · ' + town,
+    headline,
+    greeting: 'Hey ' + first + ',',
+    lede,
+    ticket,
+    buttons, notes,
+    signoff: ['Thank you.', 'The AI Homebrew Club', place],
+  });
+
+  const text =
+    'Hey ' + first + ',\n\n' + headline + ' ' + lede + '\n\n' +
+    tables.map(t => {
+      const w = whenLine(t.ev);
+      return t.ev.title + '\n  When: ' + w.both + (sameRoom ? '' : '\n  Where: ' + t.ev.location) + '\n  Yes, this one is booked: ' + t.confirm;
+    }).join('\n\n') + '\n' +
+    (sameRoom ? '\nWhere: ' + head.location + '\n' : '') +
+    '\nYes, all ' + n + ' are booked: ' + links.confirmAll + '\n' +
+    'Something is off: ' + links.problem + '\n' +
+    '\nReplying to this note reaches the club as well.' +
+    '\n\nThank you.\nThe AI Homebrew Club\n' + place + '\n' + SITE + '\n';
+
+  return { subject, text, html };
+}
+
 /* the room check, to whoever holds the booking: is the room set for this table? One tap
    confirms, another flags a problem. kind 'ask' goes out with the invites, 'again' a week out
    to anyone who has not answered.
@@ -586,5 +652,5 @@ function roomEmail({ ev, person, kind, taken, agenda, links }) {
 
 module.exports = {
   esc, fmtTime, endTime, fmtRange, longDate, maineToday, maineHour, daysBetween, weekday, dayWord, mapsUrl, townOf,
-  renderEmail, reminderEmail, thanksEmail, nextTableEmail, weekBeforeEmail, roomEmail,
+  renderEmail, reminderEmail, thanksEmail, nextTableEmail, weekBeforeEmail, roomEmail, roomSeriesEmail,
 };
