@@ -2787,6 +2787,38 @@ app.post('/rooms', async (req, res) => {
   }
 });
 
+/* the host asks for the card: one note to NOTIFY_EMAIL with the picture for each table named,
+   shown and attached, so it can be saved and texted on. Never anyone else: cards for other
+   people go out with the roster notes, or by the host's own hand. */
+app.post('/cards', async (req, res) => {
+  let body = req.body;
+  if (typeof body === 'string') {
+    try { body = JSON.parse(body); } catch { return res.status(400).json({ error: 'bad json' }); }
+  }
+  const who = await gate(req, res, body, 'admin'); if (!who) return;
+  if (body.action !== 'send') return res.status(400).json({ error: 'unknown action' });
+  if (!NOTIFY_EMAIL) return res.status(400).json({ error: 'no host address set' });
+  const ids = [...new Set((Array.isArray(body.events) ? body.events : [body.event]).map(x => String(x || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 60)).filter(Boolean))].slice(0, 6);
+  if (!ids.length) return res.status(400).json({ error: 'event required' });
+  try {
+    const q = await pool.query('SELECT * FROM aihc_events WHERE id = ANY($1) ORDER BY sort_date', [ids]);
+    const items = [], missing = ids.filter(id => !q.rows.some(r => r.id === id));
+    for (const row of q.rows) {
+      const ev = eventView(row);
+      const card = await cardFor(ev);
+      if (!card) { missing.push(row.id); continue; }
+      items.push({ ev, card, taken: await seatsTaken(row.id) });
+    }
+    if (!items.length) return res.status(404).json({ error: 'no card for ' + ids.join(', '), missing });
+    const m = Email.cardsEmail({ items, place: chapterOf(items[0].ev.city).label });
+    mailTo(NOTIFY_EMAIL, m.subject, m.text, items.map(it => cardAttachment(it.card)), m.html);
+    res.json({ ok: true, to: NOTIFY_EMAIL, sent: items.map(it => it.ev.id), cards: items.map(it => it.card.url), missing, mailed: !!mailer });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'db' });
+  }
+});
+
 cron.schedule('*/5 * * * *', () => {
   runReminders().catch(err => console.error('reminders failed:', err.message))
     .then(() => runRoster()).catch(err => console.error('roster failed:', err.message));

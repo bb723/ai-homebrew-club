@@ -92,7 +92,7 @@ function townOf(place) {
 /* one notice. spec:
    { title, preheader, stamp, dateline, headline, greeting, lede,
      ticket: [{k, v, html}], agendaLabel, agenda: [{t, title, detail}],
-     buttons: [{label, href, primary}], card: {cid, alt, label, caption}, notes: [{text, label, href}], signoff: [lines], place } */
+     buttons: [{label, href, primary}], card: {cid, alt, label, caption} (or cards: [...]), notes: [{text, label, href}], signoff: [lines], place } */
 function renderEmail(spec) {
   const body = 'font-family:' + FONT_BODY + ';color:' + B.ink + ';';
   const mono = 'font-family:' + FONT_MONO + ';font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:' + B.ink3 + ';';
@@ -152,11 +152,11 @@ function renderEmail(spec) {
         '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">' + agenda + '</table>' +
       '</td></tr>' : '') +
       (buttons ? '<tr><td style="padding:26px 0 0">' + buttons + '</td></tr>' : '') +
-      (spec.card ? '<tr><td style="padding:26px 0 0">' +
-        '<p style="margin:0 0 8px;' + mono + '"><b style="color:' + B.accent + ';font-weight:600">' + esc(spec.card.label || 'The card') + '</b></p>' +
-        '<img src="cid:' + esc(spec.card.cid) + '" width="600" alt="' + esc(spec.card.alt || '') + '" style="display:block;width:100%;max-width:600px;height:auto;border:1px solid ' + B.line + ';border-radius:6px">' +
-        (spec.card.caption ? '<p style="margin:8px 0 0;' + body + 'font-size:14px;line-height:1.5;color:' + B.ink2 + '">' + esc(spec.card.caption) + '</p>' : '') +
-      '</td></tr>' : '') +
+      (spec.cards || (spec.card ? [spec.card] : [])).map(c => '<tr><td style="padding:26px 0 0">' +
+        '<p style="margin:0 0 8px;' + mono + '"><b style="color:' + B.accent + ';font-weight:600">' + esc(c.label || 'The card') + '</b></p>' +
+        '<img src="cid:' + esc(c.cid) + '" width="600" alt="' + esc(c.alt || '') + '" style="display:block;width:100%;max-width:600px;height:auto;border:1px solid ' + B.line + ';border-radius:6px">' +
+        (c.caption ? '<p style="margin:8px 0 0;' + body + 'font-size:14px;line-height:1.5;color:' + B.ink2 + '">' + esc(c.caption) + '</p>' : '') +
+      '</td></tr>').join('') +
       '<tr><td style="padding:16px 0 24px">' + notes + '<div style="height:8px;line-height:8px;font-size:1px">&nbsp;</div>' + signoff + '</td></tr>' +
       '<tr><td style="padding:12px 0 0;border-top:1.5px solid ' + B.ink + ';' + mono + 'line-height:1.7">' +
         '<a href="' + SITE + '" style="color:' + B.ink3 + ';text-decoration:none">aihomebrewclub.com</a> &middot; ' + esc(spec.place || 'Maine') + ' &middot; Free, and it always will be' +
@@ -580,6 +580,58 @@ function roomSeriesEmail({ person, place, tables, links }) {
   return { subject, text, html };
 }
 
+/* the host asks for the card: one note with the picture for each table, shown and attached,
+   so it can be saved and texted on. { items: [{ev, card: {cid, url}, taken}], place } */
+function cardsEmail({ items, place }) {
+  const n = items.length;
+  const one = n === 1;
+  const short = ev => {
+    const d = ymd(ev.sort_date);
+    return d ? MONTHS[d.getUTCMonth()].slice(0, 3) + ' ' + d.getUTCDate() : ev.when;
+  };
+  const seats = it => {
+    const cap = +it.ev.capacity || 0;
+    const left = cap ? Math.max(0, cap - (it.taken || 0)) : 0;
+    return cap ? (left > 0 ? left + ' of ' + cap + ' chairs open.' : 'Full; the waitlist is open.') : 'First come, first served.';
+  };
+  const subject = one
+    ? 'The card: ' + items[0].ev.title + ', ' + items[0].ev.when
+    : 'The cards: ' + items.map(it => it.ev.when).join(' and ');
+  const headline = one ? 'Your card for ' + items[0].ev.when + '.' : 'Your cards, one per table.';
+  const lede = (one
+    ? 'Save the picture below and text it to whoever should be at the table. '
+    : 'Save each picture and text it to whoever should be at that table. ') +
+    'The code on it saves them a seat, and so does the short link printed on it. ' +
+    (one ? 'It is attached to this note as well.' : 'Both are attached to this note as well.');
+  const ticket = items.map(it => ({
+    k: short(it.ev),
+    html: '<b style="font-weight:700">' + esc(it.ev.title) + '</b><br>' + esc(whenLine(it.ev).both) + '<br>' + esc(seats(it)),
+  }));
+  const cards = items.map(it => ({
+    cid: it.card.cid,
+    alt: 'The card: ' + it.ev.title + ', ' + it.ev.when,
+    label: it.ev.title + ' · ' + it.ev.when,
+    caption: '',
+  }));
+  const notes = items.map(it => ({ text: (one ? 'The picture on the web, for a link instead:' : it.ev.title + ', as a link instead:'), label: it.card.url.replace(/^https?:\/\//, ''), href: it.card.url }));
+  const html = renderEmail({
+    title: subject, place,
+    preheader: (one ? 'The card for ' : 'The cards for ') + items.map(it => it.ev.when).join(' and ') + '. Save and text it.',
+    stamp: one ? 'The card' : 'The cards',
+    dateline: one ? items[0].ev.title + ' · ' + townOf(place) : n + ' tables · ' + townOf(place),
+    headline,
+    lede,
+    ticket,
+    cards, notes,
+    signoff: ['The AI Homebrew Club', place],
+  });
+  const text =
+    headline + ' ' + lede + '\n\n' +
+    items.map(it => it.ev.title + '\nWhen: ' + whenLine(it.ev).both + '\nSeats: ' + seats(it) + '\nThe picture on the web: ' + it.card.url).join('\n\n') +
+    '\n\nThe AI Homebrew Club\n' + place + '\n' + SITE + '\n';
+  return { subject, text, html };
+}
+
 /* the room check, to whoever holds the booking: is the room set for this table? One tap
    confirms, another flags a problem. kind 'ask' goes out with the invites, 'again' a week out
    to anyone who has not answered.
@@ -652,5 +704,5 @@ function roomEmail({ ev, person, kind, taken, agenda, links }) {
 
 module.exports = {
   esc, fmtTime, endTime, fmtRange, longDate, maineToday, maineHour, daysBetween, weekday, dayWord, mapsUrl, townOf,
-  renderEmail, reminderEmail, thanksEmail, nextTableEmail, weekBeforeEmail, roomEmail, roomSeriesEmail,
+  renderEmail, reminderEmail, thanksEmail, nextTableEmail, weekBeforeEmail, roomEmail, roomSeriesEmail, cardsEmail,
 };

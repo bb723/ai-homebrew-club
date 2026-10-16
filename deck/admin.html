@@ -114,6 +114,7 @@
                 <a class="btn btn-secondary btn-sm" id="dhPublic" href="../waterville.html" target="_blank" rel="noopener">Open public page</a>
                 <a class="btn btn-secondary btn-sm" id="dhFlyer" href="../flyer.html" target="_blank" rel="noopener">Flyer</a>
                 <a class="btn btn-secondary btn-sm" id="dhCard" href="../card.html" target="_blank" rel="noopener">Card</a>
+                <button class="btn btn-ghost btn-sm" id="dhCardMail" type="button" title="One note to your own inbox with the picture attached, to save and text on">Email me the card</button>
                 <button class="btn btn-ghost btn-sm" id="dhDel" type="button">Delete</button>
               </div>
             </div>
@@ -929,6 +930,7 @@
       $('dhPublic').href = '../' + ((pt && pt.page) || 'waterville.html');
       $('dhFlyer').href = '../flyer.html?event=' + encodeURIComponent(e.id);
       $('dhCard').href = '../card.html?event=' + encodeURIComponent(e.id);
+      $('dhCardMail').setAttribute('data-event', e.id);
       $('dhSub').innerHTML =
         '<span class="mono">' + esc(e.when) + (e.start_time ? ' · ' + esc(fmtT(0, e.start_time)) : '') + (e.minutes && +e.minutes !== 60 ? ' · ' + esc(e.minutes) + ' min' : '') + '</span>' +
         '<span>' + esc(e.location) + '</span>' +
@@ -2138,6 +2140,14 @@
       var email = b.getAttribute('data-email'), city = b.getAttribute('data-city');
       if (!window.confirm('Take ' + email + ' off the ' + city + ' room? They will not be asked to confirm it any more.')) return;
       post('/rooms', {action: 'remove', city: city, email: email}).then(function(){ A.toast('Removed.'); loadRooms(); });
+    });
+    /* the card, to your own inbox: the picture attached, to save and text on */
+    $('dhCardMail').addEventListener('click', function(){
+      var id = $('dhCardMail').getAttribute('data-event'); if (!id) return;
+      post('/cards', {action: 'send', events: [id]}).then(function(d){
+        if (!(d && d.ok)){ A.toast(d && d.error ? d.error : 'That did not send.'); return; }
+        A.toast('The card is on its way to ' + d.to + '.');
+      });
     });
 
     /* the clubhouse: rooms and light moderation */
