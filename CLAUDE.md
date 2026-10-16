@@ -6,6 +6,7 @@ One repo, everything in it. Brett's deploy mental model: **push to master and th
 |---|---|---|
 | The site (zero-build HTML + `assets/`) | repo root | Push to `master` → GitHub Pages redeploys **aihomebrewclub.com** (~10 min CDN cache) |
 | The server (Express + Postgres, Heroku app `aihc-notes`) | `server/` | Push touching `server/**` → `.github/workflows/deploy-server.yml` subtree-pushes to Heroku |
+| The cards (`cards/<event>.png`, one per upcoming meetup) | rendered from `card.html` | `.github/workflows/render-cards.yml` renders and commits them daily, on demand, and when the card's design changes. Never hand-edit `cards/` |
 
 This is production for a real club — RSVPs and invites email real people. Test against a test address and clean up test rows (`aihc_invites`, RSVPs) when done.
 
@@ -23,7 +24,7 @@ This is production for a real club — RSVPs and invites email real people. Test
 - **The frontend POSTs `text/plain` bodies** — don't add strict content-type checks or break the permissive parsing.
 - **Keep the H12 dodge:** AI-drafter endpoints drip whitespace while the model thinks so Heroku's 30s router timeout doesn't kill them.
 - **Seeding must stay idempotent:** agendas seed only when an event has no run sheet (reboots must not resurrect placeholders).
-- **The roster runs itself.** Meetups close two hours after they end, the last table's seat holders get chairs at the next one (as a thank-you note), the rest of the town's roster hears once, and the whole town hears again one week out; nothing goes out before 9 am or after 8 pm Maine time (README, "The roster"). Do not flip events to past by hand or re-seat people: schedule the next table in the console and the loop does the rest within five minutes. Mark attendance before a table closes if only those who came should carry.
+- **The roster runs itself, and it is opt-in.** Meetups close two hours after they end. Nobody is ever seated by the club: once a table is the next one on the calendar, everyone in that town who ever reserved, waited, gave a chair back or was invited by hand hears once, with a seat link and the card (the last table's people get it as a thank-you), and the whole town hears again one week out; nothing goes out before 9 am or after 8 pm Maine time (README, "The roster"). Do not flip events to past by hand or hold chairs for people: schedule the next table in the console and the loop does the rest within five minutes. Mark attendance before a table closes if only those who came should get the thank-you.
 
 ## Repo rules
 

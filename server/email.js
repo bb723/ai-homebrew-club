@@ -92,7 +92,7 @@ function townOf(place) {
 /* one notice. spec:
    { title, preheader, stamp, dateline, headline, greeting, lede,
      ticket: [{k, v, html}], agendaLabel, agenda: [{t, title, detail}],
-     buttons: [{label, href, primary}], notes: [{text, label, href}], signoff: [lines], place } */
+     buttons: [{label, href, primary}], card: {cid, alt, label, caption}, notes: [{text, label, href}], signoff: [lines], place } */
 function renderEmail(spec) {
   const body = 'font-family:' + FONT_BODY + ';color:' + B.ink + ';';
   const mono = 'font-family:' + FONT_MONO + ';font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:' + B.ink3 + ';';
@@ -152,6 +152,11 @@ function renderEmail(spec) {
         '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">' + agenda + '</table>' +
       '</td></tr>' : '') +
       (buttons ? '<tr><td style="padding:26px 0 0">' + buttons + '</td></tr>' : '') +
+      (spec.card ? '<tr><td style="padding:26px 0 0">' +
+        '<p style="margin:0 0 8px;' + mono + '"><b style="color:' + B.accent + ';font-weight:600">' + esc(spec.card.label || 'The card') + '</b></p>' +
+        '<img src="cid:' + esc(spec.card.cid) + '" width="600" alt="' + esc(spec.card.alt || '') + '" style="display:block;width:100%;max-width:600px;height:auto;border:1px solid ' + B.line + ';border-radius:6px">' +
+        (spec.card.caption ? '<p style="margin:8px 0 0;' + body + 'font-size:14px;line-height:1.5;color:' + B.ink2 + '">' + esc(spec.card.caption) + '</p>' : '') +
+      '</td></tr>' : '') +
       '<tr><td style="padding:16px 0 24px">' + notes + '<div style="height:8px;line-height:8px;font-size:1px">&nbsp;</div>' + signoff + '</td></tr>' +
       '<tr><td style="padding:12px 0 0;border-top:1.5px solid ' + B.ink + ';' + mono + 'line-height:1.7">' +
         '<a href="' + SITE + '" style="color:' + B.ink3 + ';text-decoration:none">aihomebrewclub.com</a> &middot; ' + esc(spec.place || 'Maine') + ' &middot; Free, and it always will be' +
@@ -255,55 +260,68 @@ function reminderEmail({ kind, ev, rsvp, agenda, taken, links, now }) {
   return { subject, text, html };
 }
 
-/* the standing seat: whoever sat at the last table has a chair at the next one. Sent fresh
-   (within a few days of the last table) it is the thank-you note; later, it is the held chair.
-   { ev, rsvp: {id, name, guest_name, status: 'seat'|'waitlist'}, last: {title, when},
-     fresh, recap: [titles], taken, agenda, links: {calendar, cancel, share, optout} } */
-function holdEmail({ ev, rsvp, last, fresh, recap, taken, agenda, links }) {
+/* "bring a neighbor": the card, when the note carries one, and a link that works for anyone.
+   own: the link is the recipient's own share link rather than the open door */
+function neighborNote(href, label, card, own) {
+  if (!href) return null;
+  const send = own ? 'send them your link:' : 'send them this link:';
+  return card
+    ? { text: 'Know a neighbor who should be at this table? Text them the card below, or ' + send,
+        plain: 'Know a neighbor who should be at this table? Text them the card attached to this note, or ' + send, label, href }
+    : { text: 'Know a neighbor who should be at this table? ' + send.charAt(0).toUpperCase() + send.slice(1), label, href };
+}
+/* the picture of the invitation, shown in the note and attached to it. card: {cid} or null */
+function cardBlock(card, ev) {
+  return card ? {
+    cid: card.cid,
+    alt: 'The card: ' + ev.title + ', ' + ev.when + '. Save a seat at aihomebrewclub.com.',
+    label: 'The card',
+    caption: 'Text this picture to a neighbor. The code on it saves them a seat.',
+  } : null;
+}
+function notesText(notes) {
+  return notes.map(n => '\n' + (n.plain || n.text) + (n.href ? ' ' + n.href : '')).join('');
+}
+function seatsOpenLine(cap, left) {
+  return cap
+    ? (left > 0 ? left + ' of ' + cap + ' open, first come, first served.' : 'Full. The waitlist moves, and it is worth joining.')
+    : 'First come, first served.';
+}
+
+/* the thank-you, the morning after a table: good to have you, and the next one is on the
+   calendar. Nothing is held; chairs are first come, first served, so the note is a seat link.
+   { ev, person: {name}, last: {title, when}, taken, agenda,
+     links: {rsvp, calendar, friend, optout}, card: {cid} | null } */
+function thanksEmail({ ev, person, last, taken, agenda, links, card }) {
   const place = ev.place || 'Maine';
   const town = townOf(place);
   const w = whenLine(ev);
-  const name = String(rsvp.name || 'neighbor').trim();
+  const name = String(person.name || 'neighbor').trim();
   const first = name.split(/\s+/)[0];
-  const pair = !!rsvp.guest_name;
-  const seated = rsvp.status !== 'waitlist';
   const cap = +ev.capacity || 0;
-  const tableLine = cap && taken != null ? ' ' + Math.min(taken, cap) + ' of ' + cap + ' chairs spoken for.' : '';
-  const seatLine = seated
-    ? (pair ? 'Held for ' + name + ' and ' + rsvp.guest_name + '.' : 'Held for ' + name + '.') + tableLine
-    : 'Waitlist, first in line. The moment a chair opens it is yours.';
-  const chairs = pair ? 'two chairs, yours and ' + rsvp.guest_name + '\'s,' : 'your chair';
-  const worked = (recap || []).filter(Boolean).slice(0, 6);
-  const recapLine = worked.length ? ' On the sheet: ' + worked.join('; ') + '.' : '';
-  const subject = fresh
-    ? (seated ? 'Thanks for coming. Your chair is held for ' + ev.when + '.' : 'Thanks for coming. You are first in line for ' + ev.when + '.')
-    : (seated ? 'Your chair is held: ' + ev.title + ', ' + ev.when : 'First in line: ' + ev.title + ', ' + ev.when);
-  const headline = fresh ? 'Thanks for coming.' : (seated ? 'Your chair is held.' : 'First in line.');
-  const lede = fresh
-    ? 'Good to have you at the table on ' + last.when + '.' + recapLine +
-      (seated
-        ? ' We held ' + chairs + ' for the next ' + town + ' table: ' + ev.when + ', ' + w.range + '. No need to RSVP. It is yours unless you tell us otherwise.'
-        : ' The next ' + town + ' table filled first, so you are at the top of the waitlist for ' + ev.when + '; the moment a chair opens it is yours, and we will email you.')
-    : (seated
-        ? 'You sat with us on ' + last.when + ', so we held ' + chairs + ' for the next ' + town + ' table. No need to RSVP. It is yours unless you tell us otherwise.'
-        : 'You sat with us on ' + last.when + ', and the next ' + town + ' table filled before we could seat you. ' +
-          'You are at the top of the waitlist; the moment a chair opens it is yours, and we will email you.');
+  const left = cap ? Math.max(0, cap - (taken || 0)) : 0;
+  const open = !cap || left > 0;
+  const seatsLine = seatsOpenLine(cap, left);
+  const subject = 'Thanks for coming. The next ' + town + ' table is ' + ev.when + '.';
+  const headline = 'Thanks for coming.';
+  const lede = 'Good to have you at the table on ' + last.when + '. The next ' + town + ' table is ' + ev.when +
+    (w.range ? ', ' + w.range : '') + '. ' +
+    (open
+      ? 'Chairs are first come, first served, so if you want one, save it now. It takes ten seconds.'
+      : 'The table is already full, but chairs open up and the waitlist moves, so join it if you want to come.');
 
   const where = whereRow(ev);
-  const buttons = [];
-  if (links.calendar) buttons.push({ label: 'Add to calendar', href: links.calendar, primary: true });
-  buttons.push({ label: 'Directions', href: where.maps, primary: !links.calendar });
+  const buttons = [{ label: open ? 'Save my seat' : 'Join the waitlist', href: links.rsvp, primary: true }];
+  if (links.calendar) buttons.push({ label: 'Add to calendar', href: links.calendar });
   const notes = [];
-  if (links.cancel) notes.push(seated
-    ? { text: 'Cannot make this one? Free your chair for a neighbor:', label: 'give up my chair', href: links.cancel }
-    : { text: 'Rather not wait? Leave the line here:', label: 'leave the waitlist', href: links.cancel });
-  if (links.share) notes.push({ text: 'Know a neighbor who should be at this table? Send them your link:', label: 'your invite link', href: links.share });
-  if (links.optout) notes.push({ text: 'Would you rather we did not hold a chair for you each time?', label: 'stop holding my chair', href: links.optout });
+  const nb = neighborNote(links.friend, 'aihomebrewclub.com/rsvp', card, false);
+  if (nb) notes.push(nb);
+  if (links.optout) notes.push({ text: 'Would you rather not hear about meetups?', label: 'stop these notes', href: links.optout });
 
   const html = renderEmail({
     title: subject, place,
-    preheader: w.both + '. ' + ev.location + '.',
-    stamp: fresh ? 'Thanks for coming' : (seated ? 'Chair held' : 'First in line'),
+    preheader: w.both + '. ' + ev.location + '. ' + seatsLine,
+    stamp: 'Thanks for coming',
     dateline: ev.title + ' · ' + town,
     headline,
     greeting: 'Hey ' + first + ',',
@@ -312,12 +330,12 @@ function holdEmail({ ev, rsvp, last, fresh, recap, taken, agenda, links }) {
       { k: 'Meetup', html: '<b style="font-weight:700">' + esc(ev.title) + '</b>' },
       { k: 'When', html: esc(w.date) + '<br><b style="font-weight:700">' + esc(w.range) + '</b>' },
       where,
-      { k: 'Your seat', v: seatLine },
+      { k: 'Seats', v: seatsLine },
       { k: 'Bring', v: BRING },
     ],
     agendaLabel: (w.minutes === 60 ? 'The hour' : 'The session') + ' · ' + w.range,
     agenda: agenda || [],
-    buttons, notes,
+    buttons, card: cardBlock(card, ev), notes,
     signoff: ['See you at the table.', 'The AI Homebrew Club', place],
   });
 
@@ -326,20 +344,21 @@ function holdEmail({ ev, rsvp, last, fresh, recap, taken, agenda, links }) {
     ev.title + '\n' +
     'When: ' + w.both + '\n' +
     'Where: ' + ev.location + '\n' +
-    'Your seat: ' + seatLine + '\n' +
+    'Seats: ' + seatsLine + '\n' +
     'Bring: ' + BRING + '\n' +
     agendaText(agenda, w.minutes) +
-    (links.calendar ? '\nAdd it to your calendar: ' + links.calendar : '') +
-    '\nDirections: ' + where.maps + '\n' +
-    notes.map(n => '\n' + n.text + ' ' + n.href).join('') +
+    '\n' + (open ? 'Save your seat' : 'Join the waitlist') + ' (takes ten seconds): ' + links.rsvp + '\n' +
+    (links.calendar ? 'Add it to your calendar: ' + links.calendar + '\n' : '') +
+    'Directions: ' + where.maps + '\n' +
+    notesText(notes) +
     signoffText(place);
 
   return { subject, text, html };
 }
 
 /* the roster hears that the next table is on the calendar.
-   { ev, person: {name, email}, taken, agenda, links: {rsvp, calendar, optout} } */
-function nextTableEmail({ ev, person, taken, agenda, links }) {
+   { ev, person: {name, email, sat}, taken, agenda, links: {rsvp, calendar, friend, optout}, card } */
+function nextTableEmail({ ev, person, taken, agenda, links, card }) {
   const place = ev.place || 'Maine';
   const town = townOf(place);
   const w = whenLine(ev);
@@ -348,9 +367,7 @@ function nextTableEmail({ ev, person, taken, agenda, links }) {
   const first = name.split(/\s+/)[0];
   const cap = +ev.capacity || 0;
   const left = cap ? Math.max(0, cap - (taken || 0)) : 0;
-  const seatsLine = cap
-    ? (left > 0 ? left + ' of ' + cap + ' open, first come, first served.' : 'Full. The waitlist moves, and it is worth joining.')
-    : 'First come, first served.';
+  const seatsLine = seatsOpenLine(cap, left);
   const subject = 'The next ' + town + ' table is on the calendar: ' + ev.when;
   const headline = ev.when + '.';
   const opener = person.sat === false
@@ -362,7 +379,9 @@ function nextTableEmail({ ev, person, taken, agenda, links }) {
   const where = whereRow(ev);
   const buttons = [{ label: left > 0 ? 'Save my seat' : 'Join the waitlist', href: links.rsvp, primary: true }];
   if (links.calendar) buttons.push({ label: 'Add to calendar', href: links.calendar });
-  const notes = [{ text: 'Know a neighbor who should be at this table? Forward this note; the link works for anyone.' }];
+  const notes = [];
+  const nb = neighborNote(links.friend, 'aihomebrewclub.com/rsvp', card, false);
+  notes.push(nb || { text: 'Know a neighbor who should be at this table? Forward this note; the link works for anyone.' });
   if (links.optout) notes.push({ text: 'Would you rather not hear about meetups?', label: 'stop these notes', href: links.optout });
 
   const html = renderEmail({
@@ -382,7 +401,7 @@ function nextTableEmail({ ev, person, taken, agenda, links }) {
     ],
     agendaLabel: (w.minutes === 60 ? 'The hour' : 'The session') + ' · ' + w.range,
     agenda: agenda || [],
-    buttons, notes,
+    buttons, card: cardBlock(card, ev), notes,
     signoff: ['See you at the table.', 'The AI Homebrew Club', place],
   });
 
@@ -397,7 +416,7 @@ function nextTableEmail({ ev, person, taken, agenda, links }) {
     '\n' + (left > 0 ? 'Save your seat' : 'Join the waitlist') + ' (takes ten seconds): ' + links.rsvp + '\n' +
     (links.calendar ? 'Add it to your calendar: ' + links.calendar + '\n' : '') +
     'Directions: ' + where.maps + '\n' +
-    notes.map(n => '\n' + n.text + (n.href ? ' ' + n.href : '')).join('') +
+    notesText(notes) +
     signoffText(place);
 
   return { subject, text, html };
@@ -406,8 +425,8 @@ function nextTableEmail({ ev, person, taken, agenda, links }) {
 /* one week out, to everyone in the town: the seated hear their chair is saved, the waitlist
    that they are still in line, the rest how many chairs are open.
    { ev, person: {name, guest_name}, kind: 'seat'|'waitlist'|'open', taken, agenda,
-     links: {calendar, cancel, share, rsvp, optout} } */
-function weekBeforeEmail({ ev, person, kind, taken, agenda, links }) {
+     links: {calendar, cancel, share, rsvp, friend, optout}, card } */
+function weekBeforeEmail({ ev, person, kind, taken, agenda, links, card }) {
   const place = ev.place || 'Maine';
   const w = whenLine(ev);
   const day = weekday(ev.sort_date) || ev.when;
@@ -421,7 +440,7 @@ function weekBeforeEmail({ ev, person, kind, taken, agenda, links }) {
     ? (pair ? 'Saved for ' + name + ' and ' + person.guest_name + '.' : 'Saved for ' + name + '.') + (cap ? ' ' + Math.min(taken || 0, cap) + ' of ' + cap + ' chairs spoken for.' : '')
     : waiting
       ? 'You are on the waitlist. If a chair opens it is yours, and we will email you.'
-      : (left > 0 ? left + ' of ' + cap + ' open, first come, first served.' : 'Full. The waitlist moves, and it is worth joining.');
+      : seatsOpenLine(cap, left);
   const subject = seated
     ? 'One week out: your ' + (pair ? 'chairs are' : 'chair is') + ' saved for ' + ev.when
     : waiting
@@ -448,8 +467,13 @@ function weekBeforeEmail({ ev, person, kind, taken, agenda, links }) {
   const notes = [];
   if (seated && links.cancel) notes.push({ text: 'Plans changed? Free your chair for a neighbor:', label: 'give up my chair', href: links.cancel });
   if (waiting && links.cancel) notes.push({ text: 'Rather not wait? Leave the line here:', label: 'leave the waitlist', href: links.cancel });
-  if ((seated || waiting) && links.share) notes.push({ text: 'Know a neighbor who should be at this table? Send them your link:', label: 'your invite link', href: links.share });
-  if (kind === 'open') notes.push({ text: 'Know a neighbor who should be at this table? Forward this note; the link works for anyone.' });
+  if (seated || waiting) {
+    const nb = neighborNote(links.share || links.friend, links.share ? 'your invite link' : 'aihomebrewclub.com/rsvp', card, !!links.share);
+    if (nb) notes.push(nb);
+  } else {
+    const nb = neighborNote(links.friend, 'aihomebrewclub.com/rsvp', card, false);
+    notes.push(nb || { text: 'Know a neighbor who should be at this table? Forward this note; the link works for anyone.' });
+  }
   if (links.optout) notes.push({ text: 'Would you rather not hear about meetups?', label: 'stop these notes', href: links.optout });
 
   const html = renderEmail({
@@ -469,7 +493,7 @@ function weekBeforeEmail({ ev, person, kind, taken, agenda, links }) {
     ],
     agendaLabel: (w.minutes === 60 ? 'The hour' : 'The session') + ' · ' + w.range,
     agenda: agenda || [],
-    buttons, notes,
+    buttons, card: cardBlock(card, ev), notes,
     signoff: ['See you at the table.', 'The AI Homebrew Club', place],
   });
 
@@ -484,7 +508,7 @@ function weekBeforeEmail({ ev, person, kind, taken, agenda, links }) {
     (kind === 'open' ? '\n' + (left > 0 ? 'Save your seat' : 'Join the waitlist') + ' (takes ten seconds): ' + links.rsvp + '\n' : '\n') +
     (links.calendar ? 'Add it to your calendar: ' + links.calendar + '\n' : '') +
     'Directions: ' + where.maps + '\n' +
-    notes.map(n => '\n' + n.text + (n.href ? ' ' + n.href : '')).join('') +
+    notesText(notes) +
     signoffText(place);
 
   return { subject, text, html };
@@ -492,5 +516,5 @@ function weekBeforeEmail({ ev, person, kind, taken, agenda, links }) {
 
 module.exports = {
   esc, fmtTime, endTime, fmtRange, longDate, maineToday, maineHour, daysBetween, weekday, dayWord, mapsUrl, townOf,
-  renderEmail, reminderEmail, holdEmail, nextTableEmail, weekBeforeEmail,
+  renderEmail, reminderEmail, thanksEmail, nextTableEmail, weekBeforeEmail,
 };

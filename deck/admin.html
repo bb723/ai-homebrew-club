@@ -256,7 +256,7 @@
         <div class="page">
           <div class="ph">
             <h2>The roster</h2>
-            <p class="quiet">Everyone who has sat at a table, by town. Whoever sat at the last table gets a chair held at the next one (two hours after a meetup ends, the book closes by itself and the chairs carry over); the rest hear once when a new table is on the calendar. Pause someone and they are left alone until you resume them, or until they use the link in their own email.</p>
+            <p class="quiet">Everyone who ever saved a seat, joined a waitlist, gave a chair back or was invited by hand, by town. Nobody is seated by the club: when a table is the next one on the calendar, everyone on the roster hears once, with a seat link and the card for inviting a neighbor. Whoever sat at the last table gets it as a thank-you note (two hours after a meetup ends, the book closes by itself and the notes go out the next morning), and the whole town hears again a week out. Pause someone and they are left alone until you resume them, or until they use the link in their own email.</p>
           </div>
           <form class="card" id="roAdd" style="padding:14px 16px; margin-bottom:14px">
             <div class="fx gap10 fwrap ac">
@@ -265,7 +265,7 @@
               <select id="roCity" style="width:160px"><option value="waterville">Waterville</option></select>
               <button class="btn btn-primary btn-sm" type="submit">Add to the roster</button>
             </div>
-            <p class="fine" style="margin-top:8px">They hear when the next table is on the calendar and again a week out. A chair is only held for people who sat at the last table.</p>
+            <p class="fine" style="margin-top:8px">They hear when the next table is on the calendar and again a week out. Chairs are first come, first served; nobody is seated from here.</p>
           </form>
           <div class="card rowlist" id="roList"><div class="r one"><span class="quiet">Loading&hellip;</span></div></div>
         </div>
@@ -2029,7 +2029,7 @@
                 var last = events.find(function(e){ return e.id === r.last_event; });
                 return '<div class="r">' +
                   '<span class="who"><span class="nm">' + esc(r.name || r.email) +
-                    '<span class="tag ' + (r.status === 'in' ? 'tag-teal' : 'tag-plain') + '">' + (r.status === 'in' ? 'chair held' : 'paused') + '</span></span>' +
+                    '<span class="tag ' + (r.status === 'in' ? 'tag-teal' : 'tag-plain') + '">' + (r.status === 'in' ? 'hears' : 'paused') + '</span></span>' +
                   '<span class="m">' + esc(r.email) + (r.phone ? ' &middot; ' + esc(r.phone) : '') + (r.biz ? ' &middot; ' + esc(r.biz) : '') +
                     (last ? ' &middot; last sat ' + esc(last.when) : '') + '</span></span>' +
                   '<span class="acts">' +
@@ -2039,13 +2039,13 @@
                   '<button class="btn btn-ghost btn-sm" data-ro="remove" data-email="' + esc(r.email) + '" type="button">Remove</button>' +
                   '</span></div>';
               }).join('');
-          }).join('') : '<div class="empty-row">Nobody yet. The roster fills itself from past meetups, a few minutes after each one closes.</div>';
+          }).join('') : '<div class="empty-row">Nobody yet. The roster fills itself from reservations and invites, within five minutes.</div>';
         });
     }
     $('roList').addEventListener('click', function(ev){
       var b = ev.target.closest('[data-ro]'); if (!b) return;
       var act = b.getAttribute('data-ro'), email = b.getAttribute('data-email');
-      if (act === 'remove' && !window.confirm('Take ' + email + ' off the roster? They can come back by sitting at a table.')) return;
+      if (act === 'remove' && !window.confirm('Take ' + email + ' off the roster? They come back the next time they save a seat.')) return;
       post('/roster', {action: act, email: email}).then(function(){
         A.toast(act === 'in' ? 'Resumed.' : act === 'out' ? 'Paused.' : 'Removed.');
         loadRoster();
