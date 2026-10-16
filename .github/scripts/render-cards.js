@@ -27,7 +27,8 @@ function apiBase() {
 }
 function sha(s) { return crypto.createHash('sha1').update(s).digest('hex').slice(0, 16); }
 function designHash() {
-  return sha(DESIGN_FILES.map(f => fs.readFileSync(path.join(ROOT, f))).map(b => b.toString('utf8')).join('\n---\n'));
+  /* line endings normalized, so a Windows checkout and the Linux runner agree on what changed */
+  return sha(DESIGN_FILES.map(f => fs.readFileSync(path.join(ROOT, f))).map(b => b.toString('utf8').replace(/\r\n/g, '\n')).join('\n---\n'));
 }
 function eventHash(e, design) {
   return sha(design + '|' + JSON.stringify([e.id, e.city, e.title, e.when, e.sort_date, e.start_time, e.minutes, e.location, e.capacity]));
