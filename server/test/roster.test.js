@@ -42,13 +42,17 @@ const code = [
   lift('function rsvpLink(', '}'),
   lift('async function markOnce(', '}'),
   lift('function cardAttachment(', '}'),
+  lift('function roomUrl(', '}'),
+  lift('async function roomCount(', '}'),
+  lift('async function roomStatusLine(', '}'),
+  lift('async function askRoom(', '}'),
   lift('async function runRoster(', '}'),
 ].join('\n\n');
 
 const Email = require(path.resolve(emailPath));
 let world;
 function reset() {
-  world = { events: [], rsvps: [], roster: [], markers: new Set(), posts: [], invites: [], agenda: [], sent: [], notes: [], card: null };
+  world = { events: [], rsvps: [], roster: [], markers: new Set(), posts: [], invites: [], agenda: [], sent: [], notes: [], card: null, rooms: [], checks: [] };
 }
 reset();
 
@@ -99,6 +103,9 @@ const pool = {
       world.markers.add(k);
       return { rows: [{ event: params[0] }] };
     }
+    if (sql.includes('q:room-count')) return { rows: [{ n: world.rooms.filter(r => r.city === params[0]).length }] };
+    if (sql.includes('q:room-contacts')) return { rows: world.rooms.filter(r => r.city === params[0]) };
+    if (sql.includes('q:room-checks')) return { rows: world.checks.filter(c => c.event === params[0]) };
     if (sql.includes('q:opted-out')) return { rows: world.roster.filter(r => r.city === params[0] && r.status === 'out').map(r => ({ name: r.name, email: r.email })) };
     if (sql.includes('q:last-seats')) return { rows: world.rsvps.filter(r => r.event === params[0] && r.status === 'seat') };
     if (sql.includes('q:agenda')) return { rows: world.agenda.filter(a => a.event === params[0]) };
@@ -456,6 +463,59 @@ async function scenario(name, fn) {
     expect(world.sent[0].text.includes(Email.fmtRange(world.events[2].start_time, 120)) && world.sent[0].text.includes('12 of 12 open'), 'two-hour range and the twelve chairs missing');
     expect(world.rsvps.filter(r => r.event === 'pn').length === 0, 'nobody seated in Portland by the loop');
     expect(world.notes.some(n => n.subject.startsWith('The book closed: Table wl')), 'Waterville, with nothing scheduled, should get the nudge');
+  });
+
+  await scenario('whoever holds the room is asked, separately, to confirm it, once per table', async () => {
+    world.events = [pastTable('l', TODAY), eventAt('n', 72)];
+    world.rsvps = [seat('l', 'Ada Alpha', 'ada@example.test')];
+    world.rooms = [
+      { city: 'waterville', email: 'sam@example.test', name: 'Sam Secretary', token: 'a'.repeat(48), ts: '2026-02-01T00:00:00Z' },
+      { city: 'waterville', email: 'host@example.test', name: 'Hal Host', token: 'b'.repeat(48), ts: '2026-02-01T00:00:01Z' },
+    ];
+    await runRoster(AT);
+    const room = world.sent.filter(m => m.subject.startsWith('Please confirm the room: Table n, Table day n'));
+    expect(room.length === 2 && room.map(m => m.to).sort().join(',') === 'host@example.test,sam@example.test', 'both holders should be asked, got ' + room.map(m => m.to));
+    expect(room.every(m => m.cc), 'the host rides along on each room check');
+    const sam = room.find(m => m.to === 'sam@example.test');
+    expect(sam.text.includes('Yes, the room is booked: https://api.example.test/room/confirm?t=' + 'a'.repeat(48) + '&e=n'), 'the confirm link should be signed by her token and name the table: ' + sam.text);
+    expect(sam.text.includes('Something is off: https://api.example.test/room/problem?t=' + 'a'.repeat(48) + '&e=n'), 'the problem link is missing');
+    expect(sam.text.includes('Hey Sam,') && sam.text.includes('up to 8 people') && sam.html.includes('Is the room booked?'), 'wrong copy: ' + sam.text.slice(0, 300));
+    expect(!sam.text.includes('Save your seat'), 'the room check is not an invite');
+    expect(world.sent.some(m => m.to === 'ada@example.test' && m.subject.startsWith(THANKS)), 'Ada still gets her thank-you');
+    expect(world.notes.some(n => n.subject.startsWith('Room check sent: Table n') && n.text.includes('Sam Secretary <sam@example.test>')), 'the admin note for the room check is missing');
+    await runRoster(AT);
+    expect(world.sent.filter(m => m.subject.startsWith('Please confirm the room:')).length === 2, 'the room check goes once');
+  });
+
+  await scenario('nobody holds the room yet: nothing is asked, and the marker waits for someone to', async () => {
+    world.events = [eventAt('n', 72)];
+    world.roster = [onRoster('waterville', 'Hal Handadded', 'hand@example.test', 'in')];
+    await runRoster(AT);
+    expect(!world.sent.some(m => m.subject.startsWith('Please confirm the room')), 'no room check without holders');
+    expect(!world.markers.has('n|room'), 'the room marker must not be spent while nobody holds the room');
+    world.rooms = [{ city: 'waterville', email: 'sam@example.test', name: 'Sam Secretary', token: 'a'.repeat(48), ts: '2026-02-01T00:00:00Z' }];
+    await runRoster(AT);
+    expect(world.sent.filter(m => m.subject.startsWith('Please confirm the room')).length === 1, 'adding a holder later still gets the table checked');
+  });
+
+  await scenario('one week out, only holders who have not answered are asked again, and the note shows the room status', async () => {
+    world.events = [eventAt('w', 156)];
+    world.rsvps = [seat('w', 'Ada Alpha', 'ada@example.test')];
+    world.rooms = [
+      { city: 'waterville', email: 'sam@example.test', name: 'Sam Secretary', token: 'a'.repeat(48), ts: '2026-02-01T00:00:00Z' },
+      { city: 'waterville', email: 'host@example.test', name: 'Hal Host', token: 'b'.repeat(48), ts: '2026-02-01T00:00:01Z' },
+    ];
+    world.checks = [{ event: 'w', email: 'sam@example.test', name: 'Sam Secretary', status: 'confirmed', ts: '2026-02-12T10:00:00Z' }];
+    world.markers.add('w|room');
+    await runRoster(AT);
+    const again = world.sent.filter(m => m.subject.startsWith('One week out: please confirm the room for Table w'));
+    expect(again.length === 1 && again[0].to === 'host@example.test', 'only Hal should be asked again, got ' + again.map(m => m.to));
+    expect(again[0].text.includes('We have not heard that the room is confirmed'), 'wrong copy: ' + again[0].text.slice(0, 300));
+    const week = world.notes.find(n => n.subject.startsWith('One week out: Table w'));
+    expect(week && week.text.includes('Room: Sam Secretary confirmed 2026-02-12; Hal Host not confirmed yet.'), 'the week-before admin note should carry the room status: ' + (week || {}).text);
+    expect(world.notes.some(n => n.subject.startsWith('Room check, one week out: Table w') && n.text.includes('Already confirmed (1)')), 'the room nag note is missing');
+    await runRoster(AT);
+    expect(world.sent.filter(m => m.subject.startsWith('One week out: please confirm the room')).length === 1, 'the nag goes once');
   });
 
   console.log('\n' + label + ': ' + (failures ? failures + ' scenario(s) FAILED' : 'all scenarios passed'));

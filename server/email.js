@@ -514,7 +514,77 @@ function weekBeforeEmail({ ev, person, kind, taken, agenda, links, card }) {
   return { subject, text, html };
 }
 
+/* the room check, to whoever holds the booking: is the room set for this table? One tap
+   confirms, another flags a problem. kind 'ask' goes out with the invites, 'again' a week out
+   to anyone who has not answered.
+   { ev, person: {name}, kind: 'ask'|'again', taken, agenda, links: {confirm, problem, calendar} } */
+function roomEmail({ ev, person, kind, taken, agenda, links }) {
+  const place = ev.place || 'Maine';
+  const town = townOf(place);
+  const w = whenLine(ev);
+  const name = String(person.name || 'there').trim();
+  const first = name.split(/\s+/)[0];
+  const cap = +ev.capacity || 0;
+  const again = kind === 'again';
+  const roomLine = (cap ? 'Up to ' + cap + ' people.' : 'A small table.') +
+    (cap && taken != null ? ' ' + Math.min(taken, cap) + ' of ' + cap + ' chairs spoken for so far.' : '');
+  const subject = again
+    ? 'One week out: please confirm the room for ' + ev.title + ', ' + ev.when
+    : 'Please confirm the room: ' + ev.title + ', ' + ev.when;
+  const headline = again ? 'Is the room still set?' : 'Is the room booked?';
+  const lede = again
+    ? ev.title + ' is a week out: ' + ev.when + (w.range ? ', ' + w.range : '') + ', at ' + ev.location + '. ' +
+      'We have not heard that the room is confirmed. One tap below settles it, or tell us if anything is off.'
+    : 'The club is inviting people to ' + ev.title + ' on ' + ev.when + (w.range ? ', ' + w.range : '') + ', at ' + ev.location +
+      (cap ? ', for up to ' + cap + ' people' : '') + '. You are one of the people who holds that booking, so please confirm it with one tap below, ' +
+      'or tell us if anything is off. Everyone who holds the booking gets this note and confirms separately.';
+
+  const where = whereRow(ev);
+  const buttons = [
+    { label: 'Yes, the room is booked', href: links.confirm, primary: true },
+    { label: 'Something is off', href: links.problem },
+  ];
+  const notes = [{ text: 'Replying to this note reaches the club as well.' }];
+  if (links.calendar) notes.push({ text: 'The table on your calendar:', label: 'add it', href: links.calendar });
+
+  const html = renderEmail({
+    title: subject, place,
+    preheader: w.both + '. ' + ev.location + '. ' + roomLine,
+    stamp: again ? 'Room check · one week out' : 'Room check',
+    dateline: ev.title + ' · ' + town,
+    headline,
+    greeting: 'Hey ' + first + ',',
+    lede,
+    ticket: [
+      { k: 'Meetup', html: '<b style="font-weight:700">' + esc(ev.title) + '</b>' },
+      { k: 'When', html: esc(w.date) + '<br><b style="font-weight:700">' + esc(w.range) + '</b>' },
+      where,
+      { k: 'Room', v: roomLine },
+    ],
+    agendaLabel: (w.minutes === 60 ? 'The hour' : 'The session') + ' · ' + w.range,
+    agenda: agenda || [],
+    buttons, notes,
+    signoff: ['Thank you.', 'The AI Homebrew Club', place],
+  });
+
+  const text =
+    'Hey ' + first + ',\n\n' + headline + ' ' + lede + '\n\n' +
+    ev.title + '\n' +
+    'When: ' + w.both + '\n' +
+    'Where: ' + ev.location + '\n' +
+    'Room: ' + roomLine + '\n' +
+    agendaText(agenda, w.minutes) +
+    '\nYes, the room is booked: ' + links.confirm + '\n' +
+    'Something is off: ' + links.problem + '\n' +
+    (links.calendar ? 'The table on your calendar: ' + links.calendar + '\n' : '') +
+    'Directions: ' + where.maps + '\n' +
+    '\nReplying to this note reaches the club as well.' +
+    '\n\nThank you.\nThe AI Homebrew Club\n' + place + '\n' + SITE + '\n';
+
+  return { subject, text, html };
+}
+
 module.exports = {
   esc, fmtTime, endTime, fmtRange, longDate, maineToday, maineHour, daysBetween, weekday, dayWord, mapsUrl, townOf,
-  renderEmail, reminderEmail, thanksEmail, nextTableEmail, weekBeforeEmail,
+  renderEmail, reminderEmail, thanksEmail, nextTableEmail, weekBeforeEmail, roomEmail,
 };

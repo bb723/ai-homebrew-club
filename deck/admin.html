@@ -268,6 +268,19 @@
             <p class="fine" style="margin-top:8px">They hear when the next table is on the calendar and again a week out. Chairs are first come, first served; nobody is seated from here.</p>
           </form>
           <div class="card rowlist" id="roList"><div class="r one"><span class="quiet">Loading&hellip;</span></div></div>
+          <div class="ph" style="margin-top:28px">
+            <h2>Who holds the room</h2>
+            <p class="quiet">The people who own each town's venue booking: the host's assistant, and you. When a table's invites go out they get a separate note asking them to confirm the room with one tap (or flag a problem), and anyone who has not answered is asked again a week out. Each upcoming table's answers show here.</p>
+          </div>
+          <form class="card" id="rmAdd" style="padding:14px 16px; margin-bottom:14px">
+            <div class="fx gap10 fwrap ac">
+              <input type="text" id="rmName" placeholder="Name" style="width:200px">
+              <input type="email" id="rmEmail" placeholder="Email" style="width:240px">
+              <select id="rmCity" style="width:160px"><option value="waterville">Waterville</option></select>
+              <button class="btn btn-primary btn-sm" type="submit">Add a room holder</button>
+            </div>
+          </form>
+          <div class="card rowlist" id="rmList"><div class="r one"><span class="quiet">Loading&hellip;</span></div></div>
         </div>
       </section>
 
@@ -2040,6 +2053,7 @@
                   '</span></div>';
               }).join('');
           }).join('') : '<div class="empty-row">Nobody yet. The roster fills itself from reservations and invites, within five minutes.</div>';
+          loadRooms();
         });
     }
     $('roList').addEventListener('click', function(ev){
@@ -2062,6 +2076,56 @@
         $('roName').value = ''; $('roEmail').value = '';
         loadRoster();
       });
+    });
+
+    /* who holds the room: contacts per town, and each upcoming table's answer */
+    function loadRooms(){
+      get('/rooms?secret=' + encodeURIComponent(A.secret))
+        .then(function(d){
+          var contacts = (d && d.contacts) || [], checks = (d && d.checks) || [], asked = (d && d.asked) || [];
+          var sel = $('rmCity'), keep = sel.value, cities = [];
+          events.forEach(function(e){ if (cities.indexOf(e.city) < 0) cities.push(e.city); });
+          if (cities.length){ sel.innerHTML = cities.sort().map(function(c){ return '<option value="' + esc(c) + '">' + esc(c.charAt(0).toUpperCase() + c.slice(1)) + '</option>'; }).join(''); if (cities.indexOf(keep) >= 0) sel.value = keep; }
+          var towns = {};
+          contacts.forEach(function(c){ (towns[c.city] = towns[c.city] || []).push(c); });
+          var names = Object.keys(towns).sort();
+          $('rmList').innerHTML = names.length ? names.map(function(city){
+            var rows = towns[city];
+            var next = events.filter(function(e){ return e.city === city && e.status === 'upcoming'; }).sort(function(a, b){ return a.sort_date < b.sort_date ? -1 : 1; })[0];
+            var wasAsked = !!next && asked.some(function(a){ return a.event === next.id; });
+            return '<div class="r one"><span class="nm">' + esc(city.charAt(0).toUpperCase() + city.slice(1)) +
+              ' <span class="quiet">&middot; ' + rows.length + (rows.length === 1 ? ' holds' : ' hold') + ' the room' +
+              (next ? ' &middot; next table ' + esc(next.when) + (wasAsked ? ', asked to confirm' : ', not asked yet') : ' &middot; nothing on the calendar') + '</span></span></div>' +
+              rows.map(function(c){
+                var k = next ? checks.find(function(x){ return x.event === next.id && x.email === c.email; }) : null;
+                var tag = !next ? '' : k
+                  ? (k.status === 'confirmed' ? '<span class="tag tag-teal">confirmed ' + esc(String(k.ts).slice(0, 10)) + '</span>' : '<span class="tag tag-plain">problem flagged ' + esc(String(k.ts).slice(0, 10)) + '</span>')
+                  : '<span class="tag tag-plain">' + (wasAsked ? 'waiting' : 'not asked yet') + '</span>';
+                return '<div class="r">' +
+                  '<span class="who"><span class="nm">' + esc(c.name || c.email) + tag + '</span>' +
+                  '<span class="m">' + esc(c.email) + '</span></span>' +
+                  '<span class="acts"><button class="btn btn-ghost btn-sm" data-rm="remove" data-city="' + esc(c.city) + '" data-email="' + esc(c.email) + '" type="button">Remove</button></span>' +
+                  '</div>';
+              }).join('');
+          }).join('') : '<div class="empty-row">Nobody holds a room yet. Add the person who owns each venue booking, and yourself.</div>';
+        });
+    }
+    $('rmAdd').addEventListener('submit', function(ev){
+      ev.preventDefault();
+      var name = $('rmName').value.trim(), email = $('rmEmail').value.trim(), city = $('rmCity').value;
+      if (!name || email.indexOf('@') === -1){ A.toast('A name and a real email, please.'); return; }
+      post('/rooms', {action: 'add', city: city, email: email, name: name}).then(function(d){
+        if (!(d && d.ok)){ A.toast('That did not save.'); return; }
+        A.toast(name + ' holds the ' + city + ' room.');
+        $('rmName').value = ''; $('rmEmail').value = '';
+        loadRooms();
+      });
+    });
+    $('rmList').addEventListener('click', function(ev){
+      var b = ev.target.closest('[data-rm]'); if (!b) return;
+      var email = b.getAttribute('data-email'), city = b.getAttribute('data-city');
+      if (!window.confirm('Take ' + email + ' off the ' + city + ' room? They will not be asked to confirm it any more.')) return;
+      post('/rooms', {action: 'remove', city: city, email: email}).then(function(){ A.toast('Removed.'); loadRooms(); });
     });
 
     /* the clubhouse: rooms and light moderation */
