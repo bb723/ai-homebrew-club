@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Calling card &middot; The AI Homebrew Club</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/site.css?v=4">
+<style>
+  /* The calling card: a 3.5 x 2 inch card to hand out. The club, the names of whoever is
+     handing it out, and a code that lands on the sign-up page (signup.html?ref=card).
+     calling-card.html?who=Name|Name (default: Brett and Remick), &sheet=1 for a ten-up Letter
+     sheet (Avery 5371 layout) to print on card stock, &bare=1 to hide the page chrome for a
+     screenshot at 1050 x 600. Always light: it is paper. */
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#F4F0E6; --paper-2:#EBE6D9; --card:#FBF9F4;
+      --ink:#191919; --ink-2:#4B4A45; --ink-3:#77746B;
+      --rule:rgba(25,25,25,.16); --rule-2:rgba(25,25,25,.36);
+      --accent:#1F4C9C; --accent-deep:#173A78; --accent-wash:#E3EAF6; --on-accent:#FFFFFF;
+    }
+  }
+  html,body{margin:0; background:var(--paper)}
+  .stage{display:flex; flex-direction:column; align-items:center; gap:18px; padding:32px 16px; overflow-x:auto}
+  .stage p{font-family:var(--font-body); font-size:14px; color:var(--ink-2); max-width:62ch; text-align:center; line-height:1.5}
+  .stage p .mono{font-family:var(--font-mono); font-size:13px}
+  .stage .acts{display:flex; gap:10px; flex-wrap:wrap; justify-content:center}
+  body.bare .stage{padding:0; gap:0; overflow:hidden}
+  body.bare .stage p, body.bare .stage .acts{display:none}
+  body.bare .cc{border:0}
+
+  /* the card itself: 3.5 x 2 inches, designed at 300 pixels per inch (1050 x 600) */
+  .cc{width:1050px; height:600px; box-sizing:border-box; display:grid; grid-template-columns:1fr 300px; background:var(--paper); color:var(--ink); overflow:hidden; border:1px solid var(--rule); flex:none}
+  .cc .left{padding:56px 40px 50px 60px; display:flex; flex-direction:column; justify-content:space-between; min-width:0}
+  .cc .brand{display:flex; align-items:center; gap:16px; font-family:var(--font-display); font-weight:700; font-size:36px; letter-spacing:-.01em; white-space:nowrap}
+  .cc .tagline{font-family:var(--font-display); font-style:italic; font-size:23px; line-height:1.25; color:var(--ink-2); margin-top:14px; max-width:30ch}
+  .cc .rule{height:3px; background:var(--ink); margin:0 0 20px; width:72px}
+  .cc .names{display:flex; flex-direction:column; gap:6px}
+  .cc .name{font-family:var(--font-body); font-weight:700; font-size:28px; letter-spacing:-.01em; line-height:1.15}
+  .cc .meta{font-family:var(--font-mono); font-size:13.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3); margin-top:16px; white-space:nowrap}
+  .cc .right{background:var(--accent); color:var(--on-accent); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:30px 24px}
+  .cc .qr{width:200px; height:200px; background:#fff; border-radius:8px; padding:12px; box-sizing:border-box; line-height:0; display:block}
+  .cc .qr svg{width:100%; height:100%; display:block}
+  .cc .scan{font-family:var(--font-mono); font-size:13px; letter-spacing:.16em; text-transform:uppercase; opacity:.9}
+  .cc .url{font-family:var(--font-mono); font-size:17px; font-weight:600; letter-spacing:-.01em; text-align:center}
+
+  /* the sheet: ten cards on Letter, two across and five down, each exactly 3.5 x 2 inches,
+     with a hairline around each one to cut along */
+  .sheet{display:none}
+  body.tenup .stage{display:none}
+  body.tenup{background:#fff}
+  body.tenup .sheet{display:grid; grid-template-columns:3.5in 3.5in; grid-auto-rows:2in; width:7in; margin:0.5in auto}
+  body.tenup .slot{width:3.5in; height:2in; overflow:hidden; outline:0.5pt dashed #b8b2a6; position:relative}
+  body.tenup .slot .cc{transform:scale(0.32); transform-origin:top left; border:0}
+  @page{size:letter; margin:0}
+  @media print{
+    html,body{background:#fff}
+    body.tenup .sheet{margin:0.5in 0.75in}
+    .stage{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="cc" id="cc">
+    <div class="left">
+      <div>
+        <div class="brand"><span class="logo" data-size="54" aria-hidden="true"></span><span>The AI Homebrew Club</span></div>
+        <div class="tagline">Neighbors teaching neighbors to put AI to work.</div>
+      </div>
+      <div>
+        <div class="rule"></div>
+        <div class="names" id="names"></div>
+        <div class="meta" id="meta">Waterville &middot; Portland, Maine &middot; free, no vendors</div>
+      </div>
+    </div>
+    <div class="right">
+      <span class="scan">Scan to join</span>
+      <span class="qr" id="qr"></span>
+      <span class="url">aihomebrewclub.com/signup</span>
+    </div>
+  </div>
+  <p>The calling card, 3.5 by 2 inches. The code lands on the sign-up page, tagged so the book shows who came in by card. Add <span class="mono">?who=Name|Name</span> to change the names, <span class="mono">&amp;sheet=1</span> for a ten-up sheet to print on card stock.</p>
+  <div class="acts">
+    <a class="btn btn-secondary btn-sm" id="sheetLink" href="calling-card.html?sheet=1">The ten-up sheet</a>
+    <a class="btn btn-secondary btn-sm" href="signup.html?ref=card" target="_blank" rel="noopener">Where the code lands</a>
+  </div>
+</div>
+<div class="sheet" id="sheet"></div>
+
+<script src="assets/qrlib.js"></script>
+<script src="assets/config.js?v=6"></script>
+<script src="assets/site.js?v=5"></script>
+<script>
+(function(){
+  'use strict';
+  var CFG = window.AIHC_CONFIG, UI = window.AIHC_UI;
+  var $ = UI.$, esc = UI.esc;
+  var q = new URLSearchParams(location.search);
+  var who = (q.get('who') || 'Brett Brockway|Remick French').split('|')
+    .map(function(s){ return s.trim().slice(0, 40); }).filter(Boolean).slice(0, 3);
+  var towns = Object.keys(CFG.CITY_POINTS).map(function(c){ return CFG.CITY_POINTS[c].label; });
+
+  $('names').innerHTML = who.map(function(n){ return '<span class="name">' + esc(n) + '</span>'; }).join('');
+  $('meta').innerHTML = esc(towns.join(' · ')) + ', Maine &middot; free, no vendors';
+
+  function qrSvg(url){
+    try{
+      var qr = qrcode(0, 'M');
+      qr.addData(url);
+      qr.make();
+      return qr.createSvgTag({cellSize: 4, margin: 0, scalable: true})
+        .replace(/#000000|black/gi, '#191919')
+        .replace(/#ffffff|white/gi, '#FFFFFF');
+    } catch(err){ return ''; }
+  }
+  /* the door this card opens: the sign-up page, tagged ref=card */
+  $('qr').innerHTML = qrSvg('https://aihomebrewclub.com/signup.html?ref=card');
+
+  if (q.get('bare')) document.body.classList.add('bare');
+  if (q.get('sheet')){
+    document.body.classList.add('tenup');
+    var sheet = $('sheet'), card = $('cc');
+    for (var i = 0; i < 10; i++){
+      var slot = document.createElement('div');
+      slot.className = 'slot';
+      var c = card.cloneNode(true);
+      c.removeAttribute('id');
+      slot.appendChild(c);
+      sheet.appendChild(slot);
+    }
+    document.title = 'Calling cards, ten up · The AI Homebrew Club';
+  }
+  $('sheetLink').href = 'calling-card.html?sheet=1' + (q.get('who') ? '&who=' + encodeURIComponent(q.get('who')) : '');
+})();
+</script>
+</body>
+</html>

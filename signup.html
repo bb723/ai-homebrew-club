@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Join the club &middot; The AI Homebrew Club</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<meta property="og:title" content="Join the AI Homebrew Club">
+<meta property="og:description" content="Pick your town and you are on its list: you hear first when a table is on the calendar, with a link to save a seat. Free, no vendors.">
+<meta property="og:image" content="https://aihomebrewclub.com/share-card.png">
+<meta property="og:url" content="https://aihomebrewclub.com/signup.html">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="assets/site.css?v=4">
+<style>
+  /* The sign-up page: the one door for the whole club. Pick a town (or both) and you are on its
+     list; the roster loop takes it from there. Calling cards and the circuit point here
+     (signup.html?ref=card). ?town=<city> preselects a chapter. */
+  [hidden]{display:none !important}
+  .pg{display:grid; grid-template-columns:1fr 520px; gap:80px; padding:56px 0 80px; align-items:start}
+  .lead{display:flex; flex-direction:column; gap:22px; position:sticky; top:24px}
+
+  /* the info card: what the list is, what it costs, what if your town is not here */
+  .infoc .rows{padding:6px 22px 8px}
+  .infoc .r{display:grid; grid-template-columns:104px 1fr; gap:14px; padding:12px 0; border-bottom:1px dashed var(--rule-2); font-size:14px; color:var(--ink-2)}
+  .infoc .r:last-child{border-bottom:0}
+  .infoc .k{font-family:var(--font-mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); padding-top:3px}
+  .infoc .r b{color:var(--ink)}
+
+  /* the form card, and the welcome that replaces it */
+  .formcard{padding:28px 30px 30px; display:flex; flex-direction:column; gap:16px}
+  .formcard h2{font-size:22px; font-weight:800; letter-spacing:-.015em}
+  .fg{display:grid; grid-template-columns:1fr 1fr; gap:14px 16px}
+  .fg .span{grid-column:1 / -1}
+  #signupForm{gap:16px}
+
+  /* the towns: one tile per chapter, a checkbox each, the next table under the name */
+  .towns{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+  .town{display:flex; gap:12px; align-items:flex-start; padding:14px 14px 12px; border:1px solid var(--rule-2); border-radius:var(--r-2); cursor:pointer; background:var(--card)}
+  .town:has(input:checked){border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-wash)}
+  .town input{margin:4px 0 0; accent-color:var(--accent); width:16px; height:16px; flex:none}
+  .town .nm{display:block; font-family:var(--font-display); font-weight:700; font-size:18px; letter-spacing:-.01em; line-height:1.1}
+  .town .how{display:block; font-size:13px; color:var(--ink-2); line-height:1.4; margin-top:5px}
+  .town .next{display:block; font-family:var(--font-mono); font-size:11.5px; color:var(--ink-3); margin-top:9px; line-height:1.5}
+  .town .next b{color:var(--accent); font-weight:600}
+
+  .done{display:none}
+  .done > * + *{margin-top:14px}
+  .done h2{font-size:34px; font-weight:800; letter-spacing:-.02em; line-height:1.1}
+  .done .note{font-size:14px; color:var(--ink-2); line-height:1.55}
+  .done .seat{display:flex; flex-direction:column; gap:10px; padding:16px 18px; border:1px solid var(--rule-2); border-radius:var(--r-2); background:var(--paper-2)}
+  .done .seat + .seat{margin-top:10px}
+  .done .seat .when{font-family:var(--font-display); font-weight:700; font-size:19px; letter-spacing:-.01em; line-height:1.2}
+  .done .seat .m{font-family:var(--font-mono); font-size:11.5px; color:var(--ink-3)}
+  .done .seat .btn{align-self:flex-start}
+  .done .fine{margin-bottom:0}
+
+  @media (max-width:900px){
+    .pg{grid-template-columns:1fr; gap:36px; padding:28px 0 56px}
+    .lead{position:static; order:2}
+    .formcard{order:1; padding:22px 18px 24px}
+    .fg{grid-template-columns:1fr}
+    .towns{grid-template-columns:1fr}
+    .infoc .r{grid-template-columns:88px 1fr}
+    .done h2{font-size:28px}
+  }
+</style>
+</head>
+<body>
+<div class="frame">
+<header class="masthead">
+  <a class="brand" href="index.html"><span class="logo" data-size="32" aria-hidden="true"></span><span>The AI Homebrew Club</span></a>
+  <span class="est">Maine &middot; est. 2026, after 1975</span>
+  <nav>
+    <a href="events.html">The circuit</a>
+    <a href="waterville.html">Waterville</a>
+    <a href="portland.html">Portland</a>
+    <a class="here" href="signup.html">Join the club</a>
+    <a href="recipes.html">The recipe box</a>
+    <a href="lend.html">Lend a room</a>
+    <a class="members" href="members.html">Members&rsquo; room</a>
+  </nav>
+  <button class="menu" type="button" aria-label="Menu">&#9776;</button>
+</header>
+
+<main class="wrap pg">
+  <div class="lead">
+    <p class="folio"><b>The AI Homebrew Club</b> &middot; Maine &middot; join the club</p>
+    <h1 class="display-xl">Join the club.</h1>
+    <p class="lede">Pick your town and you are on its list. You hear first when a table is on the calendar, and again a week out, with a link to save a seat. Chairs are first come, first served.</p>
+    <div class="card infoc">
+      <div class="rows">
+        <div class="r"><span class="k">What it is</span><span>Neighbors teaching neighbors to put AI to work. Bring one real task, or one real project; somebody sits with you until it moves.</span></div>
+        <div class="r"><span class="k">What it costs</span><span><b>Nothing.</b> No tickets, no vendors, no list sold to anyone. Stop the notes any time from the link in each one.</span></div>
+        <div class="r"><span class="k">Not here yet?</span><span>A chapter is a borrowed room, a printed kit, and an hour. <a href="lend.html?ref=signup">Lend us a room</a> in your town.</span></div>
+      </div>
+    </div>
+    <p class="hand">Give to help others.</p>
+  </div>
+
+  <div class="card-raised formcard">
+    <form id="signupForm">
+      <div class="fx col gap4"><h2>Which table?</h2><span class="small">Pick one town, or both.</span></div>
+      <div class="towns" id="towns"><div class="town"><span><span class="nm">Checking the calendar&hellip;</span></span></div></div>
+      <div class="fg">
+        <div class="field span"><label for="fName">Your name</label><input class="input" type="text" id="fName" maxlength="80" autocomplete="name"></div>
+        <div class="field"><label for="fEmail">Email <span class="opt">&middot; where the notes go</span></label><input class="input" type="text" id="fEmail" maxlength="160" autocomplete="email" inputmode="email"></div>
+        <div class="field"><label for="fPhone">Cell phone <span class="opt">&middot; optional, for day-of texts</span></label><input class="input mono" type="text" id="fPhone" maxlength="40" autocomplete="tel" inputmode="tel"></div>
+        <div class="field span"><label for="fBiz">Business or trade <span class="opt">&middot; optional</span></label><input class="input" type="text" id="fBiz" maxlength="160" autocomplete="organization"></div>
+      </div>
+      <label class="hp">Website<input type="text" id="fWebsite" tabindex="-1" autocomplete="off"></label>
+      <span class="err" id="fErr"></span>
+      <button class="btn btn-primary btn-lg" id="fGo" type="submit">Put me on the list</button>
+      <p class="fine">Free, and it always will be. A welcome note lands in your email with the next table and a link to save a seat.</p>
+    </form>
+
+    <div class="done" id="doneJoin">
+      <h2>You are on the list.</h2>
+      <p class="note" id="doneNote">A welcome note just landed in your email.</p>
+      <div id="doneSeats"></div>
+      <p class="fine">Know a neighbor who should be at the table? Send them <b>aihomebrewclub.com/signup</b>.</p>
+    </div>
+  </div>
+</main>
+
+<footer class="slim"><span class="folio">Free, no vendors &middot; aihomebrewclub.com</span><span class="folio">Give to help others.</span></footer>
+</div>
+
+<script src="assets/config.js?v=6"></script>
+<script src="assets/site.js?v=5"></script>
+<script>
+(function(){
+  'use strict';
+  var CFG = window.AIHC_CONFIG, UI = window.AIHC_UI;
+  var BASE = CFG.API_BASE, $ = UI.$, esc = UI.esc, fmtTime = UI.fmtTime;
+  var params = new URLSearchParams(location.search);
+  var REF = (params.get('ref') || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 40);
+  var PICK = (params.get('town') || '').toLowerCase().replace(/[^a-z0-9-]/g, '');
+  /* how each table runs, in a line; the date and the chairs come from the calendar */
+  var HOW = {
+    waterville: 'One hour, one task. Tuesdays at Bricks Coworking, downtown.',
+    portland: 'Two hours, one project. Third Thursdays at Maine & Co., Old Port.'
+  };
+  var towns = Object.keys(CFG.CITY_POINTS);
+  var next = {};
+
+  function picked(){
+    return Array.prototype.map.call(document.querySelectorAll('#towns input:checked'), function(i){ return i.value; });
+  }
+  function paintTowns(){
+    var keep = picked();
+    $('towns').innerHTML = towns.map(function(c){
+      var pt = CFG.CITY_POINTS[c], e = next[c];
+      var on = keep.length ? keep.indexOf(c) !== -1 : (PICK === c || towns.length === 1);
+      var line = e
+        ? '<b>Next table</b> ' + esc(e.when) + (e.start_time ? ', ' + esc(fmtTime(e.start_time)) : '') +
+          (e.left != null ? ' &middot; ' + (e.left > 0 ? e.left + ' of ' + e.capacity + ' chairs open' : 'full, waitlist open') : '')
+        : '<b>Next table</b> not on the calendar yet; you hear first.';
+      return '<label class="town"><input type="checkbox" name="town" value="' + esc(c) + '"' + (on ? ' checked' : '') + '>' +
+        '<span><span class="nm">' + esc(pt.label) + ', Maine</span>' +
+        '<span class="how">' + esc(HOW[c] || 'Neighbors teaching neighbors to put AI to work.') + '</span>' +
+        '<span class="next">' + line + '</span></span></label>';
+    }).join('');
+  }
+  paintTowns();
+  fetch(BASE + '/events')
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var all = (d && d.events) || [];
+      towns.forEach(function(c){
+        var e = all.filter(function(x){ return x.city === c && x.status === 'upcoming'; })
+          .sort(function(a, b){ return a.sort_date < b.sort_date ? -1 : 1; })[0];
+        if (e) next[c] = e;
+      });
+      paintTowns();
+      towns.forEach(function(c){
+        if (!next[c]) return;
+        fetch(BASE + '/rsvp?event=' + encodeURIComponent(next[c].id))
+          .then(function(r){ return r.json(); })
+          .then(function(s){ if (s && s.capacity){ next[c].left = s.left; next[c].capacity = s.capacity; paintTowns(); } })
+          .catch(function(){});
+      });
+    })
+    .catch(function(){});
+
+  function words(list){
+    return list.length > 1 ? list.slice(0, -1).join(', ') + ' and ' + list[list.length - 1] : (list[0] || '');
+  }
+  $('signupForm').addEventListener('submit', function(ev){
+    ev.preventDefault();
+    var cities = picked();
+    var name = $('fName').value.trim();
+    var email = $('fEmail').value.trim();
+    var err = $('fErr');
+    err.style.display = 'none';
+    if (!cities.length){ err.textContent = 'Pick a town first.'; err.style.display = 'block'; return; }
+    if (!name || !email){ err.textContent = 'We need your name and an email for the notes.'; err.style.display = 'block'; return; }
+    if (email.indexOf('@') === -1){ err.textContent = 'That email does not look right.'; err.style.display = 'block'; return; }
+    $('fGo').disabled = true;
+    fetch(BASE + '/signup', {
+      method: 'POST', headers: {'Content-Type': 'text/plain'},
+      body: JSON.stringify({
+        cities: cities, name: name, email: email, phone: $('fPhone').value.trim(), biz: $('fBiz').value.trim(),
+        website: $('fWebsite').value, ref: REF
+      })
+    }).then(function(r){ return r.json(); }).then(function(d){
+      if (!(d && d.ok)) throw new Error('bad');
+      try { localStorage.setItem('aihc_prefill_v1', JSON.stringify({name: name})); } catch(e){}
+      var labels = (d.towns || []).map(function(t){ return t.label; });
+      var withTable = (d.towns || []).filter(function(t){ return t.next; });
+      $('signupForm').style.display = 'none';
+      $('doneNote').textContent = 'You are on the ' + words(labels) + ' list' + (labels.length > 1 ? 's' : '') +
+        '. A welcome note just landed in your email' + (withTable.length ? ', with a link to save a seat.' : '. We will write when the next table is on the calendar.');
+      $('doneSeats').innerHTML = withTable.map(function(t){
+        var n = t.next;
+        return '<div class="seat"><span class="when">' + esc(t.label) + ': ' + esc(n.when) + (n.start_time ? ', ' + esc(fmtTime(n.start_time)) : '') + '</span>' +
+          '<span class="m">' + (n.left > 0 ? n.left + ' of ' + n.capacity + ' chairs open, first come, first served.' : 'Full, but the waitlist moves.') + '</span>' +
+          '<a class="btn btn-primary" href="' + esc(n.rsvp) + '">' + (n.left > 0 ? 'Save my seat' : 'Join the waitlist') + '</a></div>';
+      }).join('');
+      $('doneJoin').style.display = 'block';
+    }).catch(function(){
+      $('fGo').disabled = false;
+      err.textContent = 'Could not reach the club. Try again in a minute, or email brett.brockway@gmail.com.';
+      err.style.display = 'block';
+    });
+  });
+})();
+</script>
+</body>
+</html>

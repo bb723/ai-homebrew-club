@@ -632,6 +632,70 @@ function cardsEmail({ items, place }) {
   return { subject, text, html };
 }
 
+/* the welcome, when someone joins a town's list from the sign-up page: what they will hear, and
+   the next table with a seat link and the card, when there is one. One note even for two towns.
+   { person: {name}, towns: [{town, place, ev|null, taken, links: {rsvp, calendar}, card}], links: {optout} } */
+function signupEmail({ person, towns, links }) {
+  const name = String(person.name || 'neighbor').trim();
+  const first = name.split(/\s+/)[0];
+  const names = towns.map(t => t.town);
+  const joined = names.length > 1 ? names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1] : names[0];
+  const listWord = names.length > 1 ? 'lists' : 'list';
+  const place = towns.length === 1 ? towns[0].place : 'Maine';
+  const withTable = towns.filter(t => t.ev);
+  const subject = 'You are on the ' + joined + ' ' + listWord + '.';
+  const headline = 'Welcome to the table.';
+  const lede = 'You are on the ' + joined + ' ' + listWord + ': you hear first when a table is on the calendar, and again a week out, with a link to save a seat. ' +
+    'Chairs are first come, first served, so nothing is held until you take one.' +
+    (withTable.length ? ' The next ' + (withTable.length > 1 ? 'tables are' : 'table is') + ' below.' : ' Nothing is on the calendar yet; we will write when there is.');
+  const ticket = [], buttons = [];
+  for (const t of towns) {
+    if (!t.ev) { ticket.push({ k: t.town, v: 'Nothing on the calendar yet. You hear first.' }); continue; }
+    const w = whenLine(t.ev);
+    const cap = +t.ev.capacity || 0;
+    const left = cap ? Math.max(0, cap - (t.taken || 0)) : 0;
+    ticket.push({ k: t.town, html: '<b style="font-weight:700">' + esc(t.ev.title) + '</b><br>' + esc(w.both) + '<br>' + esc(t.ev.location) + '<br>' + esc(seatsOpenLine(cap, left)) });
+    buttons.push({ label: (left > 0 ? 'Save my seat' : 'Join the waitlist') + (towns.length > 1 ? ' in ' + t.town : ''), href: t.links.rsvp, primary: true });
+  }
+  const cards = towns.filter(t => t.ev && t.card).map(t => ({
+    cid: t.card.cid, alt: 'The card: ' + t.ev.title + ', ' + t.ev.when,
+    label: 'The card' + (towns.length > 1 ? ' · ' + t.town : ''),
+    caption: 'Text this picture to a neighbor. The code on it saves them a seat.',
+  }));
+  const notes = [];
+  const nb = neighborNote(SITE + '/signup.html?ref=welcome', 'aihomebrewclub.com/signup', cards.length ? cards[0] : null, false);
+  if (nb) notes.push(nb);
+  if (links.optout) notes.push({ text: 'Would you rather not hear about meetups?', label: 'stop these notes', href: links.optout });
+
+  const html = renderEmail({
+    title: subject, place,
+    preheader: 'You hear first when a ' + joined + ' table is on the calendar.' + (withTable.length ? ' The next one is below.' : ''),
+    stamp: 'Welcome',
+    dateline: 'The ' + joined + ' ' + listWord,
+    headline,
+    greeting: 'Hey ' + first + ',',
+    lede,
+    ticket, buttons, cards, notes,
+    signoff: ['See you at the table.', 'The AI Homebrew Club', place],
+  });
+
+  const text =
+    'Hey ' + first + ',\n\n' + headline + ' ' + lede + '\n\n' +
+    towns.map(t => {
+      if (!t.ev) return t.town + ': nothing on the calendar yet. You hear first.';
+      const w = whenLine(t.ev);
+      const cap = +t.ev.capacity || 0;
+      const left = cap ? Math.max(0, cap - (t.taken || 0)) : 0;
+      return t.ev.title + '\nWhen: ' + w.both + '\nWhere: ' + t.ev.location + '\nSeats: ' + seatsOpenLine(cap, left) +
+        '\n' + (left > 0 ? 'Save your seat' : 'Join the waitlist') + ' (takes ten seconds): ' + t.links.rsvp +
+        (t.links.calendar ? '\nAdd it to your calendar: ' + t.links.calendar : '');
+    }).join('\n\n') + '\n' +
+    notesText(notes) +
+    signoffText(place);
+
+  return { subject, text, html };
+}
+
 /* the room check, to whoever holds the booking: is the room set for this table? One tap
    confirms, another flags a problem. kind 'ask' goes out with the invites, 'again' a week out
    to anyone who has not answered.
@@ -704,5 +768,5 @@ function roomEmail({ ev, person, kind, taken, agenda, links }) {
 
 module.exports = {
   esc, fmtTime, endTime, fmtRange, longDate, maineToday, maineHour, daysBetween, weekday, dayWord, mapsUrl, townOf,
-  renderEmail, reminderEmail, thanksEmail, nextTableEmail, weekBeforeEmail, roomEmail, roomSeriesEmail, cardsEmail,
+  renderEmail, reminderEmail, thanksEmail, nextTableEmail, weekBeforeEmail, roomEmail, roomSeriesEmail, cardsEmail, signupEmail,
 };

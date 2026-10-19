@@ -2819,6 +2819,96 @@ app.post('/cards', async (req, res) => {
   }
 });
 
+/* the sign-up page: pick a town (or both) and you are on its list. Public. One welcome note goes
+   back with the next table, a seat link and the card; the host hears. Nobody is seated: the
+   roster loop takes it from here, and the welcome counts as this table's invite. */
+const SIGNUP_BUCKET = new Map();
+app.post('/signup', async (req, res) => {
+  let body = req.body;
+  if (typeof body === 'string') {
+    try { body = JSON.parse(body); } catch { return res.status(400).json({ error: 'bad json' }); }
+  }
+  body = body || {};
+  /* brake: ten sign-ups a minute per source ip; the ip lives only in this in-memory window */
+  const ip = String(req.headers['x-forwarded-for'] || (req.socket && req.socket.remoteAddress) || '').split(',')[0].trim();
+  const nowMs = Date.now();
+  const b = SIGNUP_BUCKET.get(ip) || [0, nowMs];
+  if (nowMs - b[1] > 60000) { b[0] = 0; b[1] = nowMs; }
+  b[0] += 1; SIGNUP_BUCKET.set(ip, b);
+  if (SIGNUP_BUCKET.size > 5000) SIGNUP_BUCKET.clear();
+  if (b[0] > 10) return res.status(429).json({ error: 'slow down' });
+  if (body.website) return res.json({ ok: true, towns: [] }); /* honeypot */
+  const name = String(body.name || '').trim().slice(0, 80);
+  const email = String(body.email || '').trim().toLowerCase().slice(0, 160);
+  const phone = String(body.phone || '').trim().slice(0, 40);
+  const biz = String(body.biz || '').trim().slice(0, 160);
+  const ref = cleanRef(body.ref);
+  const cities = [...new Set((Array.isArray(body.cities) ? body.cities : [body.city])
+    .map(c => String(c || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 40)).filter(c => CHAPTERS[c]))];
+  if (!name || !email || !cities.length) return res.status(400).json({ error: 'name, email and a town required' });
+  if (email.indexOf('@') === -1 || /\s/.test(email)) return res.status(400).json({ error: 'bad email' });
+  /* the host is the club, not its audience */
+  if (NOTIFY_EMAIL && email === String(NOTIFY_EMAIL).trim().toLowerCase()) return res.json({ ok: true, towns: [] });
+  try {
+    const ts = new Date().toISOString();
+    const today = Email.maineToday(new Date());
+    const towns = [];
+    let optout = '';
+    for (const city of cities) {
+      await pool.query(
+        "INSERT INTO aihc_roster (city, email, name, phone, biz, token, status, last_event, ts) VALUES ($1,$2,$3,$4,$5,$6,'in','',$7) " +
+        "ON CONFLICT (city, email) DO UPDATE SET " +
+        "name = CASE WHEN EXCLUDED.name <> '' THEN EXCLUDED.name ELSE aihc_roster.name END, " +
+        "phone = CASE WHEN EXCLUDED.phone <> '' THEN EXCLUDED.phone ELSE aihc_roster.phone END, " +
+        "biz = CASE WHEN EXCLUDED.biz <> '' THEN EXCLUDED.biz ELSE aihc_roster.biz END, status = 'in' /*q:signup-upsert*/",
+        [city, email, name, phone, biz, newToken(), ts]);
+      const tok = await pool.query('SELECT token FROM aihc_roster WHERE city = $1 AND email = $2 /*q:signup-token*/', [city, email]);
+      if (!optout && tok.rows.length) optout = rosterUrl('optout', tok.rows[0].token);
+      const place = chapterOf(city).label;
+      const town = Email.townOf(place);
+      const nextQ = await pool.query(
+        "SELECT * FROM aihc_events WHERE city = $1 AND status = 'upcoming' AND sort_date >= $2 ORDER BY sort_date ASC, ts ASC LIMIT 1 /*q:signup-next*/", [city, today]);
+      const next = nextQ.rows[0] || null;
+      if (!next) { towns.push({ city, town, place, ev: null, taken: 0, links: {}, card: null }); continue; }
+      const ev = eventView(next);
+      const taken = await seatsTaken(next.id);
+      /* the welcome carries this table's invite, so the roster loop must not send it again */
+      const asked = await pool.query("SELECT 1 FROM aihc_invites WHERE event = $1 AND lower(email) = $2 AND by NOT LIKE 'note:%' LIMIT 1 /*q:signup-asked*/", [next.id, email]);
+      if (!asked.rows.length) {
+        await pool.query('INSERT INTO aihc_invites (id, event, email, name, by, ts) VALUES ($1,$2,$3,$4,$5,$6) /*q:signup-invite*/',
+          ['su' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), next.id, email, name, 'signup', ts]);
+      }
+      towns.push({
+        city, town, place, ev, taken,
+        links: { rsvp: rsvpLink(next.id, ref ? 'signup-' + ref : 'signup', name, email), calendar: gcalUrl(ev, next.id) },
+        card: await cardFor(ev),
+      });
+    }
+    const m = Email.signupEmail({ person: { name }, towns, links: { optout } });
+    mailTo(email, m.subject, m.text, towns.filter(t => t.card).map(t => cardAttachment(t.card)), m.html);
+    const listed = towns.map(t => t.town).join(' and ');
+    await addFeedPost('signup-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), '',
+      name + ' joined the ' + listed + ' list' + (towns.length > 1 ? 's' : '') + '.', '#rsvp', false, ts);
+    notify('Joined the ' + listed + ' list' + (towns.length > 1 ? 's' : '') + ': ' + name,
+      'Name: ' + name + '\nEmail: ' + email + '\nPhone: ' + (phone || '-') + '\nBusiness: ' + (biz || '-') + '\nHeard via: ' + (ref || '-') +
+      towns.map(t => '\n\n' + t.town + ': ' + (t.ev
+        ? 'the next table is ' + t.ev.when + ', ' + Math.max(0, (+t.ev.capacity || 0) - t.taken) + ' of ' + t.ev.capacity + ' chairs open. The welcome note carried the seat link' + (t.card ? ' and the card' : '') + '.'
+        : 'nothing on the calendar yet; they hear when there is.')).join('') +
+      '\n\nThe roster: https://aihomebrewclub.com/deck/admin.html#roster');
+    res.json({
+      ok: true,
+      towns: towns.map(t => ({
+        city: t.city, label: t.town,
+        next: t.ev ? { id: t.ev.id, title: t.ev.title, when: t.ev.when, start_time: t.ev.start_time, capacity: +t.ev.capacity || 0,
+          left: Math.max(0, (+t.ev.capacity || 0) - t.taken), rsvp: t.links.rsvp } : null,
+      })),
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'db' });
+  }
+});
+
 cron.schedule('*/5 * * * *', () => {
   runReminders().catch(err => console.error('reminders failed:', err.message))
     .then(() => runRoster()).catch(err => console.error('roster failed:', err.message));
