@@ -121,7 +121,7 @@ async function scenario(name, fn) {
     const m = world.sent[0];
     expect(m.subject === 'You are on the Portland list.', 'wrong subject: ' + m.subject);
     expect(m.text.includes('Save your seat (takes ten seconds): https://aihomebrewclub.com/rsvp.html?event=pdx&ref=signup-card&name=Pat%20Example&email=pat%40example.test'), 'the seat link should be prefilled and carry the ref: ' + m.text);
-    expect(m.text.includes('12 of 12 open') && m.text.includes('Thursday, November 19'), 'the next table should be in the note');
+    expect(m.text.includes('12 of 12 open') && m.text.includes(Email.longDate(PDX.sort_date)) && m.text.includes('4:00 to 6:00 pm'), 'the next table should be in the note: ' + m.text);
     expect(m.attachments.length === 1 && m.attachments[0].cid === CARD.cid && m.html.includes('cid:' + CARD.cid), 'the card should ride along, shown and attached');
     expect(m.html.includes('/roster/optout?t=' + world.roster[0].token) && m.text.includes('Text them the card attached to this note'), 'opt-out link and the neighbor line missing');
     expect(world.notes.length === 1 && world.notes[0].subject === 'Joined the Portland list: Pat Example' && world.notes[0].text.includes('Heard via: card'), 'the host should hear: ' + JSON.stringify(world.notes));
