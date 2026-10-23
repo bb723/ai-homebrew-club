@@ -144,7 +144,7 @@
   @media (prefers-reduced-motion:no-preference){
     .js [data-reveal]{opacity:0; transform:translateY(24px); transition:opacity 700ms var(--ease-out),transform 900ms var(--ease-out); transition-delay:calc(var(--i,0) * var(--stagger-item))}
     .js [data-reveal].is-in{opacity:1; transform:none}
-    .js .shutter{clip-path:inset(0 0 100% 0); transition:clip-path 1100ms var(--ease-in-out)}
+    .js .shutter{clip-path:inset(100% 0 0 0); transition:clip-path 900ms var(--ease-in-out)}
     .js .shutter img{transform:scale(1.12); transition:transform 1500ms var(--ease-soft)}
     .js .shutter.is-in{clip-path:inset(0)}
     .js .shutter.is-in img{transform:none}
@@ -509,14 +509,21 @@
   });
 
   /* arrivals: once, when a section enters; the shutter on Main Street */
-  var targets = document.querySelectorAll('[data-reveal], [data-shutter]');
+  var targets = document.querySelectorAll('[data-reveal]');
+  var shutters = document.querySelectorAll('[data-shutter]');
   if ('IntersectionObserver' in window && !reduce){
     var io = new IntersectionObserver(function(entries){
       entries.forEach(function(en){ if (en.isIntersecting){ en.target.classList.add('is-in'); io.unobserve(en.target); } });
     }, { rootMargin: '0px 0px -12% 0px', threshold: 0.1 });
     targets.forEach(function(el){ io.observe(el); });
+    /* the shutter starts opening a screen early, so the street is lit by the time the visitor arrives */
+    var so = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){ if (en.isIntersecting){ en.target.classList.add('is-in'); so.unobserve(en.target); } });
+    }, { rootMargin: '100% 0px 100% 0px', threshold: 0 });
+    shutters.forEach(function(el){ so.observe(el); });
   } else {
     targets.forEach(function(el){ el.classList.add('is-in'); });
+    shutters.forEach(function(el){ el.classList.add('is-in'); });
   }
 
   /* the giant word fits its column by measurement, not by guess */
