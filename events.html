@@ -12,11 +12,13 @@
 <meta property="og:url" content="https://aihomebrewclub.com/events.html">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="assets/site.css?v=4">
+<link rel="stylesheet" href="assets/site.css?v=5">
 <style>
+  .townpic{margin:0 0 40px; height:38svh; min-height:240px; overflow:clip; background:var(--surface)}
+  .townpic img{width:100%; height:100%; object-fit:cover; object-position:center 60%}
   /* No. 03 - The circuit: the map and the chapters on the left, the calendar and the cards on the right. */
   .page-head .rt{align-items:flex-end; text-align:right}
-  .page-head .rt .kicker{max-width:26ch}
+  .page-head .rt .sayline{max-width:26ch}
   .pg{display:grid; grid-template-columns:1fr 480px; gap:32px; padding-bottom:64px; align-items:start}
 
   /* ---- the map card: the inked state and the chapter list ---- */
@@ -32,29 +34,29 @@
   }
   /* map lettering wears a paper halo so it stays legible over the coastline */
   .pin text{
-    font-family:var(--font-hand); font-size:21px; font-weight:600; fill:var(--ink);
+    font-family:var(--font-hand); font-size:var(--step-lead); font-weight:600; fill:var(--ink);
     paint-order:stroke; stroke:var(--card); stroke-width:5px; stroke-linejoin:round;
   }
-  .pin text.seats{font-size:15px; fill:var(--ink-2)}
-  .maine-label{font-family:var(--font-display); font-style:italic; font-weight:600; font-size:17px; fill:var(--ink-3); letter-spacing:.14em}
+  .pin text.seats{font-size:var(--step-body); fill:var(--ink-2)}
+  .maine-label{font-family:var(--font-display); font-weight:600; font-size:var(--step-body); fill:var(--ink-3); letter-spacing:.14em}
 
-  .towns{border-left:1px solid var(--rule); display:flex; flex-direction:column; padding:18px 0}
+  .towns{border-left:0; display:flex; flex-direction:column; padding:18px 0}
   .towns .h{padding:0 18px 10px}
-  .town{display:grid; grid-template-columns:14px 1fr; gap:12px; padding:12px 18px; border:0; border-top:1px solid var(--rule); align-items:start;
+  .town{display:grid; grid-template-columns:14px 1fr; gap:12px; padding:12px 18px; border:0; border-top:0; align-items:start;
     width:100%; text-align:left; background:none; cursor:pointer; color:var(--ink); border-radius:0}
   .town:hover{background:var(--paper-2)}
   div.town{cursor:default}
   .town .tp{width:12px; height:12px; border-radius:50%; margin-top:4px; background:var(--rule-2)}
-  .town .tp.live{background:var(--tangerine); box-shadow:0 0 0 4px var(--tangerine-wash)}
-  .town b{font-size:14px; display:block}
-  .town .st{font-size:12.5px; color:var(--ink-3); display:block; margin-top:2px}
-  .towns-foot{padding:14px 18px 0; margin-top:auto; border-top:1px solid var(--rule); font-size:13px; color:var(--ink-3)}
-  .towns-foot .hand{font-size:19px; color:var(--tangerine); display:block}
+  .town .tp.live{background:var(--field-4)}
+  .town b{font-size:var(--step-body); display:block}
+  .town .st{font-size:var(--step-body); color:var(--ink-2); display:block; margin-top:2px}
+  .towns-foot{padding:14px 18px 0; margin-top:auto; font-size:var(--step-body); color:var(--ink-2)}
+  .towns-foot .hand{font-size:var(--step-lead); color:var(--tangerine); display:block}
 
   /* ---- the record: collapsed under the map ---- */
   .rec summary{padding:14px 18px; display:flex; align-items:center; justify-content:space-between; gap:12px; cursor:pointer; list-style:none}
   .rec summary::-webkit-details-marker{display:none}
-  .rec summary b{font-size:14px}
+  .rec summary b{font-size:var(--step-body)}
   .rec .caret{color:var(--ink-3); transition:transform .15s}
   .rec[open] .caret{transform:rotate(180deg)}
   .rec .past{padding:0 18px 18px; display:flex; flex-direction:column; gap:12px}
@@ -62,45 +64,46 @@
   /* ---- the calendar ---- */
   .cal{padding:18px 20px 16px; display:flex; flex-direction:column; gap:12px}
   .cal .ch{display:flex; align-items:center; justify-content:space-between}
-  .cal .ch b{font-family:var(--font-display); font-size:20px; font-weight:800}
+  .cal .ch b{font-family:var(--font-display); font-size:var(--step-lead); font-weight:900}
   .cal .nav{display:flex; gap:4px}
-  .calbtn{width:28px; height:28px; border:1px solid var(--rule-2); border-radius:6px; background:none; display:inline-flex; align-items:center; justify-content:center; font-size:14px; color:var(--ink-2); cursor:pointer; padding:0}
-  .calbtn:hover{border-color:var(--ink); color:var(--ink)}
+  .calbtn{width:36px; height:36px; border:0; background:var(--surface-2); display:inline-flex; align-items:center; justify-content:center; font-size:var(--step-body); color:var(--ink-2); cursor:pointer; padding:0}
+  .calbtn:hover{background:var(--surface-3); color:var(--ink)}
   .calbtn:disabled{opacity:.35; cursor:default}
   .grid7{display:grid; grid-template-columns:repeat(7,1fr); gap:4px}
-  .grid7 .dow{font-family:var(--font-mono); font-size:10.5px; letter-spacing:.1em; color:var(--ink-3); text-align:center; padding-bottom:4px}
-  .grid7 .day{height:44px; border-radius:6px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; font-family:var(--font-mono); font-size:12.5px; color:var(--ink-2); position:relative}
+  .grid7 .dow{font-family:var(--font-body); font-size:var(--step-small); color:var(--ink-3); text-align:center; padding-bottom:4px}
+  .grid7 .day{height:44px; border-radius:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; font-family:var(--font-body); font-size:var(--step-small); color:var(--ink-2); position:relative}
   .grid7 .day.out{color:var(--rule-2)}
-  .grid7 .day.today{outline:1.5px dashed var(--rule-2); outline-offset:-1px}
+  .grid7 .day.today{background:var(--surface-2)}
   .grid7 .day.has{background:var(--lemon-wash); color:var(--ink); font-weight:600; cursor:pointer}
   .grid7 .day.has:hover{background:var(--lemon)}
   .grid7 .day.has::after{content:""; width:5px; height:5px; border-radius:50%; background:var(--tangerine)}
   .grid7 .day.past-ev{background:var(--paper-2)}
   .grid7 .day.past-ev::after{background:var(--ink-3)}
   .legend{display:flex; align-items:center; gap:14px}
-  .legend .l{display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--ink-3)}
+  .legend .l{display:inline-flex; align-items:center; gap:6px; font-size:var(--step-small); color:var(--ink-3)}
   .legend .dot-held{background:var(--ink-3)}
   .legend .small{margin-left:auto}
 
   /* ---- the event cards ---- */
   .evl{display:flex; flex-direction:column; gap:12px}
-  .evx{display:grid; grid-template-columns:64px 1fr; gap:16px; padding:16px 18px; scroll-margin-top:16px}
-  .evx .d{display:flex; flex-direction:column; align-items:center; line-height:1; border-right:1px solid var(--rule); padding-right:12px}
-  .evx .d .m{font-family:var(--font-mono); font-size:10px; letter-spacing:.1em; color:var(--tangerine); text-transform:uppercase}
-  .evx .d .n{font-family:var(--font-display); font-size:30px; font-weight:800; margin-top:4px}
-  .evx .d .w{font-family:var(--font-mono); font-size:10px; color:var(--ink-3); margin-top:5px; text-transform:uppercase}
+  .evx{display:grid; grid-template-columns:92px 1fr; gap:16px; padding:16px 18px; scroll-margin-top:16px}
+  .evx .d{display:flex; flex-direction:column; align-items:flex-start; line-height:1.1}
+  .evx .d .m{font-family:var(--font-body); font-size:var(--step-small); color:var(--tangerine); text-transform:uppercase}
+  .evx .d .n{font-size:var(--step-lead); font-weight:700}
+  .evx .d .w{font-size:var(--step-small); color:var(--ink-2); margin-top:6px}
   .evx .b{display:flex; flex-direction:column; gap:6px; min-width:0}
-  .evx .b .t{font-size:16px; font-weight:700}
-  .evx .b .l{font-size:13px; color:var(--ink-2)}
+  .evx .b .t{font-size:var(--step-body); font-weight:700}
+  .evx .b .l{font-size:var(--step-body); color:var(--ink-2)}
   .evx .b .cta{display:flex; align-items:center; gap:10px; margin-top:6px; flex-wrap:wrap}
   a.tag{font-weight:500}
-  .empty{color:var(--ink-3); font-style:italic; font-size:14px}
+  .empty{color:var(--ink-3); font-size:var(--step-body)}
 
   @media (max-width:1000px){ .pg{grid-template-columns:1fr} }
-  @media (max-width:900px){ .page-head .rt{align-items:flex-start; text-align:left} }
+  @media (max-width:900px){ .page-head .rt{align-self:stretch; align-items:flex-end; text-align:right} }
   @media (max-width:640px){
+    .pin text.seats{display:none}
     .mapcard{grid-template-columns:1fr}
-    .towns{border-left:0; border-top:1px solid var(--rule)}
+    .towns{border-left:0; border-top:0}
   }
 </style>
 </head>
@@ -118,20 +121,22 @@
     <a href="lend.html">Lend a room</a>
     <a class="members" href="members.html">Members&rsquo; room</a>
   </nav>
-  <button class="menu" type="button" aria-label="Menu">&#9776;</button>
+  <button class="menu" type="button" aria-label="Menu">Menu</button>
 </header>
 
 <main class="wrap">
   <div class="page-head">
     <div class="fx col gap12">
-      <p class="folio"><b>&#8470; 03</b> &middot; The circuit</p>
-      <h1 class="display-xl">Every meetup so far, and where the next one is.</h1>
+      
+      <h1 class="display-xl">The circuit</h1>
+      <p class="lede">Every meetup so far, and where the next one is.</p>
     </div>
     <div class="fx col gap10 rt">
-      <p class="kicker">Your town could be next.</p>
+      <p class="sayline">Your town could be next.</p>
       <a class="btn btn-secondary" href="lend.html?ref=events">Lend us a room</a>
     </div>
   </div>
+  <figure class="townpic"><img src="assets/john-f-hill-grange-hall-in-eliot.jpg" width="1920" height="1440" alt="The John F. Hill Grange Hall in Eliot, Maine, a white clapboard hall with a green roof in the snow" decoding="async" fetchpriority="high"></figure>
 
   <div class="pg">
     <div class="fx col gap20">
@@ -148,14 +153,14 @@
           </svg>
         </div>
         <div class="towns">
-          <span class="folio h">Chapters</span>
+          <h2 class="display-m h">Chapters</h2>
           <div id="townList"></div>
           <div class="towns-foot"><span class="hand">Your town could be next</span> <a href="lend.html?ref=circuit">Lend us a room</a></div>
         </div>
       </div>
 
       <details class="card rec" id="pastWrap" hidden>
-        <summary><b>The record: every meetup so far</b><span class="fx gap12 ac"><span class="mono-s ink3" id="pastCount"></span><span class="caret" aria-hidden="true">&#9662;</span></span></summary>
+        <summary><b>The record: every meetup so far</b><span class="fx gap12 ac"><span class="mono-s ink3" id="pastCount"></span><span class="caret" aria-hidden="true">+</span></span></summary>
         <div class="past" id="pastList"></div>
       </details>
     </div>
@@ -173,7 +178,7 @@
         <div class="legend"><span class="l"><span class="dot dot-tang"></span> meetup</span><span class="l"><span class="dot dot-held"></span> held</span><span class="small">click a day for the card</span></div>
       </div>
 
-      <p class="folio" id="upH" hidden><b>On the calendar</b></p>
+      <h2 class="display-m" id="upH" hidden>On the calendar</h2>
       <div class="evl" id="upWrap"><p class="empty">Checking the calendar&hellip;</p></div>
     </div>
   </div>
@@ -183,7 +188,7 @@
 </div>
 
 <script src="assets/config.js?v=6"></script>
-<script src="assets/site.js?v=5"></script>
+<script src="assets/site.js?v=6"></script>
 <script>
 (function(){
   'use strict';
@@ -359,9 +364,9 @@
   }
   function dateBlock(e){
     var d = parseDay(e.sort_date);
-    if (!d) return '<div class="d"><span class="m"></span><span class="n">&middot;</span><span class="w"></span></div>';
-    return '<div class="d"><span class="m">' + MONTH_NAMES[d.getMonth()].slice(0, 3) + '</span>' +
-      '<span class="n">' + d.getDate() + '</span><span class="w">' + DOW_NAMES[d.getDay()] + '</span></div>';
+    if (!d) return '<div class="d"><span class="n">Soon</span><span class="w"></span></div>';
+    return '<div class="d"><span class="n">' + MONTH_NAMES[d.getMonth()].slice(0, 3) + ' ' + d.getDate() + '</span>' +
+      '<span class="w">' + DOW_NAMES[d.getDay()] + '</span></div>';
   }
   function card(e){
     var t = fmtTime(e.start_time);

@@ -4,325 +4,502 @@
 <meta charset="utf-8">
 <title>The AI Homebrew Club</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#FFE927">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<meta name="description" content="A free one-hour class in Waterville, Maine: bring one real problem from your shop and leave with it handled. No tickets, no vendors.">
+<meta name="description" content="A free class in Waterville and Portland, Maine: bring one real task from your shop and leave with it done. Neighbors teaching neighbors to put AI to work. No tickets, no vendors.">
 <meta property="og:title" content="The AI Homebrew Club">
-<meta property="og:description" content="You're invited. One hour, and one problem off your plate. Neighbors teaching neighbors to put AI to work. Free, no vendors.">
+<meta property="og:description" content="Neighbors teaching neighbors to put AI to work. A free class in Waterville and Portland, Maine. No tickets, no vendors.">
 <meta property="og:image" content="https://aihomebrewclub.com/share-card.png">
 <meta property="og:url" content="https://aihomebrewclub.com/">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="assets/site.css?v=4">
+<link rel="preload" href="assets/fonts/epilogue.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/site.css?v=5">
 <style>
-  /* ---- the hero: invitation on the left, the ticket on the right ---- */
-  .hero{display:grid; grid-template-columns:1fr 460px; gap:clamp(32px,5vw,72px); align-items:start; padding:clamp(40px,5vw,64px) 0 clamp(48px,6vw,72px)}
-  .hero .cta{display:flex; align-items:center; gap:14px; flex-wrap:wrap}
-  .hero .kicker .by{font-size:15px; font-style:normal; font-family:var(--font-body); font-weight:500; color:var(--ink-3)}
+  /* ---- the poster: a yellow field, a shout, a scrap of 1975 stuck on at a tilt ---- */
+  .poster-nav{background:var(--field-4); color:var(--field-4-ink)}
+  .poster-nav .brand,.poster-nav nav a{color:var(--field-4-ink)}
+  .poster-nav nav a:hover,.poster-nav nav a.here{color:var(--field-4-ink); text-decoration:underline; text-underline-offset:.18em}
+  .poster-nav nav a.members{color:var(--field-4-ink); text-decoration-color:var(--field-4-ink)}
+  .poster-nav .menu{color:var(--field-4-ink); text-decoration-color:var(--field-4-ink)}
+  body.nav-open .poster-nav nav{background:var(--field-4-ink)}
+  body.nav-open .poster-nav nav a{color:var(--field-4)}
 
-  .ticket{display:flex; flex-direction:column; overflow:hidden}
-  .ticket .top{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 22px; background:var(--paper-2); color:var(--ink); border-bottom:1px dashed var(--rule-2)}
-  .ticket .top .folio{color:var(--ink-3)}
-  .ticket .top .folio b{color:var(--accent)}
-  .ticket .date{padding:22px 22px 6px; display:flex; flex-direction:column; gap:2px}
-  .ticket .date .big{font-family:var(--font-display); font-size:clamp(1.7rem,3vw,2.375rem); font-weight:800; letter-spacing:-.02em; line-height:1.05; text-wrap:balance}
-  .ticket .date .time{font-family:var(--font-mono); font-size:14px; color:var(--ink-2)}
-  .ticket .rows{display:flex; flex-direction:column; padding:8px 22px 6px}
-  .ticket .rows .r{display:grid; grid-template-columns:72px 1fr; gap:14px; padding:10px 0; border-top:1px dashed var(--rule-2); font-size:14px; line-height:1.45}
-  .ticket .rows .r .k{font-family:var(--font-mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); padding-top:3px}
-  .ticket .rows .r .seats{flex-wrap:wrap; width:auto}
-  .ticket .foot{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 22px 22px}
-  .ticket .foot .btn-primary{flex:1}
-  .ticket .foot .btn-ghost[hidden]{display:none}
+  .poster{position:relative; display:grid; grid-template-rows:minmax(0,82fr) minmax(0,18fr); min-height:calc(100svh - 72px); overflow:clip; background:var(--field-4)}
+  .poster .fieldy{position:relative; background:var(--field-4); color:var(--field-4-ink)}
+  .poster .shout{position:absolute; left:var(--margin); top:16%; margin-left:-.03em; font-size:var(--step-display); line-height:.84; letter-spacing:-.04em; font-weight:900; z-index:1; color:var(--field-4-ink)}
+  .lines .line{display:block; overflow:hidden; padding-bottom:.08em; margin-bottom:-.08em}
+  .lines [data-line]{display:block}
+  .poster .scrap{position:absolute; left:61%; top:calc(82% - 34vw); width:30vw; aspect-ratio:3/4; margin:0; z-index:3; transform:rotate(5deg); overflow:clip; border-radius:50% 50% 0 0 / 38% 38% 0 0; background:#2A2A2A}
+  .poster .scrap .pic{position:absolute; inset:0; overflow:clip}
+  .poster .scrap img{width:100%; height:100%; object-fit:cover; object-position:22% 50%}
+  .poster .bandrow{position:relative; z-index:2; background:var(--bg); color:var(--ink); display:flex; align-items:center; justify-content:space-between; gap:32px; padding:0 var(--margin)}
+  .poster .bandrow .lead{font-size:var(--step-lead); line-height:1.3; max-width:40ch; color:var(--ink)}
 
-  /* ---- the hour: a four-step timeline ---- */
-  .timeline{display:grid; grid-template-columns:repeat(4,1fr); position:relative; margin-top:8px}
-  .timeline::before{content:""; position:absolute; left:0; right:0; top:0; height:2px; background:var(--ink)}
-  .timeline .step{position:relative; padding:22px 24px 0 0; display:flex; flex-direction:column; gap:8px}
-  .timeline .step::before{content:""; position:absolute; left:0; top:-4px; width:10px; height:10px; border-radius:50%; background:var(--tangerine); border:2px solid var(--paper)}
-  .band.alt .timeline .step::before{border-color:var(--paper-2)}
-  .timeline .t{font-family:var(--font-mono); font-size:13px; font-weight:600; color:var(--tangerine)}
-  .timeline .ti{font-family:var(--font-display); font-size:22px; font-weight:700; letter-spacing:-.01em}
-  .timeline .d{color:var(--ink-2); font-size:14.5px; line-height:1.5; max-width:30ch}
-  .sec-h .kicker.r{max-width:34ch; text-align:right}
+  /* ---- the hour: an accordion of blue panels, dark to light ---- */
+  .hour{padding:clamp(72px,9vw,160px) var(--margin)}
+  .hour .intro{display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); column-gap:var(--gutter); align-items:start; margin-bottom:64px}
+  .hour .intro h2{grid-column:1/6; font-size:var(--step-head)}
+  .hour .intro p{grid-column:7/12; color:var(--ink-2); max-width:62ch}
+  .acc{display:flex; height:520px}
+  .acc .stage{position:relative; flex:0 0 14%; min-width:0; overflow:clip; transition:flex-basis 450ms var(--ease-in-out); color:var(--field-2-ink)}
+  .acc .stage.is-open{flex-basis:58%}
+  .acc .s1{background:#1E4BD7} .acc .s2{background:#3A63DE} .acc .s3{background:#8AA4EC; color:#111} .acc .s4{background:#BDCBF4; color:#111}
+  .acc .name{position:absolute; z-index:2; left:22px; bottom:22px; margin:0; padding:0; border:0; background:none; color:inherit; cursor:pointer; font-size:var(--step-lead); font-weight:700; line-height:1; white-space:nowrap; writing-mode:vertical-rl; transform:rotate(180deg); transition:opacity var(--t-ui) ease}
+  .acc .stage.is-open .name{opacity:0; pointer-events:none}
+  .acc .inner{position:absolute; inset:0; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:minmax(0,1fr); opacity:0; visibility:hidden; transition:opacity 300ms ease 180ms,visibility 0s linear 480ms; pointer-events:none}
+  .acc .stage.is-open .inner{opacity:1; visibility:visible; transition:opacity 300ms ease 180ms,visibility 0s; pointer-events:auto}
+  .acc .inner > *{min-height:0}
+  .acc .inner .text{display:flex; flex-direction:column; padding:28px}
+  .acc .inner h3{font-size:var(--step-head); line-height:.95; letter-spacing:-.03em}
+  .acc .inner .t{font-size:var(--step-lead); font-weight:500; margin-top:10px}
+  .acc .inner p{margin-top:auto; max-width:36ch; color:inherit}
+  .acc .inner img{width:100%; height:100%; object-fit:cover; object-position:50% 40%}
+  .acc .inner .blank{background:transparent}
 
-  /* ---- the six recipes ---- */
-  .recipes{display:grid; grid-template-columns:repeat(3,1fr); gap:20px}
-  .rc{display:flex; flex-direction:column; gap:10px; padding:20px 20px 18px}
-  .rc .num{font-family:var(--font-mono); font-size:11px; color:var(--ink-3); letter-spacing:.12em}
-  .rc h3{font-family:var(--font-body); font-size:17px; font-weight:700; letter-spacing:0; line-height:1.3}
-  .rc .body{font-size:14px}
-  .rc .index-card{margin-top:auto}
-  .rc .cp{display:flex; justify-content:flex-end; margin-top:-4px}
+  /* ---- the recipe box: Main Street behind, prompts on yellow slips along the bottom edge ---- */
+  .slips-sec{position:relative; height:96svh; min-height:680px; overflow:clip; background:var(--surface)}
+  .slips-sec .scene{position:absolute; inset:0; margin:0}
+  .slips-sec .scene img{width:100%; height:100%; object-fit:cover; object-position:center 72%}
+  .slips-sec .say{position:absolute; top:11%; left:18%; width:min(48ch,62%); padding:28px 32px; background:rgba(0,0,0,.52); color:#fff; z-index:2}
+  .slips-sec .say h2{font-size:var(--step-lead); font-weight:900; line-height:1.15; letter-spacing:-.02em}
+  .slips-sec .say p{font-size:var(--step-lead); line-height:1.3; margin-top:14px}
+  .slips{position:absolute; left:var(--margin); right:var(--margin); bottom:0; display:flex; gap:12px; align-items:flex-end; margin:0; padding:0; list-style:none; z-index:2}
+  .slip{flex:1 1 0; min-width:0; height:var(--h,34svh); background:var(--field-4); color:var(--field-4-ink); padding:18px 16px 0; transform:rotate(var(--tilt,0deg)); transform-origin:50% 100%; overflow:hidden; display:flex; flex-direction:column; gap:8px}
+  .slip h3{font-size:var(--step-body); font-weight:700; line-height:1.25; letter-spacing:-.01em}
+  .slip .cut{font-size:var(--step-small); letter-spacing:.22em; line-height:1; user-select:none}
+  .slip .pr{font-size:var(--step-body); line-height:1.4}
+  .slip .copyprompt{align-self:flex-start; background:none; border:0; padding:0; margin-top:2px; color:var(--field-4-ink); font-size:var(--step-body); font-weight:700; text-decoration:underline; text-underline-offset:.18em; cursor:pointer}
 
-  /* ---- why we meet: the two stats ---- */
-  .eq{display:grid; grid-template-columns:1fr 1fr; gap:clamp(32px,5vw,64px); align-items:start}
-  .stats{display:grid; grid-template-columns:1fr 1fr; gap:24px; max-width:640px}
-  .stat{padding:22px 24px; display:flex; flex-direction:column; gap:6px}
-  .stat .n{font-family:var(--font-display); font-size:clamp(2.4rem,4vw,3.25rem); font-weight:800; line-height:1; letter-spacing:-.03em}
-  .stat .l{font-size:14px; color:var(--ink-2); max-width:26ch; line-height:1.4}
-  .stat .n.tang{color:var(--tangerine)} .stat .n.teal{color:var(--teal)}
-  .statsrc a{color:inherit; text-decoration:underline; text-underline-offset:3px; text-decoration-color:var(--rule-2); font-weight:500}
-  .statsrc a:hover{color:var(--tangerine)}
+  /* ---- why we meet: one figure owns a red screen ---- */
+  .figure-sec{background:var(--field-1); color:var(--field-1-ink); min-height:78svh; padding:var(--margin); display:grid; grid-template-columns:1fr 1fr; grid-template-rows:auto 1fr auto; column-gap:var(--gutter)}
+  .figure-sec h2{grid-column:1; grid-row:1; font-size:var(--step-head); line-height:.95; max-width:14ch}
+  .figure-sec .fig{grid-column:1; grid-row:3; align-self:end; padding-top:4vh}
+  .figure-sec .num{display:block; font-size:clamp(180px,23vw,380px); line-height:.8; letter-spacing:-.05em; font-weight:900; font-variant-numeric:lining-nums tabular-nums; margin-left:-.04em}
+  .figure-sec .num sup{font-size:.33em; line-height:1; vertical-align:top; position:relative; top:.1em; letter-spacing:-.02em}
+  .figure-sec .cap{margin-top:24px; max-width:32ch; line-height:1.4}
+  .figure-sec .src{grid-column:2; grid-row:3; align-self:end; justify-self:end; text-align:right; font-size:var(--step-small); max-width:44ch; line-height:1.45}
+  .figure-sec .src a{color:inherit}
 
-  /* ---- the ladder ---- */
-  .ladder{display:grid; grid-template-columns:repeat(3,1fr); gap:0; border:1px solid var(--rule); border-radius:var(--r-2); overflow:hidden; background:var(--card)}
-  .rung{padding:26px 26px 28px; display:flex; flex-direction:column; gap:10px; border-right:1px solid var(--rule); position:relative}
-  .rung:last-child{border-right:0}
-  .rung .lv{font-family:var(--font-display); font-size:44px; font-weight:800; letter-spacing:-.03em; line-height:1}
-  .rung .lv{color:var(--ink)}
-  .rung .bring{font-family:var(--font-mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3)}
-  .rung h3{font-family:var(--font-body); font-size:18px; letter-spacing:0; margin-top:6px}
-  .rung .body{font-size:14px}
+  /* ---- dates: one giant word, then filled bars that open ---- */
+  .dates{padding:clamp(72px,9vw,160px) var(--margin) 56px}
+  .dates .col{width:min(640px,100%); margin:0 auto; container-type:inline-size}
+  .dates h2{font-size:32.8cqw; line-height:.8; letter-spacing:-.04em; text-transform:uppercase; white-space:nowrap}
+  .bars{display:flex; flex-direction:column; gap:6px; margin-top:20px}
+  .bar{background:var(--surface); color:var(--ink)}
+  .bar .summary{width:100%; margin:0; border:0; background:none; color:inherit; font:inherit; text-align:left; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:16px; height:56px; padding:0 18px; font-weight:500; transition:background-color var(--t-hover) ease}
+  .bar .summary:hover{background:var(--surface-2)}
+  .bar .summary .plus{font-size:var(--step-lead); font-weight:400; line-height:1; transition:transform var(--t-ui) var(--ease-out)}
+  .bar.is-open .summary .plus{transform:rotate(45deg)}
+  .bar:not(.is-open) .panel{display:none}
+  .bar .panel{padding:4px 18px 20px; display:flex; flex-direction:column; gap:14px}
+  .bar .kv{display:flex; justify-content:space-between; gap:16px; font-variant-numeric:tabular-nums}
+  .bar .kv span:last-child{text-align:right; color:var(--ink-2)}
+  .tabs{display:flex; gap:4px}
+  .tabs a,.tabs span{flex:1 1 0; min-width:0; height:44px; display:flex; align-items:flex-end; justify-content:center; padding-bottom:6px; font-size:var(--step-small); font-weight:700; text-decoration:none; background:var(--field-4); color:var(--field-4-ink); transition:transform var(--t-press) var(--ease-out)}
+  .tabs a:active{transform:scale(.96)}
+  .tabs .gone{background:var(--surface-3); color:var(--ink-2); font-weight:400}
+  .bar .go{display:flex; gap:16px; align-items:center; flex-wrap:wrap; margin-top:4px}
+  .dates .more{margin-top:28px; text-align:left}
 
-  /* ---- house rules ---- */
-  .rules{display:grid; grid-template-columns:1fr 1fr; grid-template-rows:repeat(3,auto); grid-auto-flow:column; gap:0 48px; max-width:900px; margin:0; padding:0; list-style:none}
-  .rules .ru{display:grid; grid-template-columns:36px 1fr; gap:12px; padding:14px 0; border-bottom:1px solid var(--rule); font-size:15.5px; align-items:baseline}
-  .rules .ru .n{font-family:var(--font-mono); font-size:12px; color:var(--tangerine); font-weight:600}
-  .rules .ru em{font-family:var(--font-display); font-style:italic; font-weight:500}
-  .rules .ru.blank{border-bottom:0}
+  /* ---- house rules: a band per question ---- */
+  .faq{display:flex; flex-direction:column}
+  .faq .lead-band{background:var(--accent); color:var(--accent-ink); min-height:40svh; display:flex; align-items:flex-end; padding:var(--margin)}
+  .faq .lead-band h2{font-size:clamp(48px,7vw,112px); line-height:.9; letter-spacing:-.04em}
+  .faq .q{display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); column-gap:var(--gutter); padding:56px var(--margin); background:var(--bg)}
+  .faq .q:nth-child(odd){background:var(--surface)}
+  .faq .q h3{grid-column:1/6; font-size:var(--step-lead); font-weight:700; line-height:1.2; letter-spacing:-.02em}
+  .faq .q .a{grid-column:7/13; color:var(--ink-2); max-width:62ch}
+  .faq .q .a img{margin-top:20px; width:100%; max-width:600px}
 
-  footer.foot .body{color:var(--ink-2)}
+  /* ---- the close: one question, two answers ---- */
+  .cta-sec{background:#0F0F0F; color:var(--ink); height:100svh; min-height:560px; display:grid; grid-template-rows:auto 1fr auto; text-align:center; padding:32px var(--margin) 24px; overflow:clip}
+  .cta-sec h2{display:contents}
+  .cta-sec .l1,.cta-sec .l2{display:block; font-size:var(--step-display); line-height:1; letter-spacing:-.04em; font-weight:900}
+  .cta-sec .l1{grid-row:1} .cta-sec .l2{grid-row:3}
+  .cta-sec .mid{grid-row:2; align-self:center; display:flex; flex-direction:column; align-items:center; gap:16px}
+  .cta-sec .row{display:flex; align-items:center; gap:120px}
+  .cta-sec .row .btn{min-width:200px}
+  .cta-sec .or{color:var(--ink-3)}
+  .cta-sec .after{color:var(--ink-3)}
 
-  @media (max-width:900px){
-    .hero{grid-template-columns:1fr; gap:36px}
-    .timeline{grid-template-columns:1fr 1fr; gap:0 24px}
-    .timeline::before{display:none}
-    .timeline .step{border-top:2px solid var(--ink); margin-bottom:12px}
-    .recipes,.ladder{grid-template-columns:1fr 1fr}
-    .rung:nth-child(2){border-right:0}
-    .rung{border-bottom:1px solid var(--rule)}
-    .rung:last-child{border-bottom:0}
-    .eq{grid-template-columns:1fr}
-    .sec-h .kicker.r{text-align:left; max-width:none}
+  /* ---- the footer: the bridge on the left, the menu on the right ---- */
+  .foot-split{display:grid; grid-template-columns:1fr 1fr; min-height:100svh; background:var(--surface)}
+  .foot-split .photo{margin:0; position:relative; overflow:clip; background:#111}
+  .foot-split .photo img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:62% 60%}
+  .foot-split .menu-half{padding:80px var(--margin) 24px calc(var(--margin) + 4vw); display:flex; flex-direction:column; position:relative}
+  .foot-split .mark{font-weight:900; letter-spacing:-.02em; text-decoration:none; margin-bottom:56px; align-self:flex-start}
+  .foot-split .menu{display:flex; flex-direction:column; gap:28px; list-style:none; margin:0; padding:0}
+  .foot-split .menu a{font-size:clamp(28px,2.6vw,40px); font-weight:900; letter-spacing:-.03em; line-height:1; text-decoration:none; color:var(--ink); display:inline-block; transition:transform 300ms var(--ease-out),color var(--t-hover) ease}
+  @media (hover:hover) and (pointer:fine){
+    .foot-split .menu:hover a{color:var(--ink-3)}
+    .foot-split .menu a:hover{color:var(--ink); transform:translateX(12px)}
   }
-  @media (max-width:700px){
-    .timeline,.recipes,.ladder,.stats{grid-template-columns:1fr}
-    .rung{border-right:0}
-    .rules{grid-template-columns:1fr; grid-auto-flow:row; grid-template-rows:none}
-    .rules .ru.blank{display:none}
-    .rules .ru:nth-last-child(2){border-bottom:0}
-    .ticket .foot{flex-direction:column; align-items:stretch}
+  .foot-split .blocks{display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:64px; color:var(--ink-2); max-width:64ch}
+  .foot-split .blocks a{color:var(--ink)}
+  .foot-split .legal{margin-top:auto; padding-top:48px; font-size:var(--step-small); color:var(--ink-2); line-height:1.5}
+  .foot-split .legal p + p{margin-top:8px}
+
+  /* ---- motion: everything is in the HTML on the first paint; motion only adds arrival ---- */
+  @media (prefers-reduced-motion:no-preference){
+    .js [data-reveal]{opacity:0; transform:translateY(24px); transition:opacity 700ms var(--ease-out),transform 900ms var(--ease-out); transition-delay:calc(var(--i,0) * var(--stagger-item))}
+    .js [data-reveal].is-in{opacity:1; transform:none}
+    .js .shutter{clip-path:inset(0 0 100% 0); transition:clip-path 1100ms var(--ease-in-out)}
+    .js .shutter img{transform:scale(1.12); transition:transform 1500ms var(--ease-soft)}
+    .js .shutter.is-in{clip-path:inset(0)}
+    .js .shutter.is-in img{transform:none}
+    .js .poster [data-line]{transform:translateY(105%); animation:load-line 800ms var(--ease-expo) forwards; animation-delay:calc(100ms + var(--i) * var(--stagger-line))}
+    .js .poster [data-load]{opacity:0; transform:translateY(12px); animation:load-rise 500ms var(--ease-out) forwards; animation-delay:var(--d)}
+    .js .poster [data-open]{clip-path:inset(100% 0 0 0); animation:load-open 1000ms var(--ease-in-out) 150ms forwards}
+    .js .poster [data-open] .pic{transform:scale(1.08); animation:load-settle 1100ms var(--ease-expo) 100ms forwards}
+    .js .poster [data-open] img{animation:drift 26s linear 1.4s infinite alternate}
+    .acc .stage{will-change:flex-basis}
+  }
+  @keyframes load-line{to{transform:none}}
+  @keyframes load-rise{to{opacity:1; transform:none}}
+  @keyframes load-open{to{clip-path:inset(0)}}
+  @keyframes load-settle{to{transform:none}}
+  @keyframes drift{from{transform:scale(1)} to{transform:scale(1.06)}}
+
+  /* ---- tablet ---- */
+  @media (max-width:1024px){
+    .cta-sec{height:auto; min-height:0; padding:32px var(--margin) 24px}
+    .cta-sec .mid{padding:96px 0}
+    .acc{height:460px}
+    .acc .inner{grid-template-columns:1fr}
+    .acc .inner img{display:none}
+    .cta-sec .row{gap:48px}
+  }
+
+  /* ---- the phone is its own composition ---- */
+  @media (max-width:640px){
+    .poster{grid-template-rows:minmax(0,1fr) auto; min-height:calc(100svh - 60px)}
+    .poster .fieldy{min-height:72svh}
+    .poster .shout{top:12%; left:16px; font-size:17vw}
+    .poster .scrap{left:auto; right:-10%; width:58%; top:calc(72svh - 66vw)}
+    .poster .bandrow{flex-direction:column; align-items:stretch; justify-content:flex-end; gap:14px; padding:56px 16px 20px; min-height:28svh}
+    .poster .bandrow .btn{width:100%}
+    .hour{padding:72px 16px}
+    .hour .intro{display:flex; flex-direction:column; gap:16px; margin-bottom:36px}
+    .acc{flex-direction:column; height:auto}
+    .acc .stage{flex:0 0 auto; min-height:64px; transition:none}
+    .acc .stage.is-open{flex-basis:auto}
+    .acc .name{position:static; writing-mode:horizontal-tb; transform:none; display:block; width:100%; text-align:left; padding:22px 16px; font-size:var(--step-body)}
+    .acc .stage.is-open .name{opacity:1; pointer-events:auto}
+    .acc .inner{position:static; display:none; grid-template-columns:1fr}
+    .acc .stage.is-open .inner{display:block; opacity:1}
+    .acc .inner .text{padding:0 16px 22px}
+    .acc .inner h3{display:none}
+    .acc .inner .t{margin-top:0}
+    .acc .inner p{margin-top:10px}
+    .acc .inner img{display:none}
+    .slips-sec{height:100svh; min-height:0}
+    .slips-sec .say{top:9%; left:16px; width:calc(100% - 32px); padding:20px}
+    .slips{left:16px; right:0; overflow-x:auto; -webkit-overflow-scrolling:touch; scroll-snap-type:x proximity; padding-right:16px}
+    .slip{flex:0 0 min(30vw,170px); scroll-snap-align:start; padding:14px 12px 0}
+    .slip .pr,.slip .copyprompt,.slip h3{font-size:var(--step-small)}
+    .figure-sec{min-height:80svh; padding:20px 16px; grid-template-columns:1fr}
+    .figure-sec .src{grid-column:1; grid-row:4; justify-self:start; text-align:left; margin-top:28px}
+    .figure-sec .num{font-size:46vw}
+    .figure-sec .cap{max-width:80%}
+    .dates{padding:72px 16px 40px}
+    .faq .lead-band{min-height:38svh}
+    .faq .lead-band h2{font-size:13vw}
+    .faq .q{display:block; padding:32px 20px}
+    .faq .q .a{margin-top:12px}
+    .cta-sec{padding:32px 16px 24px}
+    .cta-sec .l1,.cta-sec .l2{font-size:18vw}
+    .cta-sec .row{flex-direction:column; gap:12px; width:72%}
+    .cta-sec .row .btn{width:100%; min-width:0}
+    .foot-split{grid-template-columns:1fr}
+    .foot-split .photo{height:50svh}
+    .foot-split .menu-half{padding:40px 20px 24px}
+    .foot-split .menu{gap:20px}
+    .foot-split .menu a{font-size:8vw}
+    .foot-split .blocks{grid-template-columns:1fr; margin-top:40px}
   }
 </style>
 </head>
 <body>
-<div class="frame">
-<header class="masthead">
-  <a class="brand" href="index.html"><span class="logo" data-size="32" aria-hidden="true"></span><span>The AI Homebrew Club</span></a>
-  <span class="est">Maine &middot; est. 2026, after 1975</span>
+<header class="masthead poster-nav">
+  <a class="brand" href="index.html">The AI Homebrew Club</a>
   <nav>
-    <a href="events.html">The circuit</a>
-    <a href="waterville.html">Waterville</a>
-    <a href="portland.html">Portland</a>
-    <a href="signup.html">Join the club</a>
-    <a href="recipes.html">The recipe box</a>
+    <a href="#dates">Dates</a>
+    <a href="recipes.html">Recipes</a>
     <a href="lend.html">Lend a room</a>
     <a class="members" href="members.html">Members&rsquo; room</a>
   </nav>
-  <button class="menu" type="button" aria-label="Menu">&#9776;</button>
+  <button class="menu" type="button" aria-label="Menu">Menu</button>
 </header>
 
-<main class="wrap">
-  <section class="hero">
-    <div class="fx col gap24">
-      <p class="folio"><b>&#8470; 01</b> &middot; The invitation &middot; Waterville, Maine</p>
-      <h1 class="display-xl">You&rsquo;re invited. One hour, and one problem off your plate.</h1>
-      <p class="lede">Neighbors teaching neighbors to put AI to work. Bring one real task that is eating your week; somebody sits with you until it&rsquo;s done. Free, no tickets, no vendors.</p>
-      <p class="kicker">&ldquo;Give to help others.&rdquo; <span class="by">the Homebrew Computer Club, 1975</span></p>
-      <p class="folio">Written by Brett Brockway, Waterville</p>
-      <div class="cta">
-        <a class="btn btn-secondary btn-lg" href="#the-hour">How the hour runs</a>
-        <a class="link" href="events.html">Every meetup, mapped &rarr;</a>
+<main>
+  <section class="poster" aria-label="The invitation">
+    <div class="fieldy">
+      <h1 class="shout lines">
+        <span class="line"><span data-line style="--i:0">AI for</span></span>
+        <span class="line"><span data-line style="--i:1">your shop</span></span>
+      </h1>
+      <figure class="scrap" data-open>
+        <div class="pic"><img src="assets/altair-8800-smithsonian-museum.jpg" width="1920" height="1009" fetchpriority="high" decoding="async" alt="The switch panel of an Altair 8800, the 1975 kit computer that filled the first Homebrew Computer Club meetings"></div>
+      </figure>
+    </div>
+    <div class="bandrow">
+      <p class="lead" id="heroLine" data-load style="--d:420ms">Free. Second Tuesdays, 10 am, Waterville, and a table once a month in Portland.</p>
+      <a class="btn btn-yellow btn-lg" id="heroRsvp" href="rsvp.html?ref=home" data-load style="--d:480ms">Save a seat</a>
+    </div>
+  </section>
+
+  <section class="hour" id="hour" aria-labelledby="hourH">
+    <div class="intro">
+      <h2 id="hourH" data-reveal>How the hour runs</h2>
+      <p data-reveal style="--i:1">Nobody leaves with homework. Six quick demos from shops like yours, then everyone names the one task eating their week, and someone sits with you until it is done.</p>
+    </div>
+    <div class="acc" data-reveal style="--i:2">
+      <div class="stage s1 is-open">
+        <button class="name" type="button" aria-expanded="true">The six things, live</button>
+        <div class="inner">
+          <div class="text"><h3>The six things, live</h3><span class="t">From 0:00</span><p>Quick real demos from shops like yours. Ten minutes each, nothing to install, nothing to buy.</p></div>
+          <img src="assets/rustic-tools-spread-across-a-weathered-wooden.jpg" width="1920" height="2876" loading="lazy" decoding="async" alt="Wrenches and a hammer laid out on a weathered green workbench">
+        </div>
+      </div>
+      <div class="stage s2">
+        <button class="name" type="button" aria-expanded="false">Pick yours</button>
+        <div class="inner">
+          <div class="text"><h3>Pick yours</h3><span class="t">From 0:15</span><p>Everyone names the one task eating their week. An estimate, a review reply, a stack of receipts, the email you keep putting off.</p></div>
+          <div class="blank"></div>
+        </div>
+      </div>
+      <div class="stage s3">
+        <button class="name" type="button" aria-expanded="false">Do it, together</button>
+        <div class="inner">
+          <div class="text"><h3>Do it, together</h3><span class="t">From 0:20</span><p>Pull out the real thing. Someone sits with you until it is done, on your laptop or just your phone.</p></div>
+          <div class="blank"></div>
+        </div>
+      </div>
+      <div class="stage s4">
+        <button class="name" type="button" aria-expanded="false">The close</button>
+        <div class="inner">
+          <div class="text"><h3>The close</h3><span class="t">From 0:55</span><p>Everyone answers one question: what would you actually try? Then the coffee urn, and the door.</p></div>
+          <div class="blank"></div>
+        </div>
       </div>
     </div>
+  </section>
 
-    <aside class="card-raised ticket" aria-label="The next meetup">
-      <div class="top">
-        <span class="folio"><b id="invTitle">The next AI Brown Bag</b></span>
-        <span class="folio" id="invTown">Waterville</span>
+  <section class="slips-sec" id="recipes" aria-labelledby="recH">
+    <figure class="scene shutter" data-shutter>
+      <img src="assets/watervilleme-downtown.jpg" width="1920" height="1440" loading="lazy" decoding="async" alt="Brick storefronts along Main Street in downtown Waterville, Maine">
+    </figure>
+    <div class="say" data-reveal>
+      <h2 id="recH">Six things AI can do for your shop this week</h2>
+      <p>Real tasks from real shops, each about ten minutes to try. Every slip ends with a prompt you can steal: copy it, paste it, see what comes back.</p>
+    </div>
+    <ul class="slips">
+      <li class="slip" style="--h:42svh;--i:0" data-reveal>
+        <h3>Write the thing you keep putting off</h3>
+        <span class="cut" aria-hidden="true">- - - - - - - - - -</span>
+        <p class="pr">&ldquo;Rewrite this message so it is friendly but firm, and shorter: [paste it]&rdquo;</p>
+        <button class="copyprompt" type="button">Copy the prompt</button>
+      </li>
+      <li class="slip" style="--h:34svh;--tilt:-1.5deg;--i:1" data-reveal>
+        <h3>Answer every customer</h3>
+        <span class="cut" aria-hidden="true">- - - - - - - - - -</span>
+        <p class="pr">&ldquo;Here is a one-star review. Draft a calm reply that owns the mistake and offers a fix: [paste it]&rdquo;</p>
+        <button class="copyprompt" type="button">Copy the prompt</button>
+      </li>
+      <li class="slip" style="--h:44svh;--i:2" data-reveal>
+        <h3>A month of marketing in an hour</h3>
+        <span class="cut" aria-hidden="true">- - - - - - - - - -</span>
+        <p class="pr">&ldquo;Write 8 Facebook posts for a [your business] in [your town]. Plain local voice, no hashtag soup.&rdquo;</p>
+        <button class="copyprompt" type="button">Copy the prompt</button>
+      </li>
+      <li class="slip" style="--h:30svh;--tilt:1.2deg;--i:3" data-reveal>
+        <h3>Shrink the paperwork pile</h3>
+        <span class="cut" aria-hidden="true">- - - - - - - - - -</span>
+        <p class="pr">&ldquo;Turn these receipt photos into a list with date, vendor, amount, and category.&rdquo;</p>
+        <button class="copyprompt" type="button">Copy the prompt</button>
+      </li>
+      <li class="slip" style="--h:38svh;--i:4" data-reveal>
+        <h3>Read the fine print for you</h3>
+        <span class="cut" aria-hidden="true">- - - - - - - - - -</span>
+        <p class="pr">&ldquo;Compare these two quotes in a table and tell me what questions to ask before I sign.&rdquo;</p>
+        <button class="copyprompt" type="button">Copy the prompt</button>
+      </li>
+      <li class="slip" style="--h:26svh;--tilt:-1deg;--i:5" data-reveal>
+        <h3>Take back your evenings</h3>
+        <span class="cut" aria-hidden="true">- - - - - - - - - -</span>
+        <p class="pr">&ldquo;Plan five weeknight dinners a picky ten-year-old will eat, with one grocery list.&rdquo;</p>
+        <button class="copyprompt" type="button">Copy the prompt</button>
+      </li>
+    </ul>
+  </section>
+
+  <section class="figure-sec" id="why" aria-labelledby="whyH">
+    <h2 id="whyH" data-reveal>AI is the great equalizer</h2>
+    <div class="fig" data-reveal style="--i:1">
+      <span class="num">2<sup>x</sup></span>
+      <p class="cap">Small-business owners using AI more than doubled from 2023 to 2026: from under a quarter of owners to more than half, in the U.S. Chamber of Commerce surveys.</p>
+    </div>
+    <p class="src" data-reveal style="--i:2">Sources: <a href="https://www.uschamber.com/technology/empowering-small-business-the-impact-of-technology-on-u-s-small-business">U.S. Chamber of Commerce</a>, the <a href="https://www.uschamberfoundation.org/workforce/what-small-business-owners-say-ai-is-actually-doing-at-work">Chamber Foundation with Ipsos</a>, and <a href="https://quickbooks.intuit.com/r/small-business-data/ai-impact-report/">Intuit QuickBooks</a> owner surveys, 2024 to 2026. Big companies can afford a back office. AI hands that same back office to anyone with a truck, a storefront, or a license.</p>
+  </section>
+
+  <section class="dates" id="dates" aria-labelledby="datesH">
+    <div class="col" data-reveal>
+      <h2 id="datesH">Dates</h2>
+      <div class="bars" id="bars">
+        <div class="bar is-open">
+          <button class="summary" type="button" aria-expanded="true"><span>Tue, Nov 10, Waterville</span><span class="plus" aria-hidden="true">+</span></button>
+          <div class="panel">
+            <div class="kv"><span>Where</span><span>The conference room at Bricks Coworking, 10 Water St, Waterville</span></div>
+            <div class="kv"><span>When</span><span>Tuesday, November 10, 10:00 am, one hour</span></div>
+            <div class="kv"><span>Chairs</span><span>Eight, first come, first served</span></div>
+            <div class="tabs" aria-label="Chairs"><a href="rsvp.html?event=nov10-bricks&amp;ref=home" aria-label="Save this seat">Seat</a><a href="rsvp.html?event=nov10-bricks&amp;ref=home" aria-label="Save this seat">Seat</a><a href="rsvp.html?event=nov10-bricks&amp;ref=home" aria-label="Save this seat">Seat</a><a href="rsvp.html?event=nov10-bricks&amp;ref=home" aria-label="Save this seat">Seat</a><a href="rsvp.html?event=nov10-bricks&amp;ref=home" aria-label="Save this seat">Seat</a><a href="rsvp.html?event=nov10-bricks&amp;ref=home" aria-label="Save this seat">Seat</a><a href="rsvp.html?event=nov10-bricks&amp;ref=home" aria-label="Save this seat">Seat</a><a href="rsvp.html?event=nov10-bricks&amp;ref=home" aria-label="Save this seat">Seat</a></div>
+            <div class="go"><a class="btn btn-primary" href="rsvp.html?event=nov10-bricks&amp;ref=home">Save a seat</a><a href="events.html">Add to calendar</a><a href="waterville.html">The agenda</a></div>
+          </div>
+        </div>
+        <div class="bar">
+          <button class="summary" type="button" aria-expanded="false"><span>Thu, Nov 19, Portland</span><span class="plus" aria-hidden="true">+</span></button>
+          <div class="panel">
+            <div class="kv"><span>Where</span><span>Posted on the Portland page</span></div>
+            <div class="kv"><span>When</span><span>Late afternoon, two hours</span></div>
+            <div class="kv"><span>Chairs</span><span>Twelve, first come, first served</span></div>
+            <div class="go"><a class="btn btn-primary" href="rsvp.html?event=nov19-maineco&amp;ref=home">Save a seat</a><a href="portland.html">The agenda</a></div>
+          </div>
+        </div>
+        <div class="bar">
+          <button class="summary" type="button" aria-expanded="false"><span>Tue, Dec 8, Waterville</span><span class="plus" aria-hidden="true">+</span></button>
+          <div class="panel">
+            <div class="kv"><span>Where</span><span>Bricks Coworking, 10 Water St</span></div>
+            <div class="kv"><span>When</span><span>10:00 am, one hour</span></div>
+            <div class="kv"><span>Chairs</span><span>Eight, first come, first served</span></div>
+            <div class="go"><a class="btn btn-primary" href="rsvp.html?event=dec8-bricks&amp;ref=home">Save a seat</a><a href="waterville.html">The agenda</a></div>
+          </div>
+        </div>
+        <div class="bar">
+          <button class="summary" type="button" aria-expanded="false"><span>Thu, Dec 17, Portland</span><span class="plus" aria-hidden="true">+</span></button>
+          <div class="panel">
+            <div class="kv"><span>Where</span><span>Posted on the Portland page</span></div>
+            <div class="kv"><span>When</span><span>Late afternoon, two hours</span></div>
+            <div class="kv"><span>Chairs</span><span>Twelve, first come, first served</span></div>
+            <div class="go"><a class="btn btn-primary" href="rsvp.html?event=dec17-maineco&amp;ref=home">Save a seat</a><a href="portland.html">The agenda</a></div>
+          </div>
+        </div>
+        <div class="bar">
+          <button class="summary" type="button" aria-expanded="false"><span>Tue, Jan 12, Waterville</span><span class="plus" aria-hidden="true">+</span></button>
+          <div class="panel">
+            <div class="kv"><span>Where</span><span>Bricks Coworking, 10 Water St</span></div>
+            <div class="kv"><span>When</span><span>10:00 am, one hour</span></div>
+            <div class="kv"><span>Chairs</span><span>Eight, first come, first served</span></div>
+            <div class="go"><a class="btn btn-primary" href="rsvp.html?event=jan12-bricks&amp;ref=home">Save a seat</a><a href="waterville.html">The agenda</a></div>
+          </div>
+        </div>
+        <div class="bar">
+          <button class="summary" type="button" aria-expanded="false"><span>Thu, Jan 21, Portland</span><span class="plus" aria-hidden="true">+</span></button>
+          <div class="panel">
+            <div class="kv"><span>Where</span><span>Posted on the Portland page</span></div>
+            <div class="kv"><span>When</span><span>Late afternoon, two hours</span></div>
+            <div class="kv"><span>Chairs</span><span>Twelve, first come, first served</span></div>
+            <div class="go"><a class="btn btn-primary" href="rsvp.html?event=jan21-maineco&amp;ref=home">Save a seat</a><a href="portland.html">The agenda</a></div>
+          </div>
+        </div>
+        <div class="bar">
+          <button class="summary" type="button" aria-expanded="false"><span>Tue, Feb 9, Waterville</span><span class="plus" aria-hidden="true">+</span></button>
+          <div class="panel">
+            <div class="kv"><span>Where</span><span>Bricks Coworking, 10 Water St</span></div>
+            <div class="kv"><span>When</span><span>10:00 am, one hour</span></div>
+            <div class="kv"><span>Chairs</span><span>Eight, first come, first served</span></div>
+            <div class="go"><a class="btn btn-primary" href="rsvp.html?event=feb9-bricks&amp;ref=home">Save a seat</a><a href="waterville.html">The agenda</a></div>
+          </div>
+        </div>
+        <div class="bar">
+          <button class="summary" type="button" aria-expanded="false"><span>Thu, Feb 18, Portland</span><span class="plus" aria-hidden="true">+</span></button>
+          <div class="panel">
+            <div class="kv"><span>Where</span><span>Posted on the Portland page</span></div>
+            <div class="kv"><span>When</span><span>Late afternoon, two hours</span></div>
+            <div class="kv"><span>Chairs</span><span>Twelve, first come, first served</span></div>
+            <div class="go"><a class="btn btn-primary" href="rsvp.html?event=feb18-maineco&amp;ref=home">Save a seat</a><a href="portland.html">The agenda</a></div>
+          </div>
+        </div>
       </div>
-      <div class="date">
-        <span class="big" id="invWhen">The next date lands on <a href="waterville.html">the Waterville page</a> first</span>
-        <span class="time" id="invTime">Agenda posted there too &middot; every meetup, mapped, on <a href="events.html">the circuit</a></span>
+      <p class="more">The whole circuit through April, with every past table, is <a href="events.html">on the map</a>.</p>
+    </div>
+  </section>
+
+  <section class="faq" id="rules" aria-labelledby="rulesH">
+    <div class="lead-band"><h2 id="rulesH" data-reveal>Free at the door</h2></div>
+    <div class="q" data-reveal><h3>Does it cost anything?</h3><p class="a">No. No tiers, no tickets, no gate. The recipes are free and they always will be. Commerce grows out of community, not the reverse.</p></div>
+    <div class="q" data-reveal><h3>Who is it for?</h3><p class="a">Anyone with a truck, a storefront, or a license. Electricians, oil companies, landlords, video people, bookkeepers, the person who runs the front desk. Same wrenches, same trucks, big-company margins, with your name still on the door.</p></div>
+    <div class="q" data-reveal><h3>What should I bring?</h3><p class="a">A laptop or just your phone, and one real task that is eating your week. Not a question about AI, the actual estimate, review, lease or receipt pile.</p></div>
+    <div class="q" data-reveal><h3>Will anyone sell me something?</h3><p class="a">No vendors pitching from the podium, ever. Demo slots are earned, never sold, and every demo has to answer one question first: what did this change for you?</p></div>
+    <div class="q" data-reveal><h3>How does the hour end?</h3><p class="a">Everyone answers one question: what would you actually try? Come once and you are a member. Your key to the clubhouse is handed out at the table.</p></div>
+    <div class="q" data-reveal><h3>Why Homebrew?</h3><div class="a"><p>In March 1975 a typed invitation went up on bulletin boards around Menlo Park: are you building your own computer? Come swap ideas, talk shop, help work on a project. That club gave away what it learned, and the personal computer came out of it. This one gives away what it learns about AI, in Maine, a table at a time. Give to help others.</p><img src="assets/invitation-to-first-homebrew-computer-club-meeting.jpg" width="1720" height="1161" loading="lazy" decoding="async" alt="The typed invitation to the first Homebrew Computer Club meeting, dated February 1975"></div></div>
+  </section>
+
+  <section class="cta-sec" aria-labelledby="ctaH">
+    <h2 id="ctaH"><span class="l1" data-reveal>Your town</span><span class="l2" data-reveal style="--i:2">or ours?</span></h2>
+    <div class="mid" data-reveal style="--i:1">
+      <div class="row">
+        <a class="btn btn-yellow btn-lg" id="ctaRsvp" href="rsvp.html?ref=home">Save a seat</a>
+        <span class="or">or</span>
+        <a class="btn btn-secondary btn-lg" href="lend.html?ref=home">Lend a room</a>
       </div>
-      <div class="rows">
-        <div class="r"><span class="k">Where</span><span id="invWhere">Posted on <a href="waterville.html">the Waterville page</a> the moment it&rsquo;s set</span></div>
-        <div class="r"><span class="k">Bring</span><span>A laptop or just your phone, and one real task that is eating your week.</span></div>
-        <div class="r"><span class="k">Cost</span><span>Free. No tickets, no vendors, nobody selling you anything.</span></div>
-        <div class="r"><span class="k">Seats</span><span id="invSeats">First come, first served. RSVP so we can save yours.</span></div>
-      </div>
-      <div class="foot">
-        <a class="btn btn-primary btn-lg" href="rsvp.html?ref=home" id="invRsvp">Save my seat</a>
-        <a class="btn btn-ghost" id="invCal" href="events.html" target="_blank" rel="noopener" hidden>Add to calendar</a>
-      </div>
-    </aside>
+      <p class="after">Either way it is free, and a person writes back.</p>
+    </div>
   </section>
 </main>
 
-<section class="band alt" id="the-hour">
-  <div class="wrap">
-    <div class="sec-h">
-      <div class="l">
-        <p class="folio"><b>&#8470; 02</b> &middot; The hour</p>
-        <h2 class="display-l">One hour. Six problems. Zero lectures.</h2>
-      </div>
-      <p class="kicker r">Nobody leaves with homework. <span class="hl">You leave with one problem already gone.</span></p>
-    </div>
-    <div class="timeline">
-      <div class="step"><span class="t">0:00</span><span class="ti">The six things, live.</span><span class="d">Quick real demos, from shops like yours.</span></div>
-      <div class="step"><span class="t">0:15</span><span class="ti">Pick yours.</span><span class="d">Everyone names the one eating their week.</span></div>
-      <div class="step"><span class="t">0:20</span><span class="ti">Do it, together.</span><span class="d">Pull out your real task. Someone sits with you until it is done.</span></div>
-      <div class="step"><span class="t">0:55</span><span class="ti">The close.</span><span class="d">Everyone answers one question: what would you actually try?</span></div>
-    </div>
-  </div>
-</section>
-
-<section class="band">
-  <div class="wrap">
-    <div class="sec-h">
-      <div class="l">
-        <p class="folio"><b>&#8470; 03</b> &middot; Six things AI can do for you this week</p>
-        <h2 class="display-l">Real tasks from real shops.</h2>
-        <p class="lede">Each takes about ten minutes to try, and every card ends with a prompt you can steal.</p>
-      </div>
-      <a class="btn btn-secondary" href="recipes.html">Open the recipe box</a>
-    </div>
-    <div class="recipes">
-      <div class="card rc">
-        <span class="num">01 / 06</span>
-        <h3>Write the thing you keep putting off</h3>
-        <p class="body">Estimates, listings, the friendly&#8209;but&#8209;firm payment reminder, the apology that keeps a customer.</p>
-        <div class="index-card"><span class="lbl">Steal this prompt</span><span class="pr">&ldquo;Rewrite this message so it is friendly but firm, and shorter: [paste it]&rdquo;</span></div>
-        <div class="cp"><button class="btn btn-ghost btn-sm copyprompt" type="button">Copy the prompt</button></div>
-      </div>
-      <div class="card rc">
-        <span class="num">02 / 06</span>
-        <h3>Answer every customer</h3>
-        <p class="body">Replies to reviews and inquiries, quotes turned around the same day, a FAQ built from the questions you answer every week.</p>
-        <div class="index-card"><span class="lbl">Steal this prompt</span><span class="pr">&ldquo;Here is a one&#8209;star review. Draft a calm reply that owns the mistake and offers a fix: [paste it]&rdquo;</span></div>
-        <div class="cp"><button class="btn btn-ghost btn-sm copyprompt" type="button">Copy the prompt</button></div>
-      </div>
-      <div class="card rc">
-        <span class="num">03 / 06</span>
-        <h3>Do a month of marketing in an hour</h3>
-        <p class="body">Social posts that sound like you, flyer copy, and your Google profile finally filled out.</p>
-        <div class="index-card"><span class="lbl">Steal this prompt</span><span class="pr">&ldquo;Write 8 Facebook posts for a [your business] in [your town]. Plain local voice, no hashtag soup.&rdquo;</span></div>
-        <div class="cp"><button class="btn btn-ghost btn-sm copyprompt" type="button">Copy the prompt</button></div>
-      </div>
-      <div class="card rc">
-        <span class="num">04 / 06</span>
-        <h3>Shrink the paperwork pile</h3>
-        <p class="body">Photograph a stack of receipts and get a tidy list. Summarize a lease. First&#8209;draft an invoice.</p>
-        <div class="index-card"><span class="lbl">Steal this prompt</span><span class="pr">&ldquo;Turn these receipt photos into a list with date, vendor, amount, and category.&rdquo;</span></div>
-        <div class="cp"><button class="btn btn-ghost btn-sm copyprompt" type="button">Copy the prompt</button></div>
-      </div>
-      <div class="card rc">
-        <span class="num">05 / 06</span>
-        <h3>Read the fine print for you</h3>
-        <p class="body">Contracts in plain English. Three insurance quotes in one table. What that new rule actually means for your shop.</p>
-        <div class="index-card"><span class="lbl">Steal this prompt</span><span class="pr">&ldquo;Compare these two quotes in a table and tell me what questions to ask before I sign.&rdquo;</span></div>
-        <div class="cp"><button class="btn btn-ghost btn-sm copyprompt" type="button">Copy the prompt</button></div>
-      </div>
-      <div class="card rc">
-        <span class="num">06 / 06</span>
-        <h3>Take back your evenings</h3>
-        <p class="body">Dinner plans a kid will actually eat, the trip itinerary, homework help, the gift idea.</p>
-        <div class="index-card"><span class="lbl">Steal this prompt</span><span class="pr">&ldquo;Plan five weeknight dinners a picky ten&#8209;year&#8209;old will eat, with one grocery list.&rdquo;</span></div>
-        <div class="cp"><button class="btn btn-ghost btn-sm copyprompt" type="button">Copy the prompt</button></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="band alt">
-  <div class="wrap eq">
-    <div class="fx col gap16">
-      <p class="folio"><b>&#8470; 04</b> &middot; Why we meet</p>
-      <h2 class="display-l">AI is the great equalizer.</h2>
-      <p class="lede">The greatest way to redistribute wealth is to increase participation in capitalism. Big companies win because they can afford a back office: schedulers, bookkeepers, marketers, collectors. AI hands that same back office to anyone with a truck, a storefront, or a license.</p>
-      <p class="kicker" style="margin-top:8px">Same wrenches. Same trucks. <span class="hl">Big&#8209;company margins,</span> with your name still on the door.</p>
-    </div>
-    <div class="fx col gap12">
-      <div class="stats">
-        <div class="card stat"><span class="n teal">2x</span><span class="l">Small&#8209;business AI use has more than doubled since 2023.</span></div>
-        <div class="card stat"><span class="n tang">1 in 4</span><span class="l">Owners using AI say it shortened their workday.</span></div>
-      </div>
-      <p class="small statsrc"><a href="https://www.uschamber.com/technology/empowering-small-business-the-impact-of-technology-on-u-s-small-business">U.S. Chamber of Commerce</a>, <a href="https://www.uschamberfoundation.org/workforce/what-small-business-owners-say-ai-is-actually-doing-at-work">U.S. Chamber Foundation/Ipsos</a>, and <a href="https://quickbooks.intuit.com/r/small-business-data/ai-impact-report/">Intuit QuickBooks</a> owner surveys, 2024 to 2026</p>
-    </div>
-  </div>
-</section>
-
-<section class="band">
-  <div class="wrap">
-    <div class="sec-h">
-      <div class="l">
-        <p class="folio"><b>&#8470; 05</b> &middot; Find your seat</p>
-        <h2 class="display-l">Three rungs. Free at every one.</h2>
-        <p class="lede">Two tracks run through everything: working with agents, and staying human. Free at every rung.</p>
-      </div>
-    </div>
-    <div class="ladder">
-      <div class="rung"><span class="lv a">101</span><span class="bring">Bring your lunch</span><h3>Use AI tonight</h3><p class="body">No jargon, no setup. Bring one real task from your week and leave with it done. This is where everyone starts.</p></div>
-      <div class="rung"><span class="lv b">201</span><span class="bring">Bring extra</span><h3>Build with AI</h3><p class="body">Agents that do whole jobs. Your first workflows, your first harness, your first GitHub repo.</p></div>
-      <div class="rung"><span class="lv c">301</span><span class="bring">Run the lunch counter</span><h3>Run on AI</h3><p class="body">Wire agents into a real business: quoting, books, marketing, dispatch. You review the work like a manager.</p></div>
-    </div>
-  </div>
-</section>
-
-<section class="band alt">
-  <div class="wrap">
-    <div class="sec-h">
-      <div class="l">
-        <p class="folio"><b>&#8470; 06</b> &middot; House rules</p>
-        <h2 class="display-l">Free at the door. Always.</h2>
-      </div>
-      <p class="kicker r">Commerce grows out of community, not the reverse.</p>
-    </div>
-    <ul class="rules">
-      <li class="ru"><span class="n">i.</span><span>No tiers, no tickets, no gate.</span></li>
-      <li class="ru"><span class="n">ii.</span><span>Demo slots are earned, never sold.</span></li>
-      <li class="ru"><span class="n">iii.</span><span>No vendors pitching from the podium.</span></li>
-      <li class="ru"><span class="n">iv.</span><span>Every demo answers: <em>&ldquo;What did this change for you?&rdquo;</em></span></li>
-      <li class="ru"><span class="n">v.</span><span>Every class ends with: <em>&ldquo;What would you actually try?&rdquo;</em></span></li>
-      <li class="ru blank" aria-hidden="true"><span class="n"></span><span></span></li>
+<footer class="foot-split">
+  <figure class="photo">
+    <img src="assets/two-cent-bridge-waterville-maine.jpg" width="1920" height="1280" loading="lazy" decoding="async" alt="The Two Cent Bridge over the Kennebec River in Waterville, with its red toll house">
+  </figure>
+  <div class="menu-half">
+    <a class="mark" href="index.html">The AI Homebrew Club</a>
+    <ul class="menu">
+      <li><a href="events.html">The circuit</a></li>
+      <li><a href="waterville.html">Waterville</a></li>
+      <li><a href="portland.html">Portland</a></li>
+      <li><a href="signup.html">Join the club</a></li>
+      <li><a href="recipes.html">The recipe box</a></li>
+      <li><a href="lend.html">Lend a room</a></li>
+      <li><a href="members.html">Members&rsquo; room</a></li>
     </ul>
-  </div>
-</section>
-
-<footer class="foot">
-  <div class="wrap">
-    <div class="cols">
-      <div class="fx col gap12">
-        <h2 class="display-m">Come to the first AI Brown Bag. Bring a neighbor.</h2>
-        <p class="body">Bricks Coworking &amp; Innovation Space &middot; Hathaway Creative Center &middot; 10 Water St, Waterville</p>
-        <div class="fx gap12 fwrap" style="margin-top:6px"><a class="btn btn-primary" href="rsvp.html?ref=home" id="footRsvp">Save my seat</a><a class="btn btn-secondary" href="lend.html?ref=home">Lend a room</a></div>
-      </div>
-      <div class="flist"><h4>The club</h4><a href="events.html">The circuit</a><a href="waterville.html">Waterville</a><a href="portland.html">Portland</a><a href="recipes.html">The recipe box</a><a href="members.html">Members&rsquo; room</a></div>
-      <div class="flist"><h4>Start a chapter</h4><a href="lend.html?ref=home">Got a room to lend? Start a chapter.</a><a href="events.html">Every meetup, mapped.</a></div>
-      <div class="flist"><h4>Always</h4><a href="recipes.html">The recipes are free. They always will be.</a><a href="#the-hour">No tickets, no vendors.</a><a href="members.html">Been to a meetup? The members&rsquo; room is open.</a></div>
+    <div class="blocks">
+      <p>Hosted by Brett Brockway of <a href="https://www.standardmanagementcompany.com/">Standard Management Company</a>, Waterville, Maine. The Waterville table meets at Bricks Coworking in the Hathaway Creative Center, 10 Water Street.</p>
+      <p>A revival of the Homebrew Computer Club, 1975 to 1986. Give to help others. Tell a neighbor: aihomebrewclub.com/signup.</p>
     </div>
-    <div class="bot">
-      <span class="folio">aihomebrewclub.com &middot; a modern revival of the Homebrew Computer Club, 1975 &ndash; 1986</span>
-      <span class="folio">Give to help others.</span>
-      <span class="folio">Hosted by Brett Brockway of <a href="https://www.standardmanagementcompany.com/">Standard Management Company</a>, Waterville, Maine.</span>
+    <div class="legal">
+      <p class="credits">Pictures: <a href="https://commons.wikimedia.org/w/index.php?curid=8828381">“Altair 8800, Smithsonian Museum”</a> by Ed Uthman, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC BY-SA 2.0</a>; <a href="https://commons.wikimedia.org/w/index.php?curid=186624329">“Rustic tools spread across a weathered wooden workbench”</a> by Shixart1985, <a href="https://creativecommons.org/licenses/by/2.0/">CC BY 2.0</a>; <a href="https://commons.wikimedia.org/w/index.php?curid=44322447">“WatervilleME Downtown”</a> by Doug Kerr, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC BY-SA 2.0</a>; <a href="https://commons.wikimedia.org/w/index.php?curid=29592690">“Invitation to First Homebrew Computer Club meeting”</a> by Gotanero, <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>; <a href="https://commons.wikimedia.org/w/index.php?curid=28793861">“Two-cent bridge, Waterville, Maine”</a> by Sarah Brewer, <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>; all via Wikimedia Commons.</p>
+      <p>aihomebrewclub.com. No tickets, no vendors, no list sold to anyone.</p>
     </div>
   </div>
 </footer>
-</div>
 
+<script>document.documentElement.classList.add('js');</script>
 <script src="assets/config.js?v=6"></script>
-<script src="assets/site.js?v=5"></script>
+<script src="assets/site.js?v=6"></script>
 <script>
 (function(){
   'use strict';
-  var UI = window.AIHC_UI;
+  var UI = window.AIHC_UI, CFG = window.AIHC_CONFIG;
   var esc = UI.esc, fmtTime = UI.fmtTime, $ = UI.$;
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  /* the recipe cards: copy the prompt off the index card */
+  /* the accordion: one open stage, the rest slivers */
+  var stages = Array.prototype.slice.call(document.querySelectorAll('.acc .stage'));
+  function openStage(s){
+    stages.forEach(function(x){
+      var on = x === s;
+      x.classList.toggle('is-open', on);
+      x.querySelector('.name').setAttribute('aria-expanded', on ? 'true' : 'false');
+    });
+  }
+  stages.forEach(function(s){ s.querySelector('.name').addEventListener('click', function(){ openStage(s); }); });
+
+  /* the slips: copy the prompt */
   document.querySelectorAll('.copyprompt').forEach(function(btn){
     btn.addEventListener('click', function(){
-      var card = btn.closest('.rc');
-      var pr = card && card.querySelector('.index-card .pr');
+      var slip = btn.closest('.slip');
+      var pr = slip && slip.querySelector('.pr');
       var text = pr ? pr.textContent.trim().replace(/^[“"]|[”"]$/g, '') : '';
       if (!text || !navigator.clipboard){ UI.toast('Select the prompt and copy it by hand.'); return; }
       navigator.clipboard.writeText(text)
@@ -331,51 +508,96 @@
     });
   });
 
-  /* the seat meter: one square per chair at the table */
-  function seatMeter(e){
-    var cap = parseInt(e.capacity, 10) || 0;
-    var left = Math.max(0, parseInt(e.left, 10) || 0);
-    var taken = Math.max(0, cap - left);
-    var full = cap > 0 && left <= 0;
-    var sq = '';
-    for (var i = 0; i < Math.min(cap, 40); i++) sq += '<span class="s' + (i < taken ? '' : ' open') + '"></span>';
-    var n = full
-      ? 'all spoken for, but the waitlist works'
-      : (cap > 0 ? esc(String(left)) + ' of ' + esc(String(cap)) + ' left · first come, first served' : 'first come, first served');
-    return '<span class="seats' + (full ? ' full' : '') + '">' +
-      (sq ? '<span class="row">' + sq + '</span>' : '') +
-      '<span class="n">' + n + '</span></span>';
+  /* arrivals: once, when a section enters; the shutter on Main Street */
+  var targets = document.querySelectorAll('[data-reveal], [data-shutter]');
+  if ('IntersectionObserver' in window && !reduce){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){ if (en.isIntersecting){ en.target.classList.add('is-in'); io.unobserve(en.target); } });
+    }, { rootMargin: '0px 0px -12% 0px', threshold: 0.1 });
+    targets.forEach(function(el){ io.observe(el); });
+  } else {
+    targets.forEach(function(el){ el.classList.add('is-in'); });
   }
 
-  /* the invite ticket fills itself from the live calendar, so the date can never go stale */
-  fetch(window.AIHC_CONFIG.API_BASE + '/events')
+  /* the giant word fits its column by measurement, not by guess */
+  function fitWord(){
+    var h = $('datesH'); if (!h) return;
+    var col = h.parentNode; var w = col.clientWidth; if (!w) return;
+    h.style.fontSize = '100px';
+    var at100 = h.scrollWidth || h.getBoundingClientRect().width;
+    if (at100) h.style.fontSize = Math.floor(100 * w / at100) + 'px';
+  }
+  fitWord();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitWord);
+  window.addEventListener('resize', fitWord);
+
+  /* dates */
+  var DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function shortDate(iso){
+    var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ''); if (!m) return '';
+    var d = new Date(+m[1], +m[2] - 1, +m[3], 12);
+    return DAYS[d.getDay()] + ', ' + MONTHS[d.getMonth()] + ' ' + d.getDate();
+  }
+  function townOf(e){ var pt = CFG.CITY_POINTS[e.city]; return pt ? pt.label : (e.city || '').replace(/^\w/, function(c){ return c.toUpperCase(); }); }
+  function rsvpHref(e){ return 'rsvp.html?event=' + encodeURIComponent(e.id) + '&ref=home'; }
+
+  /* the tear-off tabs: one per chair, the taken ones gone */
+  function tabs(e){
+    var cap = Math.min(16, parseInt(e.capacity, 10) || 0);
+    if (!cap) return '';
+    var left = Math.max(0, parseInt(e.left, 10) || 0);
+    var taken = Math.max(0, cap - left);
+    var out = '<div class="tabs" aria-label="Chairs">';
+    for (var i = 0; i < cap; i++){
+      out += i < taken
+        ? '<span class="gone" aria-label="Taken">Taken</span>'
+        : '<a href="' + esc(rsvpHref(e)) + '" aria-label="Save this seat">Seat</a>';
+    }
+    return out + '</div>';
+  }
+  function bar(e, i){
+    var t = fmtTime(e.start_time);
+    var left = Math.max(0, parseInt(e.left, 10) || 0), cap = parseInt(e.capacity, 10) || 0;
+    var full = cap > 0 && left <= 0;
+    var chairs = cap ? (full ? 'Full, the waitlist works' : left + ' of ' + cap + ' left') : 'First come, first served';
+    return '<div class="bar' + (i === 0 ? ' is-open' : '') + '">' +
+      '<button class="summary" type="button" aria-expanded="' + (i === 0 ? 'true' : 'false') + '"><span>' + esc(shortDate(e.sort_date)) + ', ' + esc(townOf(e)) + '</span><span class="plus" aria-hidden="true">+</span></button>' +
+      '<div class="panel">' +
+        (e.location ? '<div class="kv"><span>Where</span><span>' + esc(e.location) + '</span></div>' : '') +
+        '<div class="kv"><span>When</span><span>' + esc(e.when || '') + (t ? ', ' + esc(t) : '') + ', ' + esc(UI.lengthPhrase(e.minutes)) + '</span></div>' +
+        '<div class="kv"><span>Chairs</span><span>' + esc(chairs) + '</span></div>' +
+        tabs(e) +
+        '<div class="go"><a class="btn btn-primary" href="' + esc(rsvpHref(e)) + '">' + (full ? 'Join the waitlist' : 'Save a seat') + '</a>' +
+          (e.gcal ? '<a href="' + esc(e.gcal) + '" target="_blank" rel="noopener">Add to calendar</a>' : '') +
+          '<a href="' + esc(e.city === 'portland' ? 'portland.html' : 'waterville.html') + '">The agenda</a></div>' +
+      '</div></div>';
+  }
+  /* a bar opens in place; any number may be open */
+  $('bars').addEventListener('click', function(ev){
+    var btn = ev.target.closest('.summary'); if (!btn) return;
+    var b = btn.closest('.bar'); var on = !b.classList.contains('is-open');
+    b.classList.toggle('is-open', on); btn.setAttribute('aria-expanded', on ? 'true' : 'false');
+  });
+
+  /* the page fills itself from the live calendar, so the date can never go stale */
+  fetch(CFG.API_BASE + '/events')
     .then(function(r){ return r.json(); })
     .then(function(d){
       var up = ((d && d.events) || []).filter(function(e){ return e.status === 'upcoming'; })
         .sort(function(a, b){ return a.sort_date < b.sort_date ? -1 : 1; });
       if (!up.length) return;
       var e = up[0];
-      if (e.title) $('invTitle').textContent = e.title;
-      var pt = window.AIHC_CONFIG.CITY_POINTS[e.city];
-      if (pt) $('invTown').textContent = pt.label;
-      if (e.location) $('invWhere').textContent = e.location;
-      if (e.when){
-        var t = fmtTime(e.start_time);
-        $('invWhen').textContent = e.when;
-        $('invTime').textContent = t ? t + ' · ' + UI.lengthPhrase(e.minutes) : 'Time announced soon';
-      }
-      $('invSeats').innerHTML = seatMeter(e);
-      var full = !(e.left > 0);
-      var href = 'rsvp.html?event=' + encodeURIComponent(e.id) + '&ref=home';
-      var rsvp = $('invRsvp');
-      rsvp.href = href;
-      rsvp.textContent = full ? 'Join the waitlist' : 'Save my seat';
-      var foot = $('footRsvp');
-      if (foot){ foot.href = href; foot.textContent = rsvp.textContent; }
-      var cal = $('invCal');
-      if (e.gcal){ cal.href = e.gcal; cal.hidden = false; }
+      var t = fmtTime(e.start_time);
+      var left = Math.max(0, parseInt(e.left, 10) || 0), cap = parseInt(e.capacity, 10) || 0;
+      var full = cap > 0 && left <= 0;
+      $('heroLine').textContent = 'Free. Next table: ' + shortDate(e.sort_date) + (t ? ', ' + t : '') + ', ' + townOf(e) + '. ' +
+        (cap ? (full ? 'Full, but the waitlist works.' : left + ' of ' + cap + ' chairs left.') : 'Bring one real task from your week.');
+      var label = full ? 'Join the waitlist' : 'Save a seat';
+      ['heroRsvp', 'ctaRsvp'].forEach(function(id){ var a = $(id); if (a){ a.href = rsvpHref(e); a.textContent = label; } });
+      $('bars').innerHTML = up.slice(0, 8).map(bar).join('');
     })
-    .catch(function(){ /* the static fallback copy stands */ });
+    .catch(function(){ /* the printed dates stand */ });
 })();
 </script>
 </body>

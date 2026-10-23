@@ -25,6 +25,39 @@
   CFG.paintLogos(document);
   CFG.paintLevels(document, 60, 84);
 
+  /* arrival: on pages that choreograph nothing themselves, the parts of each section rise once as
+     they enter, staggered in reading order. Everything is painted first; this only adds the arrival. */
+  document.documentElement.classList.add('js');
+  (function(){
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var own = !!document.querySelector('[data-reveal]');   /* a page that choreographs itself is left alone */
+    var io = ('IntersectionObserver' in window && !reduce) ? new IntersectionObserver(function(entries){
+      entries.forEach(function(en){ if (en.isIntersecting){ en.target.classList.add('is-in'); io.unobserve(en.target); } });
+    }, { rootMargin: '0px 0px -12% 0px', threshold: 0.05 }) : null;
+    var seen = 0;
+    function watch(el){ if (io) io.observe(el); else el.classList.add('is-in'); }
+    function tag(root){
+      if (own) return;
+      var parts = root.querySelectorAll('h2, h3, .body, .lede, .hand, .callsheet .row, .index-card, .field, .fine, .infoc .r, .evc .r, .later .p, .past .p, .fact, .qr, img, .seats, .evx, .town, .rcp, .btn-lg, .btn-primary');
+      var i = 0;
+      Array.prototype.forEach.call(parts, function(el){
+        if (seen >= 80 || el.hasAttribute('data-reveal') || el.closest('[data-reveal]') || el.closest('header, footer')) return;
+        el.setAttribute('data-reveal', ''); el.style.setProperty('--i', String(i % 6)); i++; seen++;
+        watch(el);
+      });
+    }
+    var main = document.querySelector('main') || document.body;
+    if (own) Array.prototype.forEach.call(document.querySelectorAll('[data-reveal]'), watch);
+    else {
+      tag(main);
+      if ('MutationObserver' in window){
+        var pending = null;
+        new MutationObserver(function(){ clearTimeout(pending); pending = setTimeout(function(){ tag(main); }, 60); })
+          .observe(main, { childList: true, subtree: true });
+      }
+    }
+  })();
+
   /* the masthead's small-screen menu button */
   var menuBtn = document.querySelector('.masthead .menu');
   if (menuBtn) menuBtn.addEventListener('click', function(){ document.body.classList.toggle('nav-open'); });
@@ -52,7 +85,7 @@
 
   var btn = document.createElement('button');
   btn.className = 'deckbtn'; btn.type = 'button';
-  btn.innerHTML = '&#9776; The club'; btn.setAttribute('aria-label', 'Club menu');
+  btn.innerHTML = 'The club'; btn.setAttribute('aria-label', 'Club menu');
   var pane = document.createElement('nav');
   pane.className = 'deckpane'; pane.id = 'deckPane'; pane.setAttribute('aria-label', 'The club');
   CFG.buildDeckPane(pane, current, session ? session.role : '');

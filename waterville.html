@@ -11,53 +11,59 @@
 <meta property="og:url" content="https://aihomebrewclub.com/waterville.html">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="assets/site.css?v=4">
+<link rel="stylesheet" href="assets/site.css?v=5">
 <style>
   /* Chapter 01 - Waterville: the next meetup as one raised card, the QR beside it, the record below. */
-  .page-head .hand{max-width:24ch; text-align:right}
+  .page-head .rt{align-items:flex-end; text-align:right; flex:none}
+  @media (max-width:900px){ .page-head .rt{align-items:flex-start; text-align:left} }
+  .past{margin-top:96px}
+  .later{margin-bottom:0}
   main.wrap{padding-bottom:64px}
-  .sec{margin:0 0 12px}
+  .sec{margin:0 0 16px}
+  .townpic{margin:0 0 40px; height:42svh; min-height:260px; overflow:clip; background:var(--surface)}
+  .townpic img{width:100%; height:100%; object-fit:cover; object-position:center 55%}
+  .page-head{padding-bottom:24px}
 
   /* ---- the next meetup ---- */
   .next{display:grid; grid-template-columns:1fr 340px; overflow:hidden; margin-bottom:28px}
   .next .l{padding:26px 30px 28px; display:flex; flex-direction:column; gap:14px; min-width:0}
   .next .top{display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap}
-  .next .when{font-family:var(--font-display); font-size:clamp(1.5rem,2.4vw,1.9rem); font-weight:800; letter-spacing:-.02em; line-height:1.1}
-  .next .meta{display:flex; align-items:baseline; gap:14px; font-size:14px; color:var(--ink-2); flex-wrap:wrap}
+  .next .when{font-family:var(--font-display); font-size:clamp(1.5rem,2.4vw,1.9rem); font-weight:900; letter-spacing:-.02em; line-height:1.1}
+  .next .meta{display:flex; align-items:baseline; gap:14px; font-size:var(--step-small); color:var(--ink-2); flex-wrap:wrap}
   .next .meta b{color:var(--ink)}
   .next .cta{display:flex; gap:10px; margin-top:6px; flex-wrap:wrap}
-  .next .r{border-left:1px solid var(--rule); background:var(--paper-2); padding:26px; display:flex; flex-direction:column; align-items:center; gap:14px; text-align:center}
-  .qr{width:200px; height:200px; border-radius:8px; background:var(--card); border:1px solid var(--rule); padding:12px; display:flex; align-items:center; justify-content:center; line-height:0}
+  .next .r{border-left:0; background:var(--paper-2); padding:26px; display:flex; flex-direction:column; align-items:center; gap:14px; text-align:center}
+  .qr{width:200px; height:200px; background:#FBF9F4; padding:12px; display:flex; align-items:center; justify-content:center; line-height:0}
   .qr svg{width:100%; height:100%; display:block}
-  .qr .none{font-family:var(--font-mono); font-size:11px; color:var(--ink-3); line-height:1.5}
-  .agenda-empty{font-style:italic; color:var(--ink-3); font-size:14px}
-  .empty{color:var(--ink-3); font-style:italic; font-size:14px}
+  .qr .none{font-family:var(--font-body); font-size:var(--step-small); color:var(--ink-3); line-height:1.5}
+  .agenda-empty{color:var(--ink-3); font-size:var(--step-small)}
+  .empty{color:var(--ink-3); font-size:var(--step-small)}
 
   /* ---- the rest of the series: one row per date ---- */
   .later{margin-bottom:28px}
-  .later .p{display:grid; grid-template-columns:150px 1fr auto; gap:20px; padding:14px 20px; align-items:center; border-top:1px solid var(--rule)}
+  .later .p{display:grid; grid-template-columns:150px 1fr auto; gap:20px; padding:14px 20px; align-items:center; border-top:0}
   .later .p:first-child{border-top:0}
-  .later .p .w{font-family:var(--font-display); font-weight:700; font-size:16px}
-  .later .p .t{font-size:14px; color:var(--ink-2); display:flex; flex-direction:column; gap:2px}
+  .later .p .w{font-family:var(--font-display); font-weight:700; font-size:var(--step-body)}
+  .later .p .t{font-size:var(--step-small); color:var(--ink-2); display:flex; flex-direction:column; gap:2px}
   .later .p .t b{color:var(--ink)}
 
   /* ---- the record ---- */
-  .past .p{display:grid; grid-template-columns:150px 1fr auto; gap:20px; padding:16px 20px; align-items:baseline; border-top:1px solid var(--rule)}
+  .past .p{display:grid; grid-template-columns:150px 1fr auto; gap:20px; padding:16px 20px; align-items:baseline; border-top:0}
   .past .p:first-child{border-top:0}
-  .past .p .w{font-family:var(--font-display); font-weight:700; font-size:16px}
-  .past .p .t{font-size:14px; color:var(--ink-2)}
+  .past .p .w{font-family:var(--font-display); font-weight:700; font-size:var(--step-body)}
+  .past .p .t{font-size:var(--step-small); color:var(--ink-2)}
   .past .p .t b{color:var(--ink)}
-  .past details{grid-column:3; text-align:right}
+  .past details{grid-column:1 / -1; text-align:left}
+  .past details summary{display:block; text-align:right}
   .past details[open]{grid-column:1 / -1; text-align:left}
-  .past details summary{font-size:13px; font-weight:600; color:var(--teal-deep); cursor:pointer; list-style:none; text-decoration:underline; text-underline-offset:3px; text-decoration-color:rgba(85,124,75,.4)}
+  .past details summary{font-size:var(--step-small); font-weight:600; color:var(--ink); cursor:pointer; list-style:none; text-decoration:underline; text-underline-offset:3px; text-decoration-color:rgba(85,124,75,.4)}
   .past details summary::-webkit-details-marker{display:none}
-  .past details summary:hover{color:var(--tangerine)}
+  .past details summary:hover{color:var(--ink-2)}
   .past details .callsheet{margin-top:8px}
 
   @media (max-width:900px){
-    .page-head .hand{text-align:left}
     .next{grid-template-columns:1fr}
-    .next .r{border-left:0; border-top:1px solid var(--rule)}
+    .next .r{border-left:0; border-top:0}
   }
   @media (max-width:640px){
     .next .l{padding:20px 18px 22px}
@@ -80,26 +86,29 @@
     <a href="lend.html">Lend a room</a>
     <a class="members" href="members.html">Members&rsquo; room</a>
   </nav>
-  <button class="menu" type="button" aria-label="Menu">&#9776;</button>
+  <button class="menu" type="button" aria-label="Menu">Menu</button>
 </header>
 
 <main class="wrap">
   <div class="page-head">
     <div class="fx col gap12">
-      <p class="folio"><b>Chapter 01</b> &middot; Waterville, Maine</p>
       <h1 class="display-xl">Waterville.</h1>
       <p class="lede">Neighbors teaching neighbors to put AI to work. Free, and it always will be.</p>
     </div>
-    <p class="hand">Scan to RSVP, or screenshot this and text a neighbor.</p>
+    <div class="fx col gap12 rt"><p class="folio">Second Tuesdays, eight chairs, free.</p><a class="btn btn-yellow btn-lg" href="rsvp.html?ref=town">Save a seat</a></div>
   </div>
 
-  <p class="folio sec" id="nextH"><b>The next meetup</b></p>
+  <figure class="townpic"><img src="assets/two-cent-bridge-waterville-maine.jpg" width="1920" height="1280" alt="The Two Cent Bridge over the Kennebec River in Waterville, with its red toll house" decoding="async" fetchpriority="high"></figure>
+
+  <section id="nextSec" aria-labelledby="nextH">
+  <h2 class="display-l sec" id="nextH">The next meetup</h2>
   <div id="nextWrap"><p class="empty">Checking the calendar&hellip;</p></div>
+  </section>
 
-  <div class="past">
-    <p class="folio sec" id="pastH" hidden><b>The record</b> &middot; every meetup held here</p>
+  <section class="past" aria-labelledby="pastH">
+    <h2 class="display-l sec" id="pastH" hidden>The record: every meetup held here</h2>
     <div id="pastWrap"></div>
-  </div>
+  </section>
 </main>
 
 <footer class="slim"><span class="folio">Free, one hour, no vendors</span><span class="folio"><a href="recipes.html">The recipes</a> &middot; <a href="lend.html?ref=town">Lend a room</a> &middot; <a href="events.html">The circuit</a></span></footer>
@@ -107,7 +116,7 @@
 
 <script src="assets/qrlib.js"></script>
 <script src="assets/config.js?v=6"></script>
-<script src="assets/site.js?v=5"></script>
+<script src="assets/site.js?v=6"></script>
 <script>
 (function(){
   'use strict';
@@ -162,7 +171,7 @@
 
   /* the rest of the series: one row per date, so the page stays one page */
   function later(list){
-    return '<p class="folio sec"><b>Coming up</b> &middot; the same table, once a month</p>' +
+    return '<h2 class="display-l sec">Coming up</h2>' +
       '<div class="card later">' + list.map(function(e){
         var t = e.start_time ? ' · ' + fmtTime(e.start_time) : '';
         var left = e.left > 0 ? e.left + ' of ' + e.capacity + ' left' : 'Full · waitlist open';
