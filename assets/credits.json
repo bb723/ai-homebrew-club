@@ -24,30 +24,6 @@
   "saved": "2026-10-23T01:19:56.690Z"
  },
  {
-  "file": "assets/altair-8800-smithsonian-museum.jpg",
-  "media": "image",
-  "ref": "openverse:70e99430-9b92-4dfe-9910-3167fcd3439a",
-  "title": "Altair 8800, Smithsonian Museum",
-  "creator": "Ed Uthman from Houston, TX, USA",
-  "creatorUrl": "https://www.flickr.com/people/78147607@N00",
-  "date": null,
-  "license": "CC BY-SA 2.0",
-  "licenseCode": "by-sa",
-  "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
-  "creditRequired": true,
-  "page": "https://commons.wikimedia.org/w/index.php?curid=8828381",
-  "via": "Wikimedia Commons",
-  "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/35/Altair_8800%2C_Smithsonian_Museum.jpg/1920px-Altair_8800%2C_Smithsonian_Museum.jpg",
-  "width": 1920,
-  "height": 1009,
-  "bytes": 334249,
-  "credit": "\"Altair 8800, Smithsonian Museum\" by Ed Uthman from Houston, TX, USA, CC BY-SA 2.0, via Wikimedia Commons",
-  "notes": [
-   "Share-alike: an altered version (recoloured, combined with other pictures) must be shared under the same licence."
-  ],
-  "saved": "2026-10-23T01:20:02.544Z"
- },
- {
   "file": "assets/rustic-tools-spread-across-a-weathered-wooden.jpg",
   "media": "image",
   "ref": "openverse:e94edcdc-8da9-4da4-9405-fe44a390373f",
@@ -202,5 +178,27 @@
   "credit": "\"Union Station, Portland, Maine\", public domain, via Wikimedia Commons",
   "notes": [],
   "saved": "2026-10-23T11:44:37.087Z"
+ },
+ {
+  "file": "assets/caribou-maine.jpg",
+  "media": "image",
+  "ref": "commons:3969174",
+  "title": "Caribou, Maine, October 1940",
+  "creator": "Jack Delano",
+  "creatorUrl": null,
+  "date": "1940-10",
+  "license": "public domain",
+  "licenseCode": "pd",
+  "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+  "creditRequired": false,
+  "page": "https://commons.wikimedia.org/wiki/File:Caribou_maine.jpg",
+  "via": "Wikimedia Commons",
+  "image": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8d/Caribou_maine.jpg/1920px-Caribou_maine.jpg",
+  "width": 1920,
+  "height": 1318,
+  "bytes": 444218,
+  "credit": "\"Caribou maine\" by Jack Delano, public domain, via Wikimedia Commons",
+  "notes": [],
+  "saved": "2026-10-23T13:17:45.997Z"
  }
 ]

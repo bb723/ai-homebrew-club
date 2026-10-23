@@ -12,14 +12,14 @@
   --font-body:var(--font-display);
   --font-hand:var(--font-display);
 
-  /* charcoal and primaries: one ground, one ink, one accent, four fields */
+  /* charcoal and linen: one ground, one ink, one accent (spruce), paper and slate fields */
   --bg:#191919; --surface:#242424; --surface-2:#2E2E2E; --surface-3:#3A3A3A;
   --ink:#FFFFFF; --ink-2:#D9D9D9; --ink-3:#9A9A9A; --muted:#9A9A9A;
-  --accent:#0C7866; --accent-ink:#FFFFFF; --accent-deep:#0F9780; --accent-wash:#10302A;
-  --field-1:#D71E1E; --field-1-ink:#FFFFFF;
-  --field-2:#1E4BD7; --field-2-ink:#FFFFFF;
-  --field-3:#0C7866; --field-3-ink:#FFFFFF;
-  --field-4:#FFE927; --field-4-ink:#111111;
+  --accent:#3E7B5C; --accent-ink:#FFFFFF; --accent-deep:#4A8E6B; --accent-wash:#1D3328;
+  --field-1:#2F5D45; --field-1-ink:#F2F2EF;
+  --field-2:#3B4B5A; --field-2-ink:#FFFFFF;
+  --field-3:#3E7B5C; --field-3-ink:#FFFFFF;
+  --field-4:#F2F2EF; --field-4-ink:#1B1B1B;
   --alert:#FF7A6E; --alert-wash:#3A1D19; --live:#5FD39A;
 
   /* one pair of margins, five sizes */
@@ -99,7 +99,7 @@ img{height:auto}
 /* ---- surfaces: a step in tone, never a line ---- */
 .card,.card-raised,.well{background:var(--surface); border:0; border-radius:0}
 
-/* the slip: a prompt typed on yellow paper, meant to be copied word for word */
+/* the slip: a prompt typed on paper, meant to be copied word for word */
 .index-card,.steal{background:var(--field-4); color:var(--field-4-ink); border:0; border-radius:0; padding:16px 18px 18px; font-family:var(--font-body); font-size:var(--step-body); line-height:1.45; overflow-wrap:anywhere}
 .index-card .lbl,.steal b{display:block; font-size:var(--step-body); font-weight:700; color:var(--field-4-ink); margin-bottom:6px; letter-spacing:0; text-transform:none; line-height:1.3}
 
@@ -115,7 +115,7 @@ img{height:auto}
 .btn-ghost{background:transparent; color:var(--ink-2); padding:0 10px}
 .btn-ghost:hover{color:var(--ink); background:var(--surface)}
 .btn-yellow{background:var(--field-4); color:var(--field-4-ink)}
-.btn-yellow:hover{background:#FFF06A; color:var(--field-4-ink)}
+.btn-yellow:hover{background:#FFFFFF; color:var(--field-4-ink)}
 .btn-lg{height:56px; padding:0 28px}
 .btn-sm{height:36px; padding:0 14px; font-size:var(--step-small)}
 .btn-xs{height:30px; padding:0 10px; font-size:var(--step-small)}
@@ -137,7 +137,7 @@ img{height:auto}
 .dot-live{background:var(--live)}
 .dot-tang,.dot-teal,.dot-sky{background:var(--ink)} .dot-lemon,.dot-berry{background:var(--ink-3)} .dot-ink{background:var(--ink)}
 
-/* the seat meter: one square per chair; yellow squares are claimed */
+/* the seat meter: one square per chair; paper squares are claimed */
 .seats{display:inline-flex; align-items:center; gap:10px; max-width:100%; flex-wrap:wrap}
 .seats .row{display:inline-flex; gap:3px}
 .seats .s{width:12px; height:16px; border:0; border-radius:0; background:var(--field-4)}
@@ -225,7 +225,7 @@ footer.slim .folio a{text-transform:none; letter-spacing:0}
 /* members-only nav: injected by site.js only when this device has passed the gate */
 .deckbtn{position:fixed; right:16px; bottom:16px; z-index:50; border:0; border-radius:0; height:44px; padding:0 16px; cursor:pointer;
   background:var(--field-4); color:var(--field-4-ink); font-family:var(--font-body); font-weight:500; font-size:var(--step-small); display:inline-flex; align-items:center; gap:8px}
-.deckbtn:hover{background:#FFF06A}
+.deckbtn:hover{background:#FFFFFF}
 .deckpane{position:fixed; left:0; top:0; bottom:0; z-index:65; width:min(320px,88vw); background:var(--surface-2); border:0;
   display:flex; flex-direction:column; gap:2px; padding:20px 16px; transform:translateX(-105%); overflow-y:auto}
 @media (prefers-reduced-motion: no-preference){ .deckpane{transition:transform var(--t-ui) var(--ease-out)} }
