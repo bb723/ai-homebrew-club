@@ -1,9 +1,9 @@
 {
   "apr13-bricks": {
-    "hash": "4e719e16b1db48ae",
-    "rendered": "2026-10-23T13:39:39.812Z",
+    "hash": "a196fb8574dcaf6a",
+    "rendered": "2026-11-12T18:25:13.596Z",
     "title": "AI Brown Bag no. 9",
-    "when": "Tuesday, April 13"
+    "when": "Thursday, April 1"
   },
   "dec17-maineco": {
     "hash": "36365c3243f15c56",
@@ -12,10 +12,10 @@
     "when": "Thursday, December 17"
   },
   "dec8-bricks": {
-    "hash": "43775f802dd51197",
-    "rendered": "2026-10-23T13:39:56.509Z",
+    "hash": "0406a92258bb8489",
+    "rendered": "2026-11-12T18:25:21.615Z",
     "title": "AI Brown Bag no. 5",
-    "when": "Tuesday, December 8"
+    "when": "Thursday, December 3"
   },
   "feb18-maineco": {
     "hash": "ba2c5226d15036d5",
@@ -24,16 +24,16 @@
     "when": "Thursday, February 18"
   },
   "feb9-bricks": {
-    "hash": "e7314a2571f10f37",
-    "rendered": "2026-10-23T13:39:48.510Z",
+    "hash": "a39ba7bd8c0222f9",
+    "rendered": "2026-11-12T18:25:17.537Z",
     "title": "AI Brown Bag no. 7",
-    "when": "Tuesday, February 9"
+    "when": "Thursday, February 4"
   },
   "jan12-bricks": {
-    "hash": "12f65b58d3603d1c",
-    "rendered": "2026-10-23T13:39:52.576Z",
+    "hash": "87e0964c07f91cf5",
+    "rendered": "2026-11-12T18:25:19.912Z",
     "title": "AI Brown Bag no. 6",
-    "when": "Tuesday, January 12"
+    "when": "Thursday, January 7"
   },
   "jan21-maineco": {
     "hash": "be63f2b1f7374b34",
@@ -48,10 +48,16 @@
     "when": "Thursday, March 18"
   },
   "mar9-bricks": {
-    "hash": "c71b4aba49264524",
-    "rendered": "2026-10-23T13:39:43.743Z",
+    "hash": "e73d4bac39bbccf1",
+    "rendered": "2026-11-12T18:25:15.163Z",
     "title": "AI Brown Bag no. 8",
-    "when": "Tuesday, March 9"
+    "when": "Thursday, March 4"
+  },
+  "may6-bricks": {
+    "hash": "6ffa5015e3bc91ee",
+    "rendered": "2026-11-12T18:25:11.231Z",
+    "title": "AI Brown Bag no. 10",
+    "when": "Thursday, May 6"
   },
   "nov19-maineco": {
     "hash": "d685744a6a8628cb",
