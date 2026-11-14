@@ -47,6 +47,7 @@ const code = [
   lift('async function roomStatusLine(', '}'),
   lift('async function askRoom(', '}'),
   lift('async function askRoomSeries(', '}'),
+  lift('async function askWhoCame(', '}'),
   lift('async function runRoster(', '}'),
 ].join('\n\n');
 
@@ -221,6 +222,51 @@ async function scenario(name, fn) {
     expect(st('fresh') === 'upcoming', 'a meetup that ended 30 minutes ago should still be upcoming');
     expect(st('later') === 'upcoming', 'a meetup three days out should still be upcoming');
     expect(st('dateonly') === 'past', 'a dated meetup with no clock time should close after its day');
+  });
+
+  await scenario('when a table ends the host is asked who came, once, with the book and a link to its attendees', async () => {
+    world.events = [eventAt('fresh', -1.5), eventAt('running', -0.5), eventAt('later', 72)];
+    world.rsvps = [
+      seat('fresh', 'Ada Alpha', 'ada@example.test', { guest_name: 'Cy Guest' }),
+      seat('fresh', 'Dee NoEmail', ''),
+      seat('fresh', 'Gave Back', 'gave@example.test', { status: 'cancelled' }),
+      seat('running', 'Ben Bravo', 'ben@example.test'),
+      seat('later', 'Cal Charlie', 'cal@example.test'),
+    ];
+    await runRoster(AT);
+    const asks = world.notes.filter(n => n.subject.startsWith('Who came?'));
+    expect(asks.length === 1, 'expected one ask, for the table that ended; got ' + asks.map(n => n.subject));
+    const ask = asks[0];
+    expect(ask.subject === 'Who came? Table fresh, Table day fresh', 'wrong subject: ' + ask.subject);
+    expect(ask.text.includes('2 people held a chair'), 'the count should be the seats held: ' + ask.text);
+    expect(ask.text.includes('  Ada Alpha, with Cy Guest') && ask.text.includes('  Dee NoEmail (no email on the reservation)'), 'the book should be listed: ' + ask.text);
+    expect(!ask.text.includes('Gave Back') && !ask.text.includes('Ben Bravo'), 'only that table\'s seated belong in the ask: ' + ask.text);
+    expect(ask.text.includes('https://aihomebrewclub.com/deck/admin.html#meetups/fresh/attendees'), 'the link should open that table\'s attendees');
+    expect(world.sent.length === 0, 'the ask goes to the host alone, got mail to ' + world.sent.map(m => m.to));
+    expect(world.events.find(e => e.id === 'fresh').status === 'upcoming', 'asking must not close the book early');
+    await runRoster(AT);
+    await runRoster(new Date(AT.getTime() + 3600000));
+    const again = world.notes.filter(n => n.subject.startsWith('Who came?')).map(n => n.subject);
+    expect(again.filter(s => s.includes('Table fresh')).length === 1, 'the host is asked once per table, got ' + again);
+    expect(again.length === 2 && again[1] === 'Who came? Table running, Table day running', 'an hour on, the table that was still running has ended and is asked about: ' + again);
+  });
+
+  await scenario('nobody is asked who came when no chair was held or attendance is already marked', async () => {
+    world.events = [eventAt('empty', -1.5), eventAt('marked', -1.4), eventAt('later', 72)];
+    world.rsvps = [
+      seat('marked', 'Ada Alpha', 'ada@example.test', { attended: true }),
+      seat('marked', 'Ben Bravo', 'ben@example.test'),
+    ];
+    await runRoster(AT);
+    expect(world.notes.filter(n => n.subject.startsWith('Who came?')).length === 0, 'expected no ask, got ' + world.notes.map(n => n.subject));
+  });
+
+  await scenario('a table that closes on the same tick it is first seen is still asked about', async () => {
+    world.events = [eventAt('done', -3.5), eventAt('later', 72)];
+    world.rsvps = [seat('done', 'Ada Alpha', 'ada@example.test')];
+    await runRoster(AT);
+    expect(world.events.find(e => e.id === 'done').status === 'past', 'the book should have closed');
+    expect(world.notes.filter(n => n.subject.startsWith('Who came?')).length === 1, 'the host should still be asked');
   });
 
   await scenario('right after a table, whoever sat there gets a thank-you with a seat link, and nothing is held', async () => {

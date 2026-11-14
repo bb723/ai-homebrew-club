@@ -2382,7 +2382,27 @@ async function askRoomSeries(city, count) {
   return { sent, tables: upcoming.rows.map(r => r.id) };
 }
 
+/* the table is over: the host is asked who came, once, with the book in the note and a link straight
+   to that table's attendees in the console. Marking someone attended there is what cuts their key and
+   decides who gets the thank-you, and it only counts if it happens before the next table's notes go
+   out. Nothing is asked when nobody held a chair, or when attendance is already marked. */
+async function askWhoCame(row) {
+  const seated = await pool.query("SELECT * FROM aihc_rsvps WHERE event = $1 AND status = 'seat' ORDER BY ts /*q:last-seats*/", [row.id]);
+  if (!seated.rows.length || seated.rows.some(r => r.attended)) return;
+  if (!(await markOnce(row.id, 'whocame'))) return;
+  const n = seated.rows.length;
+  const names = seated.rows.map(r => '  ' + r.name + (r.guest_name ? ', with ' + r.guest_name : '') + (r.email ? '' : ' (no email on the reservation)'));
+  notify('Who came? ' + row.title + ', ' + row.when_text,
+    row.title + ' (' + row.when_text + ') has ended. ' + n + ' ' + (n === 1 ? 'person' : 'people') + ' held a chair:\n\n' +
+    names.join('\n') + '\n\n' +
+    'Mark who came: https://aihomebrewclub.com/deck/admin.html#meetups/' + encodeURIComponent(row.id) + '/attendees\n\n' +
+    'Each person you mark gets their key to the members\' room by email, and only the people you mark get the thank-you ' +
+    'note for the next table. Those notes go out once this book closes, two hours after the table ended, or at 9 the next ' +
+    'morning if that falls after 8 pm. If nobody is marked by then, everyone on the book gets the thank-you.');
+}
+
 /* every five minutes, after the reminders:
+   0. when a meetup ends, the host is asked who came, once (askWhoCame);
    1. a meetup is 'past' two hours after it ends, so the pages and the bare rsvp link move on by themselves;
    2. a town's roster is everyone who ever took a chair, joined a waitlist or gave a chair back at one of
       its tables, plus anyone invited by hand. Nobody is ever seated by the loop: chairs are first come,
@@ -2407,7 +2427,9 @@ async function runRoster(at) {
   const up = await pool.query("SELECT * FROM aihc_events WHERE status = 'upcoming' /*q:open-events*/");
   for (const row of up.rows) {
     const end = eventEndMs(row);
-    if (end == null || nowMs < end + 2 * 3600000) continue;
+    if (end == null || nowMs < end) continue;
+    await askWhoCame(row);
+    if (nowMs < end + 2 * 3600000) continue;
     await pool.query("UPDATE aihc_events SET status = 'past' WHERE id = $1 AND status = 'upcoming' /*q:close-event*/", [row.id]);
   }
   const towns = await pool.query('SELECT DISTINCT city FROM aihc_events /*q:towns*/');
