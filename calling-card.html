@@ -15,14 +15,16 @@
      &bare=1 to hide the page chrome for a screenshot at 1050 x 600,
      &bleed=1 for the print shop: 3.75 x 2.25 inches with an eighth-inch bleed on every side
      (screenshot at 1125 x 675, or print to PDF for a vector file at the trim-plus-bleed size).
-     Always light: it is paper. */
-  @media (prefers-color-scheme: dark){
-    :root{
-      --paper:#F4F0E6; --paper-2:#EBE6D9; --card:#FBF9F4;
-      --ink:#191919; --ink-2:#4B4A45; --ink-3:#77746B;
-      --rule:rgba(25,25,25,.16); --rule-2:rgba(25,25,25,.36);
-      --accent:#1F4C9C; --accent-deep:#173A78; --accent-wash:#E3EAF6; --on-accent:#FFFFFF;
-    }
+     Always light: it is paper. The page chrome still comes from bulletin.css; the card takes the
+     street-poster brand (site.css): paper, charcoal and spruce, set in Epilogue. */
+  @font-face{font-family:'Epilogue';font-style:normal;font-weight:100 900;font-display:swap;src:url(assets/fonts/epilogue.woff2) format('woff2')}
+  :root{
+    --paper:#F2F2EF; --paper-2:#E6E6E2; --card:#FFFFFF;
+    --ink:#1B1B1B; --ink-2:#3D3D3A; --ink-3:#6E6E69;
+    --rule:rgba(27,27,27,.16); --rule-2:rgba(27,27,27,.36);
+    --accent:#3E7B5C; --accent-deep:#2F5D45; --accent-wash:#DCE9E1; --on-accent:#FFFFFF;
+    --band:#191919;
+    --cc-font:'Epilogue','Helvetica Neue',Arial,sans-serif;
   }
   html,body{margin:0; background:var(--paper)}
   .stage{display:flex; flex-direction:column; align-items:center; gap:18px; padding:32px 16px; overflow-x:auto}
@@ -39,27 +41,32 @@
   body.bleed .stage{display:none}
   body.bleed .bleedpage{display:block; width:1125px; height:675px; overflow:hidden}
   body.bleed .bleedwrap{display:block; position:relative; width:1125px; height:675px; background:var(--paper); overflow:hidden}
-  body.bleed .bleedwrap::after{content:""; position:absolute; top:0; right:0; width:338px; height:100%; background:var(--accent)}
-  body.bleed .bleedwrap .cc{position:absolute; top:37px; left:37px; border:0; z-index:1}
+  body.bleed .bleedwrap::after{content:""; position:absolute; left:0; right:0; bottom:0; height:187px; background:var(--band)}
+  body.bleed .bleedwrap .cc{position:absolute; top:37px; left:37px; border:0; z-index:1; background:transparent; overflow:visible}
+  /* the sheet behind already paints the paper and the band: no second layer, so no seam at the trim */
+  body.bleed .bleedwrap .cc .band{background:transparent}
   @media print{
     body.bleed .bleedpage{width:3.75in; height:2.25in}
     body.bleed .bleedwrap{transform:scale(0.32); transform-origin:top left}
   }
 
   /* the card itself: 3.5 x 2 inches, designed at 300 pixels per inch (1050 x 600) */
-  .cc{width:1050px; height:600px; box-sizing:border-box; display:grid; grid-template-columns:1fr 300px; background:var(--paper); color:var(--ink); overflow:hidden; border:1px solid var(--rule); flex:none}
-  .cc .left{padding:56px 40px 50px 60px; display:flex; flex-direction:column; justify-content:space-between; min-width:0}
-  .cc .brand{display:flex; align-items:center; gap:16px; font-family:var(--font-display); font-weight:700; font-size:36px; letter-spacing:-.01em; white-space:nowrap}
-  .cc .tagline{font-family:var(--font-display); font-style:italic; font-size:23px; line-height:1.25; color:var(--ink-2); margin-top:14px; max-width:30ch}
-  .cc .rule{height:3px; background:var(--ink); margin:0 0 20px; width:72px}
-  .cc .names{display:flex; flex-direction:column; gap:6px}
-  .cc .name{font-family:var(--font-body); font-weight:700; font-size:28px; letter-spacing:-.01em; line-height:1.15}
-  .cc .meta{font-family:var(--font-mono); font-size:13.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3); margin-top:16px; white-space:nowrap}
-  .cc .right{background:var(--accent); color:var(--on-accent); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:30px 24px}
-  .cc .qr{width:200px; height:200px; background:#fff; border-radius:8px; padding:12px; box-sizing:border-box; line-height:0; display:block}
+  /* the home page's poster, card-sized: a paper field, the shout, the 1940 scrap at a tilt biting
+     into the charcoal band, and the name of whoever is handing it out on the band */
+  .cc{position:relative; width:1050px; height:600px; box-sizing:border-box; background:var(--paper); color:var(--ink); overflow:hidden; border:1px solid var(--rule); flex:none; font-family:var(--cc-font)}
+  .cc .word{position:absolute; left:60px; top:46px; font-weight:800; font-size:25px; letter-spacing:-.02em; white-space:nowrap}
+  .cc .shout{position:absolute; left:56px; top:104px; margin:0; font-weight:900; font-size:88px; line-height:.86; letter-spacing:-.045em; white-space:nowrap; z-index:1}
+  .cc .scrap{position:absolute; left:598px; top:150px; width:228px; height:304px; margin:0; z-index:3; transform:rotate(5deg); overflow:hidden; border-radius:50% 50% 0 0 / 38% 38% 0 0; background:#2A2A2A}
+  .cc .scrap img{width:100%; height:100%; object-fit:cover; object-position:74% 62%; display:block}
+  .cc .code{position:absolute; right:42px; top:42px; width:172px; z-index:4; display:flex; flex-direction:column; align-items:center; gap:10px}
+  .cc .qr{width:172px; height:172px; background:#fff; padding:10px; box-sizing:border-box; line-height:0; display:block}
   .cc .qr svg{width:100%; height:100%; display:block}
-  .cc .scan{font-family:var(--font-mono); font-size:13px; letter-spacing:.16em; text-transform:uppercase; opacity:.9}
-  .cc .url{font-family:var(--font-mono); font-size:17px; font-weight:600; letter-spacing:-.01em; text-align:center}
+  .cc .scan{font-weight:800; font-size:17px; letter-spacing:-.01em; white-space:nowrap}
+  .cc .band{position:absolute; left:0; right:0; bottom:0; height:150px; box-sizing:border-box; background:var(--band); color:#fff; display:flex; align-items:center; justify-content:space-between; gap:24px; padding:0 44px 0 60px; z-index:2}
+  .cc .names{display:flex; flex-direction:column; gap:4px}
+  .cc .name{font-weight:800; font-size:32px; letter-spacing:-.02em; line-height:1.1; white-space:nowrap}
+  .cc .meta{font-weight:500; font-size:16px; line-height:1.3; color:#D9D9D9; margin-top:8px; white-space:nowrap}
+  .cc .url{font-weight:700; font-size:19px; letter-spacing:-.01em; white-space:nowrap; align-self:flex-end; padding-bottom:36px}
 
   /* the sheet: ten cards on Letter, two across and five down, each exactly 3.5 x 2 inches,
      with a hairline around each one to cut along */
@@ -80,20 +87,18 @@
 <body>
 <div class="stage">
   <div class="cc" id="cc">
-    <div class="left">
-      <div>
-        <div class="brand"><span class="logo" data-size="54" aria-hidden="true"></span><span>The AI Homebrew Club</span></div>
-        <div class="tagline">Neighbors teaching neighbors to put AI to work.</div>
-      </div>
-      <div>
-        <div class="rule"></div>
-        <div class="names" id="names"></div>
-        <div class="meta" id="meta">Waterville &middot; Portland, Maine &middot; free, no vendors</div>
-      </div>
-    </div>
-    <div class="right">
-      <span class="scan">Scan to join</span>
+    <div class="word">The AI Homebrew Club</div>
+    <div class="shout">AI for your<br>everyday<br>life</div>
+    <figure class="scrap"><img src="assets/caribou-maine.jpg" alt=""></figure>
+    <div class="code">
       <span class="qr" id="qr"></span>
+      <span class="scan">Scan to join</span>
+    </div>
+    <div class="band">
+      <div>
+        <div class="names" id="names"></div>
+        <div class="meta" id="meta">Waterville &middot; Portland, Maine. Free, no vendors.</div>
+      </div>
       <span class="url">aihomebrewclub.com/signup</span>
     </div>
   </div>
@@ -120,7 +125,7 @@
   var towns = Object.keys(CFG.CITY_POINTS).map(function(c){ return CFG.CITY_POINTS[c].label; });
 
   $('names').innerHTML = who.map(function(n){ return '<span class="name">' + esc(n) + '</span>'; }).join('');
-  $('meta').innerHTML = esc(towns.join(' · ')) + ', Maine &middot; free, no vendors';
+  $('meta').innerHTML = esc(towns.join(' · ')) + ', Maine. Free, no vendors.';
 
   function qrSvg(url){
     try{
@@ -128,7 +133,7 @@
       qr.addData(url);
       qr.make();
       return qr.createSvgTag({cellSize: 4, margin: 0, scalable: true})
-        .replace(/#000000|black/gi, '#191919')
+        .replace(/#000000|black/gi, '#1B1B1B')
         .replace(/#ffffff|white/gi, '#FFFFFF');
     } catch(err){ return ''; }
   }
