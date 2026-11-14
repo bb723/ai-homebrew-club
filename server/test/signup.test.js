@@ -96,7 +96,7 @@ async function post(body, ip) {
 const TODAY = Email.maineToday(new Date());
 const future = days => new Date(Date.now() + days * 86400000).toISOString().slice(0, 10);
 const PDX = { id: 'pdx', city: 'portland', title: 'Portland meetup no. 2', when_text: 'Thursday, November 19', sort_date: future(30), start_time: '16:00', minutes: 120, location: 'the conference room at Maine & Co., 280 Fore St, Suite 402, Portland', capacity: 12, status: 'upcoming', ts: '2026-01-01T00:00:00Z' };
-const WTV = { id: 'wtv', city: 'waterville', title: 'AI Brown Bag no. 4', when_text: 'Tuesday, November 10', sort_date: future(21), start_time: '10:00', minutes: 60, location: 'the conference room at Bricks Coworking, 10 Water St, Waterville', capacity: 8, status: 'upcoming', ts: '2026-01-01T00:00:00Z' };
+const WTV = { id: 'wtv', city: 'waterville', title: 'Waterville meetup no. 4', when_text: 'Tuesday, November 10', sort_date: future(21), start_time: '10:00', minutes: 60, location: 'the conference room at Bricks Coworking, 10 Water St, Waterville', capacity: 8, status: 'upcoming', ts: '2026-01-01T00:00:00Z' };
 const CARD = { png: Buffer.from('89504e470d0a1a0a', 'hex'), url: 'https://aihomebrewclub.com/cards/pdx.png', dated: true, cid: 'card-pdx@aihomebrewclub.com', filename: 'ai-homebrew-club-pdx.png' };
 
 let failures = 0;

@@ -184,7 +184,7 @@ async function init() {
   /* migrate the original hardcoded event into the database */
   await pool.query(`
     INSERT INTO aihc_events (id, city, title, when_text, sort_date, location, capacity, status, ts)
-    VALUES ('aug18-bricks', 'waterville', 'The first AI Brown Bag', 'Tuesday, August 18',
+    VALUES ('aug18-bricks', 'waterville', 'The first Waterville meetup', 'Tuesday, August 18',
             '2026-08-18', 'the conference room at Bricks Coworking, 10 Water St, Waterville', 8,
             'upcoming', '2026-08-05T17:00:00Z')
     ON CONFLICT (id) DO NOTHING
@@ -896,7 +896,7 @@ app.post('/rsvp', async (req, res) => {
             (guest ? 'seats are' : 'seat is') + ' automatic and we will email you right away.' +
             '\n\nLeave the waitlist here: ' + cancelUrl(key, id) +
             '\n\nThe AI Homebrew Club\nhttps://aihomebrewclub.com',
-        ics ? [{ filename: 'ai-brown-bag.ics', content: ics, contentType: 'text/calendar' }] : undefined
+        ics ? [{ filename: 'ai-homebrew-club.ics', content: ics, contentType: 'text/calendar' }] : undefined
       );
     }
     res.json({ ok: true, status, left: Math.max(0, ev.capacity - newTaken), id, share: shareUrl(key, id) });
@@ -1011,7 +1011,7 @@ app.post('/events', async (req, res) => {
           (gc ? '\n\nNew calendar entry: ' + gc : '') +
           '\n\nToss the old calendar invite; the fresh one is attached.' +
           '\n\nSee you at the table,\nThe AI Homebrew Club\nhttps://aihomebrewclub.com',
-          ics ? [{ filename: 'ai-brown-bag.ics', content: ics, contentType: 'text/calendar' }] : undefined
+          ics ? [{ filename: 'ai-homebrew-club.ics', content: ics, contentType: 'text/calendar' }] : undefined
         );
         await pool.query(
           'INSERT INTO aihc_invites (id, event, email, name, by, ts) VALUES ($1,$2,$3,$4,$5,$6)',

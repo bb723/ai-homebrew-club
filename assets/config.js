@@ -21,7 +21,7 @@ window.AIHC_CONFIG = (function(){
     {id: 'admin', title: 'Meetup controls', desc: 'Create meetups, edit agendas, the keyring.', group: 'The back office', admin: true},
     {id: 'charter', title: 'The Charter', desc: 'The whole plan. Every pitch is cut from this.', group: 'The pitches &amp; plans', admin: true},
     {id: 'invest', title: 'Investor pitch', desc: 'The hardest room in America.', group: 'The pitches &amp; plans', admin: true},
-    {id: 'join', title: 'Attendee pitch', desc: 'Come to the first AI Brown Bag.', group: 'The pitches &amp; plans', admin: true},
+    {id: 'join', title: 'Attendee pitch', desc: 'Come to the first meetup.', group: 'The pitches &amp; plans', admin: true},
     {id: 'why', title: 'Why we meet', desc: 'Fear, lies, and folding chairs.', group: 'The pitches &amp; plans', admin: true},
     {id: 'kit101', title: 'The 101 kit', desc: 'Twelve live demos, step by step.', group: 'The pitches &amp; plans', admin: true},
     {id: 'funding', title: 'The funding plan', desc: 'Grants, links, deadlines, in unlock order.', group: 'The pitches &amp; plans', admin: true},

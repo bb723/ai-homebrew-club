@@ -1,6 +1,6 @@
 # The AI Homebrew Club
 
-A modern revival of the **Homebrew Computer Club** (1975–1986) — the Menlo Park garage meetup where Steve Wozniak demoed the Apple I and handed out its schematics for free — rebuilt for the age of AI. The club runs free meetups (the **AI Brown Bag**) in Maine, one chapter per town, where neighbors teach neighbors to put AI to work.
+A modern revival of the **Homebrew Computer Club** (1975–1986) — the Menlo Park garage meetup where Steve Wozniak demoed the Apple I and handed out its schematics for free — rebuilt for the age of AI. The club runs free meetups in Maine, one chapter per town, where neighbors teach neighbors to put AI to work.
 
 > Give to help others.
 

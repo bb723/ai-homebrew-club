@@ -5,7 +5,7 @@
 <title>Save your seat &middot; The AI Homebrew Club</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<meta property="og:title" content="Save a seat at the AI Brown Bag">
+<meta property="og:title" content="Save a seat at the AI Homebrew Club">
 <meta property="og:description" content="One hour, one problem off your plate. Neighbors teaching neighbors to put AI to work. Free, no vendors.">
 <meta property="og:image" content="https://aihomebrewclub.com/share-card.png">
 <meta property="og:url" content="https://aihomebrewclub.com/rsvp.html">
@@ -180,7 +180,7 @@
 <footer class="slim"><span class="folio" id="footStamp">Free, one hour, no vendors &middot; aihomebrewclub.com</span><span class="folio">Got a room to lend? <a href="lend.html?ref=rsvp">Lend it to the club</a></span><p class="credits" style="flex-basis:100%">Picture: <a href="https://commons.wikimedia.org/wiki/File:Main_Street,_Waterville,_Maine_(87291).jpg">“Main Street, Waterville, Maine (87291)”</a> by Tichnor Brothers, Publisher, <a href="https://creativecommons.org/publicdomain/mark/1.0/">public domain</a>, via Wikimedia Commons.</p></footer>
 </div>
 
-<script src="assets/config.js?v=6"></script>
+<script src="assets/config.js?v=7"></script>
 <script src="assets/site.js?v=6"></script>
 <script>
 (function(){
@@ -272,7 +272,7 @@
   /* share row: the neighbor link carries this rsvp's ref tag so we learn what fills seats */
   var shareLink = '';
   function shareMsg(){
-    var bits = 'Come with me to ' + ((evData && evData.title) || 'the AI Brown Bag');
+    var bits = 'Come with me to ' + ((evData && evData.title) || 'the next AI Homebrew Club meetup');
     if (evData && evData.when){
       var t = fmtTime(evData.start_time);
       bits += ', ' + evData.when + (t ? ', ' + t : '');
@@ -303,7 +303,7 @@
       document.querySelectorAll('.shNative').forEach(function(b){
         b.hidden = false;
         b.onclick = function(){
-          navigator.share({ title: 'The AI Brown Bag', text: shareMsg(), url: shareLink }).catch(function(){});
+          navigator.share({ title: 'The AI Homebrew Club', text: shareMsg(), url: shareLink }).catch(function(){});
         };
       });
     }
