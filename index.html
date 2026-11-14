@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#F2F2EF">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<meta name="description" content="A free class in Waterville and Portland, Maine: bring one real task from your shop and leave with it done. Neighbors teaching neighbors to put AI to work. No tickets, no vendors.">
+<meta name="description" content="A free class in Waterville and Portland, Maine: bring one real task from your week and leave with it done. Neighbors teaching neighbors to put AI to work. No tickets, no vendors.">
 <meta property="og:title" content="The AI Homebrew Club">
 <meta property="og:description" content="Neighbors teaching neighbors to put AI to work. A free class in Waterville and Portland, Maine. No tickets, no vendors.">
 <meta property="og:image" content="https://aihomebrewclub.com/share-card.png">
@@ -27,7 +27,7 @@
 
   .poster{position:relative; display:grid; grid-template-rows:minmax(0,82fr) minmax(0,18fr); min-height:calc(100svh - 72px); overflow:clip; background:var(--field-4)}
   .poster .fieldy{position:relative; background:var(--field-4); color:var(--field-4-ink)}
-  .poster .shout{position:absolute; left:var(--margin); top:16%; margin-left:-.03em; font-size:var(--step-display); line-height:.84; letter-spacing:-.04em; font-weight:900; z-index:1; color:var(--field-4-ink)}
+  .poster .shout{position:absolute; left:var(--margin); top:12%; margin-left:-.03em; font-size:clamp(64px,10vw,160px); line-height:.84; letter-spacing:-.04em; font-weight:900; z-index:1; color:var(--field-4-ink)}
   .lines .line{display:block; overflow:hidden; padding-bottom:.08em; margin-bottom:-.08em}
   .lines [data-line]{display:block}
   .poster .scrap{position:absolute; left:61%; top:calc(82% - 34vw); width:30vw; aspect-ratio:3/4; margin:0; z-index:3; transform:rotate(5deg); overflow:clip; border-radius:50% 50% 0 0 / 38% 38% 0 0; background:#2A2A2A}
@@ -238,8 +238,9 @@
   <section class="poster" aria-label="The invitation">
     <div class="fieldy">
       <h1 class="shout lines">
-        <span class="line"><span data-line style="--i:0">AI for</span></span>
-        <span class="line"><span data-line style="--i:1">your shop</span></span>
+        <span class="line"><span data-line style="--i:0">AI for your</span></span>
+        <span class="line"><span data-line style="--i:1">everyday</span></span>
+        <span class="line"><span data-line style="--i:2">life</span></span>
       </h1>
       <figure class="scrap" data-open>
         <div class="pic"><img src="assets/caribou-maine.jpg" width="1920" height="1318" fetchpriority="high" decoding="async" alt="Farmers loading potato barrels onto trucks at the Caribou freight station, Aroostook County, Maine, October 1940"></div>
@@ -293,7 +294,7 @@
       <img src="assets/main-street-at-night-waterville-maine-87285.jpg" width="1920" height="1220" decoding="async" alt="Main Street, Waterville, at night, on a linen postcard from the 1930s or 40s: lit storefronts, parked cars and a full moon">
     </figure>
     <div class="say" data-reveal>
-      <h2 id="recH">Six things AI can do for your shop this week</h2>
+      <h2 id="recH">Six things AI can do for you this week</h2>
       <p>Real tasks from real shops, each about ten minutes to try. Every slip ends with a prompt you can steal: copy it, paste it, see what comes back.</p>
     </div>
     <ul class="slips">

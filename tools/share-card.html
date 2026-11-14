@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Share card &middot; The AI Homebrew Club</title>
+<meta name="robots" content="noindex">
+<style>
+  /* The source of share-card.png, the picture every link preview shows (1200 x 630): the 1940
+     scrap across the top, the shout on the charcoal band, where to go. Evergreen: no date, no town.
+     Render it with the site served from the repo root:
+       chrome --headless=new --hide-scrollbars --window-size=1200,630 --screenshot=share-card.png
+         http://localhost:8000/tools/share-card.html */
+  @font-face{font-family:'Epilogue';font-style:normal;font-weight:100 900;src:url(../assets/fonts/epilogue.woff2) format('woff2')}
+  html,body{margin:0}
+  .sc{position:relative; width:1200px; height:630px; overflow:hidden; background:#191919; color:#F2F2EF; font-family:'Epilogue','Helvetica Neue',Arial,sans-serif}
+  .sc .pic{position:absolute; left:0; top:0; width:1200px; height:330px; overflow:hidden}
+  .sc .pic img{position:absolute; left:-309px; top:-272px; width:1540px; height:auto; display:block}
+  .sc .shout{position:absolute; left:54px; top:352px; margin:0; font-weight:900; font-size:80px; line-height:1; letter-spacing:-.04em; white-space:nowrap}
+  .sc .lede{position:absolute; left:56px; top:456px; margin:0; font-weight:400; font-size:28px; line-height:1.35; max-width:1090px}
+  .sc .go{position:absolute; left:56px; bottom:20px; width:520px; height:54px; background:#3E7B5C; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:500; font-size:26px}
+  .sc .credit{position:absolute; right:50px; bottom:26px; font-size:15px; color:#9A9A9A}
+</style>
+</head>
+<body>
+<div class="sc">
+  <div class="pic"><img src="../assets/caribou-maine.jpg" alt=""></div>
+  <p class="shout">AI for your everyday life</p>
+  <p class="lede">Neighbors teaching neighbors to put AI to work. A free class in Maine.<br>No tickets, no vendors.</p>
+  <div class="go">aihomebrewclub.com</div>
+  <div class="credit">Photograph: Jack Delano, Caribou, Maine, 1940. Library of Congress.</div>
+</div>
+</body>
+</html>
