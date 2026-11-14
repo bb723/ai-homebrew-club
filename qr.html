@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>AI Homebrew</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#F2F2EF">
+<!-- Add to Home Screen: it opens like an app and the phone's search finds it by this name -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="AI Homebrew">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="assets/touch-icon.png">
+<link rel="manifest" href="qr.webmanifest">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="assets/fonts/epilogue.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+  /* The code in your pocket: one page that is nothing but a QR to hold up. It opens on the
+     sign-up page (join the club), or on the next table's seat page for a town. Put it on the
+     phone's Home Screen and it opens like an app, full screen, and works with no signal
+     (qr-sw.js keeps a copy). Links are tagged ref=phone so the book shows who came in this way.
+     The street poster, phone-sized: paper, the shout, the charcoal band. */
+  @font-face{font-family:'Epilogue';font-style:normal;font-weight:100 900;font-display:swap;src:url(assets/fonts/epilogue.woff2) format('woff2')}
+  :root{--paper:#F2F2EF; --ink:#1B1B1B; --band:#191919; --quiet:#6E6E69}
+  *{box-sizing:border-box}
+  html,body{margin:0; height:100%; background:var(--paper); color:var(--ink); font-family:'Epilogue','Helvetica Neue',Arial,sans-serif; -webkit-text-size-adjust:100%}
+  body{display:flex; flex-direction:column; min-height:100svh}
+  .field{flex:1 1 auto; display:flex; flex-direction:column; align-items:center; padding:calc(env(safe-area-inset-top) + 18px) 20px 18px; min-height:0}
+  .word{align-self:flex-start; font-weight:800; font-size:17px; letter-spacing:-.02em; color:var(--ink); text-decoration:none}
+  .shout{align-self:flex-start; margin:14px 0 0 -.03em; font-weight:900; font-size:clamp(44px,15vw,84px); line-height:.86; letter-spacing:-.045em}
+  .code{flex:1 1 auto; display:flex; align-items:center; justify-content:center; width:100%; min-height:0; padding:14px 0}
+  .qr{width:min(100%, 58svh, 520px); aspect-ratio:1; background:#fff; padding:5%; line-height:0}
+  .qr svg{width:100%; height:100%; display:block}
+  .what{margin:0; font-weight:600; font-size:17px; line-height:1.3; text-align:center}
+  .what small{display:block; margin-top:2px; font-weight:500; font-size:14px; color:var(--quiet)}
+  .band{flex:none; background:var(--band); color:#fff; padding:14px 16px calc(env(safe-area-inset-bottom) + 14px)}
+  .picks{display:flex; gap:8px}
+  .picks button{flex:1 1 0; min-width:0; min-height:48px; padding:8px 6px; border:1.5px solid #F2F2EF; background:transparent; color:#fff; font:inherit; font-weight:700; font-size:15px; line-height:1.15; cursor:pointer; border-radius:0}
+  .picks button[aria-pressed="true"]{background:#F2F2EF; color:var(--ink)}
+  .picks button small{display:block; font-weight:500; font-size:12px; opacity:.85}
+  .picks button:focus-visible{outline:3px solid #3E7B5C; outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="field">
+  <a class="word" href="index.html?ref=phone">The AI Homebrew Club</a>
+  <h1 class="shout" id="shout">Scan<br>to join</h1>
+  <div class="code"><div class="qr" id="qr" role="img" aria-label="QR code"></div></div>
+  <p class="what" id="what">Opens the sign-up page<small>aihomebrewclub.com/signup</small></p>
+</div>
+<div class="band">
+  <div class="picks" id="picks" role="group" aria-label="What the code opens">
+    <button type="button" data-pick="join" aria-pressed="true">Join the club</button>
+  </div>
+</div>
+
+<script src="assets/qrlib.js"></script>
+<script src="assets/config.js?v=6"></script>
+<script>
+(function(){
+  'use strict';
+  var CFG = window.AIHC_CONFIG || {};
+  var SITE = 'https://aihomebrewclub.com/';
+  var PICK_KEY = 'aihc_qr_pick_v1', EVENTS_KEY = 'aihc_qr_events_v1';
+  var $ = function(id){ return document.getElementById(id); };
+  function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function store(k, v){ try{ if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch(e){ return null; } }
+
+  /* what the code can open: the club's door always, and each town's next table when the calendar answers */
+  var picks = { join: { label: 'Join', sub: 'the club', shout: 'Scan<br>to join', url: SITE + 'signup.html?ref=phone',
+                        what: 'Opens the sign-up page', small: 'aihomebrewclub.com/signup' } };
+  var order = ['join'];
+
+  function qrSvg(url){
+    var qr = qrcode(0, 'M');
+    qr.addData(url);
+    qr.make();
+    return qr.createSvgTag({cellSize: 4, margin: 0, scalable: true})
+      .replace(/#000000|black/gi, '#1B1B1B').replace(/#ffffff|white/gi, '#FFFFFF');
+  }
+  function show(key){
+    var p = picks[key] || picks.join;
+    if (!picks[key]) key = 'join';
+    $('shout').innerHTML = p.shout;
+    $('qr').innerHTML = qrSvg(p.url);
+    $('what').innerHTML = esc(p.what) + '<small>' + esc(p.small) + '</small>';
+    Array.prototype.forEach.call($('picks').querySelectorAll('button'), function(b){
+      b.setAttribute('aria-pressed', b.getAttribute('data-pick') === key ? 'true' : 'false');
+    });
+    store(PICK_KEY, key);
+  }
+  function paintPicks(){
+    $('picks').innerHTML = order.map(function(k){
+      var p = picks[k];
+      return '<button type="button" data-pick="' + esc(k) + '" aria-pressed="false">' + esc(p.label) +
+        (p.sub ? '<small>' + esc(p.sub) + '</small>' : '') + '</button>';
+    }).join('');
+    show(picks[store(PICK_KEY)] ? store(PICK_KEY) : 'join');
+  }
+  $('picks').addEventListener('click', function(e){
+    var b = e.target.closest('button[data-pick]');
+    if (b) show(b.getAttribute('data-pick'));
+  });
+
+  /* each town's next table, from the calendar; the last answer is kept for when there is no signal */
+  function useEvents(list){
+    var today = new Date(Date.now() - 4 * 3600000).toISOString().slice(0, 10);
+    var towns = CFG.CITY_POINTS || {};
+    order = ['join'];
+    Object.keys(towns).forEach(function(city){
+      var next = (list || []).filter(function(e){ return e.city === city && e.status === 'upcoming' && e.sort_date >= today; })
+        .sort(function(a, b){ return a.sort_date < b.sort_date ? -1 : 1; })[0];
+      if (!next) return;
+      var day = String(next.when || '').replace(/^[A-Za-z]+,\s*/, '');
+      picks[city] = { label: towns[city].label, sub: day, shout: 'Save<br>a seat',
+        url: SITE + 'rsvp.html?event=' + encodeURIComponent(next.id) + '&ref=phone',
+        what: 'Saves a seat: ' + next.when + ', ' + towns[city].label, small: next.title };
+      order.push(city);
+    });
+    paintPicks();
+  }
+  paintPicks();
+  try{ var kept = JSON.parse(store(EVENTS_KEY) || 'null'); if (kept) useEvents(kept); } catch(e){}
+  if (CFG.API_BASE && window.fetch){
+    fetch(CFG.API_BASE + '/events').then(function(r){ return r.json(); }).then(function(d){
+      if (!d || !d.events) return;
+      var slim = d.events.map(function(e){ return { id: e.id, city: e.city, title: e.title, when: e.when, sort_date: e.sort_date, status: e.status }; });
+      store(EVENTS_KEY, JSON.stringify(slim));
+      useEvents(slim);
+    }).catch(function(){});
+  }
+
+  /* keep the screen on while someone is scanning, where the phone allows it */
+  function awake(){ try{ if (navigator.wakeLock && document.visibilityState === 'visible') navigator.wakeLock.request('screen').catch(function(){}); } catch(e){} }
+  awake();
+  document.addEventListener('visibilitychange', awake);
+
+  /* a copy for when the room has no signal: only this page and what it loads */
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')){
+    navigator.serviceWorker.register('qr-sw.js', { scope: './qr' }).catch(function(){});
+  }
+})();
+</script>
+</body>
+</html>

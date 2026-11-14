@@ -1,0 +1,14 @@
+{
+  "name": "AI Homebrew",
+  "short_name": "AI Homebrew",
+  "description": "The AI Homebrew Club's QR code, ready to hold up.",
+  "start_url": "qr.html",
+  "scope": "qr",
+  "display": "standalone",
+  "background_color": "#F2F2EF",
+  "theme_color": "#F2F2EF",
+  "icons": [
+    { "src": "assets/touch-icon.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "assets/touch-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
