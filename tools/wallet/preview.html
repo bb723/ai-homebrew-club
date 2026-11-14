@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Wallet pass preview &middot; The AI Homebrew Club</title>
+<meta name="robots" content="noindex">
+<style>
+  /* An approximation of how the pass sits in Apple Wallet, to judge the art before signing.
+     Wallet sets the field text in its own system face; only the strip and the logo are ours.
+     ?who=Name changes the name. */
+  html,body{margin:0; background:#E9E9E6; font-family:-apple-system,'SF Pro Text','Helvetica Neue',Arial,sans-serif}
+  .wrap{padding:28px; display:flex; justify-content:center}
+  .pass{width:375px; background:#191919; color:#fff; border-radius:14px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,.25)}
+  .head{height:50px; padding:8px 14px 6px; display:flex; align-items:center}
+  .head img{height:50px; display:block}
+  .strip{display:block; width:375px; height:123px}
+  .fields{padding:12px 14px 4px}
+  .row{display:flex; justify-content:space-between; gap:14px; margin-bottom:12px}
+  .f .l{font-size:11px; font-weight:600; letter-spacing:.04em; color:#B9B9B4}
+  .f .v{font-size:17px; margin-top:2px}
+  .row.aux .f .v{font-size:14px}
+  .row.aux .f:last-child{text-align:right}
+  .code{display:flex; flex-direction:column; align-items:center; padding:26px 0 22px}
+  .tile{background:#fff; border-radius:8px; padding:12px 12px 8px; color:#1B1B1B; text-align:center}
+  .tile .qr{width:150px; height:150px; line-height:0}
+  .tile .qr svg{width:100%; height:100%}
+  .tile .alt{font-size:11px; margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="pass" id="pass">
+    <div class="head"><img src="art/logo@3x.png" alt="The AI Homebrew Club"></div>
+    <img class="strip" src="art/strip@3x.png" alt="AI for your everyday life">
+    <div class="fields">
+      <div class="row"><div class="f"><div class="l">NEIGHBORS TEACHING NEIGHBORS</div><div class="v" id="who">Brett Brockway</div></div></div>
+      <div class="row aux">
+        <div class="f"><div class="l">WHERE</div><div class="v">Waterville &middot; Portland, Maine</div></div>
+        <div class="f"><div class="l">COST</div><div class="v">Free, no vendors</div></div>
+      </div>
+    </div>
+    <div class="code"><div class="tile"><div class="qr" id="qr"></div><div class="alt">aihomebrewclub.com/signup</div></div></div>
+  </div>
+</div>
+<script src="../../assets/qrlib.js"></script>
+<script>
+  var q = new URLSearchParams(location.search);
+  if (q.get('who')) document.getElementById('who').textContent = q.get('who').slice(0, 40);
+  var qr = qrcode(0, 'M');
+  qr.addData('https://aihomebrewclub.com/signup.html?ref=wallet');
+  qr.make();
+  document.getElementById('qr').innerHTML = qr.createSvgTag({cellSize: 4, margin: 0, scalable: true});
+</script>
+</body>
+</html>
